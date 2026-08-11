@@ -6,7 +6,7 @@
 
 A production-style Streamlit capstone that turns e-commerce files into secure, filter-aware dashboards, natural-language analytics, advanced analysis, and downloadable reports. It works immediately without an API key and upgrades to real-time Gemini planning when a free Gemini API key is configured.
 
-![AI-Powered E-Commerce Analytics dashboard showing the executive overview, global filters, and KPI cards](docs/assets/dashboard-overview.png)
+![AI-Powered E-Commerce Analytics dashboard showing the responsive executive overview, secure global filters, and interactive workspace](docs/assets/dashboard-overview.jpg)
 
 ## What it does
 
@@ -16,7 +16,7 @@ A production-style Streamlit capstone that turns e-commerce files into secure, f
 - Queries data through DuckDB with parameterized filters, row limits, timing, and a 10-second interrupt guard.
 - Answers questions through a guided AI workspace using Gemini 3.6 Flash structured output, with smart prompts, verified follow-ups, visible safety evidence, and a deterministic private fallback.
 - Parses generated SQL with sqlglot and accepts only one read-only `SELECT`/`WITH` query on the registered `dataset` table.
-- Includes six application sections, eight Plotly visualization families, anomaly detection, subset comparison, and Word/PDF/PNG/SVG export.
+- Includes six application sections, nine Plotly visualization families—including a WebGL 3D insight space—anomaly detection, subset comparison, and Word/PDF/PNG/SVG export.
 - Displays pipeline stages, the validated query, timing, retry/fallback status, and verified evidence—never hidden reasoning.
 
 ## Why Gemini 3.6 Flash
@@ -75,7 +75,7 @@ ai_ecommerce_analytics/
 |   `-- ui/                   # Six Streamlit sections and shared theme
 |-- tests/                    # Unit, security, export, and app tests
 |-- benchmarks/               # Ten-question measured benchmark runner
-|-- docs/                     # Architecture, security, model, deployment
+|-- docs/                     # Architecture, security, production hardening
 |-- reports/                  # Academic report and presentation assets
 |-- .github/                  # Issue and pull-request templates
 |-- docs/github-actions-ci.yml # CI workflow template (activation-ready)
@@ -102,6 +102,8 @@ python benchmarks/benchmark_runner.py --provider gemini --dataset data/raw/globa
 ## Deployment
 
 The repository is prepared for Streamlit Community Cloud (`app.py`, `runtime.txt`, `packages.txt`, and pinned requirements) and Docker. Follow [docs/deployment.md](docs/deployment.md) for GitHub, secrets, deployment, health checks, and troubleshooting.
+
+Cross-browser behavior, responsive breakpoints, accessibility controls, performance budgets, container hardening, and scaling guidance are documented in [docs/production_hardening.md](docs/production_hardening.md).
 
 ```powershell
 docker build -t ai-ecommerce-analytics .

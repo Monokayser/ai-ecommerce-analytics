@@ -24,6 +24,17 @@ def test_offline_planner_ranks_region(ecommerce_frame):
     assert result.data.iloc[0]["Region"] == "West"
 
 
+def test_offline_planner_understands_full_ranking_direction(ecommerce_frame):
+    generated = OfflineQueryPlanner(ecommerce_frame).plan("Show total sales by region from highest to lowest")
+
+    assert 'ORDER BY "Total Sales" DESC' in generated.query
+    assert "LIMIT 1000" in generated.query
+    assert "top 1" not in generated.filters_used
+    result = QueryEngine(ecommerce_frame).execute(generated.query)
+    assert len(result.data) == 4
+    assert result.data.iloc[0]["Region"] == "West"
+
+
 def test_offline_planner_builds_monthly_trend(ecommerce_frame):
     generated = OfflineQueryPlanner(ecommerce_frame).plan("Show monthly sales and profit trends.")
     assert generated.recommended_chart == "line"

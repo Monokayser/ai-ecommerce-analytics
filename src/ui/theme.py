@@ -34,8 +34,15 @@ APP_CSS = r"""
         --glass-shadow: 0 26px 72px rgba(0, 0, 0, .42), inset 0 1px 0 rgba(255, 255, 255, .08);
     }
 
-    html { color-scheme: dark; }
+    html { color-scheme: dark; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    html, body, .stApp, button, input, textarea, select {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, Helvetica, sans-serif !important;
+        font-synthesis: none;
+    }
+    body { margin: 0; }
+    ::selection { color: #031019; background: #7de5ff; }
     .stApp {
+        min-height: 100vh;
         color: var(--text);
         background:
             radial-gradient(circle at 76% -8%, rgba(33, 147, 255, .22), transparent 24rem),
@@ -56,7 +63,7 @@ APP_CSS = r"""
         filter: blur(14px);
     }
     [data-testid="stAppViewContainer"], [data-testid="stMain"] { background: transparent; }
-    [data-testid="stHeader"] { background: rgba(5, 8, 14, .38); backdrop-filter: blur(18px); }
+    [data-testid="stHeader"] { background: rgba(5, 8, 14, .38); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
     [data-testid="stToolbar"] { color: var(--muted); }
     .block-container { position: relative; z-index: 1; max-width: 1480px; padding-top: 1.35rem; padding-bottom: 5rem; }
 
@@ -64,8 +71,26 @@ APP_CSS = r"""
     h1, h2, h3 { letter-spacing: -.035em; }
     h2 { margin-top: .3rem; }
     small, .stCaption, [data-testid="stCaptionContainer"] p { color: var(--muted) !important; }
-    a { color: var(--cyan); }
+    a { color: var(--cyan); text-underline-offset: .18em; }
+    a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
+        outline: 3px solid rgba(98, 220, 255, .72) !important;
+        outline-offset: 3px !important;
+    }
     hr { border-color: var(--line) !important; }
+    .skip-link {
+        position: fixed;
+        z-index: 999999;
+        top: .5rem;
+        left: .5rem;
+        transform: translateY(-160%);
+        padding: .7rem 1rem;
+        border-radius: 12px;
+        color: #031019;
+        background: #89e7ff;
+        font-weight: 800;
+        transition: transform .16s ease;
+    }
+    .skip-link:focus { transform: translateY(0); }
 
     /* Sidebar */
     [data-testid="stSidebar"] {
@@ -121,7 +146,7 @@ APP_CSS = r"""
 
     /* Buttons */
     .stButton > button, .stDownloadButton > button, [data-testid="stBaseButton-secondary"] {
-        min-height: 2.75rem;
+        min-height: 44px;
         border: 1px solid rgba(133, 215, 255, .34) !important;
         border-radius: 999px !important;
         color: #ecfaff !important;
@@ -230,6 +255,7 @@ APP_CSS = r"""
             radial-gradient(circle at 75% 4%, rgba(38, 133, 220, .23), transparent 33%),
             linear-gradient(135deg, rgba(7, 21, 37, .96), rgba(9, 41, 68, .91));
         box-shadow: 0 28px 80px rgba(0, 0, 0, .46), 0 0 50px rgba(42, 170, 235, .12), inset 0 1px 0 rgba(255, 255, 255, .1);
+        -webkit-backdrop-filter: blur(24px) saturate(130%);
         backdrop-filter: blur(24px) saturate(130%);
     }
     .app-hero::before {
@@ -275,6 +301,7 @@ APP_CSS = r"""
         color: #eaf9ff;
         font-size: .76rem;
         font-weight: 700;
+        -webkit-backdrop-filter: blur(12px);
         backdrop-filter: blur(12px);
     }
     .status-dot { width: .48rem; height: .48rem; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px rgba(85, 230, 165, .11), 0 0 13px rgba(85, 230, 165, .7); }
@@ -337,7 +364,8 @@ APP_CSS = r"""
         background: radial-gradient(circle at 96% 110%, rgba(89, 213, 255, .25), transparent 23%), linear-gradient(135deg, rgba(9, 32, 53, .92), rgba(10, 45, 72, .72));
         box-shadow: var(--glass-shadow);
     }
-    .mode-orb { width:46px; height:46px; display:grid; place-items:center; border-radius:16px; background:linear-gradient(145deg,#5fe2ff,#277dc2); color:#02111c; font-size:1.25rem; box-shadow:0 0 30px rgba(77,202,255,.35); }
+    .mode-orb { position:relative; width:46px; height:46px; display:grid; place-items:center; border-radius:16px; background:linear-gradient(145deg,#5fe2ff,#277dc2); color:#02111c; font-size:1.25rem; box-shadow:0 0 30px rgba(77,202,255,.35); transform-style:preserve-3d; }
+    .mode-orb::after { content:""; position:absolute; inset:5px; border:1px solid rgba(255,255,255,.38); border-radius:12px; transform:translateZ(8px); }
     .mode-card strong { color: #f5fbff; font-size: .95rem; }
     .mode-card span { color: #9eb4c7; font-size: .82rem; line-height: 1.45; }
     .mode-meta { display:flex; flex-wrap:wrap; gap:.45rem; margin-top:.55rem; }
@@ -367,15 +395,52 @@ APP_CSS = r"""
     }
     .empty-icon { display:block; margin-bottom:.4rem; color:#6edfff; font-size:1.45rem; }
 
-    @keyframes softFloat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-3px); } }
+    @keyframes softFloat { 0%,100% { transform:translate3d(0,0,0) rotateX(0); } 50% { transform:translate3d(0,-3px,8px) rotateX(4deg); } }
     .mode-orb, .sidebar-mark { animation: softFloat 4s ease-in-out infinite; }
+    @media (hover: hover) and (pointer: fine) {
+        [data-testid="stMetric"], .mode-card, .answer-card, [data-testid="stPlotlyChart"] {
+            transform: perspective(900px) translateZ(0);
+            transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+        }
+        [data-testid="stMetric"]:hover, .mode-card:hover, .answer-card:hover {
+            transform: perspective(900px) translateY(-3px) translateZ(6px) rotateX(1deg);
+            border-color: rgba(137, 223, 255, .42);
+            box-shadow: 0 30px 80px rgba(0,0,0,.46), 0 0 34px rgba(42,170,235,.09), inset 0 1px 0 rgba(255,255,255,.1);
+        }
+    }
+    @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+        [data-testid="stHeader"], .app-hero, .hero-pill { background-color: #0a2034; }
+        .mode-card, .answer-card, [data-testid="stMetric"] { background-color: #0b2237; }
+    }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; } }
+    @media (forced-colors: active) {
+        .app-hero, .mode-card, .answer-card, [data-testid="stMetric"], [data-testid="stPlotlyChart"] { border: 1px solid CanvasText; }
+        .status-dot { background: Highlight; box-shadow: none; }
+    }
+    @media (max-width: 1200px) {
+        .block-container { max-width: 100%; padding-left: 1rem; padding-right: 1rem; }
+        .app-title { font-size: clamp(1.9rem, 4.4vw, 3rem); }
+    }
     @media (max-width: 900px) {
         .block-container { padding: .85rem .75rem 3rem; }
         .app-hero { padding: 1.3rem; border-radius: 23px; }
         .app-hero::after { display: none; }
         [data-testid="stMetric"] { min-height: 105px; border-radius: 18px; }
         .section-shell { padding: 1rem; }
+        [data-testid="stTabs"] [role="tablist"] { border-radius: 16px; }
+        [data-testid="stTabs"] button[role="tab"] { min-width: max-content; }
+    }
+    @media (max-width: 640px) {
+        .block-container { padding-left: .55rem; padding-right: .55rem; }
+        .app-hero { padding: 1.15rem; border-radius: 20px; }
+        .app-title { font-size: clamp(1.85rem, 10vw, 2.55rem); line-height: 1.05; overflow-wrap: anywhere; }
+        .app-subtitle { font-size: .9rem; }
+        .hero-pill { font-size: .7rem; padding: .36rem .6rem; }
+        .mode-card { grid-template-columns: 1fr; }
+        .mode-orb { width: 42px; height: 42px; }
+        .answer-card { padding: 1rem; border-radius: 20px; }
+        [data-testid="stDataFrame"], [data-testid="stPlotlyChart"] { border-radius: 18px; }
+        .stButton > button, .stDownloadButton > button { width: 100%; min-height: 46px; }
     }
 </style>
 """
@@ -383,6 +448,7 @@ APP_CSS = r"""
 
 def inject_theme() -> None:
     st.markdown(APP_CSS, unsafe_allow_html=True)
+    st.markdown('<a class="skip-link" href="#main-content">Skip to main content</a>', unsafe_allow_html=True)
 
 
 def render_sidebar_brand() -> None:
@@ -396,20 +462,20 @@ def render_app_header(bundle: DatasetBundle, active_rows: int, settings: Setting
     source = "Demo dataset" if bundle.metadata.is_demo else "Uploaded dataset"
     readiness = "Presentation ready" if bundle.metadata.official_demo_ready else "Development mode"
     st.markdown(
-        f"""<section class="app-hero" aria-label="Application summary"><div class="app-eyebrow">AI decision intelligence</div><h1 class="app-title">{escape(settings.app_name)}</h1><p class="app-subtitle">Turn raw transactions into interactive evidence. Explore the business, ask questions in natural language, validate every query, and export decision-ready findings.</p><div class="hero-pills"><span class="hero-pill"><span class="status-dot"></span>{escape(pipeline.mode_label)} · {escape(pipeline.model_label)}</span><span class="hero-pill">{source}</span><span class="hero-pill">{active_rows:,} active rows</span><span class="hero-pill">{bundle.metadata.columns} source columns</span><span class="hero-pill">{readiness}</span></div></section>""",
+        f"""<section id="main-content" tabindex="-1" class="app-hero" aria-label="Application summary"><div class="app-eyebrow">AI decision intelligence</div><h1 class="app-title">{escape(settings.app_name)}</h1><p class="app-subtitle">Turn raw transactions into interactive evidence. Explore the business, ask questions in natural language, validate every query, and export decision-ready findings.</p><div class="hero-pills"><span class="hero-pill"><span class="status-dot"></span>{escape(pipeline.mode_label)} · {escape(pipeline.model_label)}</span><span class="hero-pill">{source}</span><span class="hero-pill">{active_rows:,} active rows</span><span class="hero-pill">{bundle.metadata.columns} source columns</span><span class="hero-pill">{readiness}</span></div></section>""",
         unsafe_allow_html=True,
     )
 
 
 def render_filter_pills(filters: dict[str, Any]) -> None:
     if not filters:
-        st.markdown('<div class="scope-note"><span class="status-dot"></span>All records are in scope · refine the view with global filters</div>', unsafe_allow_html=True)
+        st.markdown('<div class="scope-note" aria-live="polite"><span class="status-dot"></span>All records are in scope · refine the view with global filters</div>', unsafe_allow_html=True)
         return
     chips = []
     for key, value in filters.items():
         display = ", ".join(map(str, value)) if isinstance(value, list) else " → ".join(map(str, value)) if isinstance(value, tuple) else str(value)
         chips.append(f'<span class="filter-pill">{escape(key)}: {escape(display)}</span>')
-    st.markdown('<div class="filter-pills" aria-label="Active filters">' + "".join(chips) + "</div>", unsafe_allow_html=True)
+    st.markdown('<div class="filter-pills" aria-label="Active filters" aria-live="polite">' + "".join(chips) + "</div>", unsafe_allow_html=True)
 
 
 def render_section_intro(kicker: str, title: str, description: str) -> None:

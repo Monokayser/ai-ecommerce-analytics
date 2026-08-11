@@ -45,4 +45,5 @@ def validate_sql(sql: str, *, allowed_table: str = "dataset", max_rows: int = 10
         if name in FORBIDDEN_FUNCTIONS:
             raise UnsafeQueryError(f"Function '{name}' is prohibited.")
     normalized = statement.sql(dialect="duckdb")
-    return f"SELECT * FROM ({normalized}) AS safe_result LIMIT {int(max_rows)}"
+    # The inner statement has passed sqlglot AST validation and max_rows is an integer.
+    return f"SELECT * FROM ({normalized}) AS safe_result LIMIT {int(max_rows)}"  # nosec B608

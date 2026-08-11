@@ -79,7 +79,8 @@ class QueryEngine:
             elif item.operator == "lte":
                 conditions.append(f"{column} <= ?")
                 params.append(item.value)
-        sql = "SELECT " + ", ".join(select_parts) + " FROM dataset"
+        # Identifiers are allowlisted against DataFrame columns and quoted; values use parameters.
+        sql = "SELECT " + ", ".join(select_parts) + " FROM dataset"  # nosec B608
         if conditions:
             sql += " WHERE " + " AND ".join(conditions)
         if request.group_by:

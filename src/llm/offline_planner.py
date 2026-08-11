@@ -100,7 +100,7 @@ class OfflineQueryPlanner:
             grain = "year" if "year" in normalized and "month" not in normalized else "month"
             select = [f"DATE_TRUNC('{grain}', {quote_identifier('Order Date')}) AS Period"]
             select.extend(f"SUM({quote_identifier(column)}) AS {quote_identifier('Total ' + column)}" for column in measures)
-            sql = f"SELECT {', '.join(select)} FROM dataset WHERE {quote_identifier('Order Date')} IS NOT NULL GROUP BY 1 ORDER BY 1"
+            sql = f"SELECT {', '.join(select)} FROM dataset WHERE {quote_identifier('Order Date')} IS NOT NULL GROUP BY 1 ORDER BY 1"  # nosec B608
             return GeneratedQuery(
                 interpreted_question=f"Show the {grain}ly trend for {', '.join(measures)}.",
                 query=sql,
@@ -117,7 +117,7 @@ class OfflineQueryPlanner:
             if len(numeric) >= 2:
                 first, second = numeric[:2]
                 sql = (
-                    f"SELECT {quote_identifier(first)}, {quote_identifier(second)} FROM dataset "
+                    f"SELECT {quote_identifier(first)}, {quote_identifier(second)} FROM dataset "  # nosec B608
                     f"WHERE {quote_identifier(first)} IS NOT NULL AND {quote_identifier(second)} IS NOT NULL"
                 )
                 return GeneratedQuery(
@@ -133,7 +133,7 @@ class OfflineQueryPlanner:
             identifiers = [column for column in ("Order ID", "Region", "Product Category") if column in self.columns]
             selected = [*identifiers, "Discount", "Profit"]
             sql = (
-                f"SELECT {', '.join(quote_identifier(column) for column in selected)} FROM dataset "
+                f"SELECT {', '.join(quote_identifier(column) for column in selected)} FROM dataset "  # nosec B608
                 f"WHERE {quote_identifier('Profit')} < 0 AND {quote_identifier('Discount')} >= "
                 f"(SELECT QUANTILE_CONT({quote_identifier('Discount')}, 0.75) FROM dataset) "
                 f"ORDER BY {quote_identifier('Discount')} DESC, {quote_identifier('Profit')} ASC"
@@ -163,7 +163,7 @@ class OfflineQueryPlanner:
             if "loss" in normalized and metric == "Profit":
                 alias = "Total Profit"
                 sql = (
-                    f"SELECT {q_dimension}, SUM({q_metric}) AS {quote_identifier(alias)} FROM dataset "
+                    f"SELECT {q_dimension}, SUM({q_metric}) AS {quote_identifier(alias)} FROM dataset "  # nosec B608
                     f"WHERE {' AND '.join(where_parts)} GROUP BY {q_dimension} HAVING SUM({q_metric}) < 0 "
                     f"ORDER BY {quote_identifier(alias)} ASC"
                 )
@@ -172,7 +172,7 @@ class OfflineQueryPlanner:
             elif "average order value" in normalized and self._has("Sales", "Order ID"):
                 alias = "Average Order Value"
                 sql = (
-                    f"SELECT {q_dimension}, SUM({quote_identifier('Sales')}) / NULLIF(COUNT(DISTINCT {quote_identifier('Order ID')}), 0) "
+                    f"SELECT {q_dimension}, SUM({quote_identifier('Sales')}) / NULLIF(COUNT(DISTINCT {quote_identifier('Order ID')}), 0) "  # nosec B608
                     f"AS {quote_identifier(alias)} FROM dataset WHERE {' AND '.join(where_parts)} GROUP BY {q_dimension} "
                     f"ORDER BY {quote_identifier(alias)} DESC"
                 )
@@ -181,12 +181,27 @@ class OfflineQueryPlanner:
             else:
                 function = "AVG" if any(term in normalized for term in ("average", "mean")) else "SUM"
                 alias = ("Average " if function == "AVG" else "Total ") + metric
-                descending = not any(term in normalized for term in ("lowest", "bottom", "least", "worst"))
+                descending_range = any(
+                    term in normalized
+                    for term in ("highest to lowest", "high to low", "largest to smallest", "most to least", "descending")
+                )
+                ascending_range = any(
+                    term in normalized
+                    for term in ("lowest to highest", "low to high", "smallest to largest", "least to most", "ascending")
+                )
+                descending = descending_range or (
+                    not ascending_range and not any(term in normalized for term in ("lowest", "bottom", "least", "worst"))
+                )
                 order = "DESC" if descending else "ASC"
-                default_n = 1 if any(term in normalized for term in ("highest", "lowest")) else 10
-                limit = _top_n(normalized, default=default_n) if any(term in normalized for term in ("top", "bottom", "highest", "lowest", "most", "least")) else self.max_rows
+                if descending_range or ascending_range:
+                    limit = self.max_rows
+                elif any(term in normalized for term in ("top", "bottom", "highest", "lowest", "most", "least")):
+                    default_n = 1 if any(term in normalized for term in ("highest", "lowest", "most", "least")) else 10
+                    limit = _top_n(normalized, default=default_n)
+                else:
+                    limit = self.max_rows
                 sql = (
-                    f"SELECT {q_dimension}, {function}({q_metric}) AS {quote_identifier(alias)} FROM dataset "
+                    f"SELECT {q_dimension}, {function}({q_metric}) AS {quote_identifier(alias)} FROM dataset "  # nosec B608
                     f"WHERE {' AND '.join(where_parts)} GROUP BY {q_dimension} ORDER BY {quote_identifier(alias)} {order} LIMIT {limit}"
                 )
                 aggregation = function
@@ -211,7 +226,7 @@ class OfflineQueryPlanner:
             select.append(f"AVG({quote_identifier('Discount')}) AS {quote_identifier('Average Discount')}")
         return GeneratedQuery(
             interpreted_question="Summarize the active dataset using core business metrics.",
-            query=f"SELECT {', '.join(select)} FROM dataset",
+            query=f"SELECT {', '.join(select)} FROM dataset",  # nosec B608
             columns_used=(["Order ID"] if "Order ID" in self.columns else []) + measures,
             aggregation="SUMMARY",
             recommended_chart="table",

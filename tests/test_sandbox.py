@@ -18,6 +18,9 @@ def test_valid_select_and_cte_accepted():
     "DROP TABLE dataset", "DELETE FROM dataset", "UPDATE dataset SET Sales=0", "INSERT INTO dataset VALUES (1)",
     "SELECT * FROM dataset; SELECT 1", "COPY dataset TO 'x.csv'", "SELECT * FROM read_csv_auto('secret.csv')",
     "SELECT * FROM other_table", "ATTACH 'secret.db' AS x", "INSTALL httpfs", "PRAGMA version",
+    "SELECT * FROM dataset WHERE EXISTS (SELECT 1 FROM read_parquet('secret.parquet'))",
+    "SELECT * FROM dataset JOIN sqlite_scan('secret.db', 'users') AS users ON TRUE",
+    "EXPORT DATABASE 'backup'", "CALL load_extension('httpfs')",
 ])
 def test_unsafe_sql_rejected(sql):
     with pytest.raises(UnsafeQueryError):

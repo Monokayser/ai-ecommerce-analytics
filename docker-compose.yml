@@ -2,6 +2,14 @@ services:
   app:
     build: .
     ports: ["8501:8501"]
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=256m
+      - /home/appuser/.cache:rw,noexec,nosuid,size=256m
+      - /home/appuser/.config:rw,noexec,nosuid,size=32m
     environment:
       LLM_PROVIDER: ollama
       OLLAMA_BASE_URL: http://ollama:11434/v1
@@ -9,6 +17,8 @@ services:
     depends_on: [ollama]
   ollama:
     image: ollama/ollama:latest
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
     volumes: ["ollama_data:/root/.ollama"]
 volumes:
   ollama_data:

@@ -7,18 +7,18 @@ import streamlit as st
 
 from src.ui.components import active_filter_text, render_empty
 from src.ui.theme import render_section_intro
-from src.visualization.charts import animated_chart, correlation_chart, distribution_chart, geographic_chart, grouped_bar_chart, hierarchy_chart, scatter_chart, time_series_chart
+from src.visualization.charts import animated_chart, correlation_chart, distribution_chart, geographic_chart, grouped_bar_chart, hierarchy_chart, scatter_chart, three_dimensional_chart, time_series_chart
 
 
 def render(frame: pd.DataFrame, filters: dict) -> None:
     """Render the complete visualization suite with feature gates."""
-    render_section_intro("Explore patterns", "Data Exploration", "Eight linked interactive views; every chart uses the global filters.")
+    render_section_intro("Explore patterns", "Data Exploration", "Nine linked interactive views—including a WebGL 3D insight space—respond to the same global filters.")
     if frame.empty:
         render_empty("No rows are available for exploration.")
         return
     context = active_filter_text(filters)
     st.caption("Switch views instantly; hover, zoom, select, and download directly from each chart toolbar.")
-    tabs = st.tabs(["⌁ Trend", "◎ Geography", "▦ Correlation", "◇ Distribution", "◫ Hierarchy", "▥ Grouped Bar", "↗ Relationship", "▶ Animation"])
+    tabs = st.tabs(["⌁ Trend", "◎ Geography", "▦ Correlation", "◇ Distribution", "◫ Hierarchy", "▥ Grouped Bar", "↗ Relationship", "◈ 3D Space", "▶ Animation"])
     with tabs[0]:
         if {"Order Date", "Sales"}.issubset(frame): st.plotly_chart(time_series_chart(frame, context), use_container_width=True)
         else: render_empty("Order Date and Sales are required for this chart.")
@@ -47,5 +47,11 @@ def render(frame: pd.DataFrame, filters: dict) -> None:
         if {"Discount", "Profit"}.issubset(frame): st.plotly_chart(scatter_chart(frame, context=context), use_container_width=True)
         else: render_empty("Discount and Profit are required.")
     with tabs[7]:
+        supported_3d = [column for column in ("Sales", "Profit", "Discount", "Quantity") if column in frame]
+        if len(supported_3d) >= 3:
+            st.caption("Drag to rotate · scroll to zoom · double-click to reset the camera")
+            st.plotly_chart(three_dimensional_chart(frame, context), use_container_width=True)
+        else: render_empty("Three numeric measures are required for the 3D insight space.")
+    with tabs[8]:
         if {"Order Date", "Sales"}.issubset(frame) and any(column in frame for column in ("Product Category", "Region")): st.plotly_chart(animated_chart(frame, context), use_container_width=True)
         else: render_empty("Order Date, Sales, and a category are required.")

@@ -7,7 +7,15 @@ font = "sans serif"
 
 [server]
 maxUploadSize = 200
+maxMessageSize = 200
 headless = true
+enableCORS = true
+enableXsrfProtection = true
+enableWebsocketCompression = true
+
+[client]
+showErrorDetails = "none"
+toolbarMode = "minimal"
 
 [browser]
 gatherUsageStats = false

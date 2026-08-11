@@ -83,6 +83,10 @@ def load_dataset(
         raise DataLoadError("The dataset is malformed or could not be decoded.") from exc
     if frame.empty or len(frame.columns) == 0:
         raise DataLoadError("The dataset contains no usable rows or columns.")
+    if len(frame) > settings.max_dataset_rows:
+        raise DataLoadError(f"Dataset exceeds the {settings.max_dataset_rows:,}-row processing limit.")
+    if len(frame.columns) > settings.max_dataset_columns:
+        raise DataLoadError(f"Dataset exceeds the {settings.max_dataset_columns:,}-column processing limit.")
     frame.columns = [str(column).strip() for column in frame.columns]
     elapsed = (time.perf_counter() - started) * 1000
     metadata = DatasetMetadata(

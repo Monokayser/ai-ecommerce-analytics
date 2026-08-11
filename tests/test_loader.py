@@ -23,7 +23,7 @@ def test_valid_csv_loading(tmp_path, ecommerce_frame):
 def test_json_and_parquet_loading(tmp_path, ecommerce_frame):
     json_path = tmp_path / "orders.json"
     parquet_path = tmp_path / "orders.parquet"
-    ecommerce_frame.to_json(json_path, orient="records")
+    ecommerce_frame.to_json(json_path, orient="records", date_format="iso")
     ecommerce_frame.to_parquet(parquet_path)
     assert load_dataset(json_path, Settings()).metadata.rows == 6
     assert load_dataset(parquet_path, Settings()).metadata.rows == 6
