@@ -6,6 +6,8 @@
 
 A production-style Streamlit capstone that turns e-commerce files into secure, filter-aware dashboards, natural-language analytics, advanced analysis, and downloadable reports. It works immediately without an API key and upgrades to real-time Gemini planning when a free Gemini API key is configured.
 
+![AI-Powered E-Commerce Analytics dashboard showing the executive overview, global filters, and KPI cards](docs/assets/dashboard-overview.png)
+
 ## What it does
 
 - Loads validated CSV, JSON, and Parquet uploads up to a configurable 200 MB limit.
