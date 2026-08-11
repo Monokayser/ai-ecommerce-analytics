@@ -1,0 +1,77 @@
+"""Gemini structured-output adapter and provider-fallback tests."""
+
+from __future__ import annotations
+
+from types import SimpleNamespace
+
+from config.settings import Settings
+from src.data.query_engine import QueryEngine
+from src.data.schema import inspect_schema
+from src.llm import client as client_module
+from src.llm.client import GeminiClient, LLMClient, create_llm_client
+from src.llm.nl_query import NLQueryPipeline
+from src.llm.prompts import PromptRepository
+from src.models import GeneratedQuery
+from src.utils.exceptions import LLMResponseError
+
+
+def _valid_plan() -> GeneratedQuery:
+    return GeneratedQuery(
+        interpreted_question="Rank sales by region.",
+        query='SELECT "Region", SUM("Sales") AS "Total Sales" FROM dataset GROUP BY "Region" ORDER BY "Total Sales" DESC',
+        columns_used=["Region", "Sales"],
+        aggregation="SUM",
+        recommended_chart="bar",
+        reason="Regional ranking.",
+    )
+
+
+def test_gemini_client_uses_native_schema_and_thinking_level(monkeypatch):
+    captured = {}
+
+    class FakeInteractions:
+        def create(self, **kwargs):
+            captured.update(kwargs)
+            return SimpleNamespace(output_text=_valid_plan().model_dump_json(), id="interaction-test")
+
+    fake_sdk = SimpleNamespace(interactions=FakeInteractions())
+    monkeypatch.setattr(client_module.genai, "Client", lambda api_key: fake_sdk)
+    settings = Settings(llm_provider="gemini", gemini_api_key="test-key", gemini_model="gemini-3.6-flash")
+    client = GeminiClient(settings)
+    result = client.complete(system="policy", user="question", response_model=GeneratedQuery, reasoning_effort="medium")
+
+    assert result.columns_used == ["Region", "Sales"]
+    assert captured["model"] == "gemini-3.6-flash"
+    assert captured["system_instruction"] == "policy"
+    assert captured["response_format"]["mime_type"] == "application/json"
+    assert captured["generation_config"]["thinking_level"] == "medium"
+    assert captured["store"] is False
+    assert client.last_call["request_id"] == "interaction-test"
+
+
+def test_client_factory_prefers_configured_gemini(monkeypatch):
+    monkeypatch.setattr(client_module.genai, "Client", lambda api_key: SimpleNamespace())
+    client = create_llm_client(Settings(llm_provider="gemini", gemini_api_key="test-key"))
+    assert isinstance(client, GeminiClient)
+    assert create_llm_client(Settings(llm_provider="gemini", gemini_api_key="")) is None
+
+
+def test_pipeline_falls_back_when_hosted_provider_is_unavailable(ecommerce_frame):
+    class FailingClient(LLMClient):
+        provider_name = "Gemini"
+        model = "gemini-3.6-flash"
+
+        def complete(self, **kwargs):
+            raise LLMResponseError("Temporary provider failure.")
+
+    settings = Settings(llm_provider="gemini", gemini_api_key="test-key")
+    pipeline = NLQueryPipeline(settings, FailingClient(), PromptRepository(settings.prompts_path), {})
+    _, result, narrative, _ = pipeline.run(
+        "Which region has the highest total sales?",
+        QueryEngine(ecommerce_frame),
+        inspect_schema(ecommerce_frame),
+    )
+    assert not result.data.empty
+    assert narrative.direct_answer
+    assert pipeline.last_run_metrics["provider_fallback"] is True
+    assert "Temporary provider failure" in pipeline.last_run_metrics["fallback_reason"]

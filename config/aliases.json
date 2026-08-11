@@ -1,0 +1,16 @@
+{
+  "Order ID": ["order_id", "orderid", "transaction id"],
+  "Order Date": ["order_date", "date", "transaction date"],
+  "Ship Date": ["ship_date", "shipping date"],
+  "Product Category": ["product_category", "category", "product type"],
+  "Sub-Category": ["sub_category", "subcategory", "sub category"],
+  "Customer Segment": ["customer_segment", "customer type", "segment"],
+  "Region": ["region", "area", "territory", "location"],
+  "Country": ["country", "nation", "location"],
+  "City": ["city", "town"],
+  "Sales": ["sales", "revenue", "income", "turnover"],
+  "Quantity": ["quantity", "units", "volume"],
+  "Discount": ["discount", "markdown", "rebate"],
+  "Profit": ["profit", "earnings", "net income", "margin value"],
+  "Ship Mode": ["ship_mode", "shipping method", "delivery mode"]
+}

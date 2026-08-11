@@ -1,0 +1,12 @@
+[
+  {"id": 1, "question": "Which region has the highest total sales?", "expected_columns": ["Region", "Sales"], "expected_operation": "SUM", "expected_filters": [], "expected_chart": "bar"},
+  {"id": 2, "question": "What are the five most profitable sub-categories?", "expected_columns": ["Sub-Category", "Profit"], "expected_operation": "SUM", "expected_filters": ["top 5"], "expected_chart": "bar"},
+  {"id": 3, "question": "Show monthly sales and profit trends.", "expected_columns": ["Order Date", "Sales", "Profit"], "expected_operation": "SUM", "expected_filters": [], "expected_chart": "line"},
+  {"id": 4, "question": "Which customer segment has the highest average order value?", "expected_columns": ["Customer Segment", "Sales", "Order ID"], "expected_operation": "AVG", "expected_filters": [], "expected_chart": "bar"},
+  {"id": 5, "question": "Compare sales in the East and West regions.", "expected_columns": ["Region", "Sales"], "expected_operation": "SUM", "expected_filters": ["East", "West"], "expected_chart": "bar"},
+  {"id": 6, "question": "Is discount negatively associated with profit?", "expected_columns": ["Discount", "Profit"], "expected_operation": "CORRELATION", "expected_filters": [], "expected_chart": "scatter"},
+  {"id": 7, "question": "Which countries generated losses?", "expected_columns": ["Country", "Profit"], "expected_operation": "SUM", "expected_filters": ["Profit < 0"], "expected_chart": "bar"},
+  {"id": 8, "question": "Show the top ten orders by sales.", "expected_columns": ["Order ID", "Sales"], "expected_operation": "TOP_N", "expected_filters": ["top 10"], "expected_chart": "bar"},
+  {"id": 9, "question": "Which ship mode has the highest average profit?", "expected_columns": ["Ship Mode", "Profit"], "expected_operation": "AVG", "expected_filters": [], "expected_chart": "bar"},
+  {"id": 10, "question": "Find unusual orders with high discounts and negative profit.", "expected_columns": ["Order ID", "Discount", "Profit"], "expected_operation": "FILTER", "expected_filters": ["high discount", "Profit < 0"], "expected_chart": "scatter"}
+]

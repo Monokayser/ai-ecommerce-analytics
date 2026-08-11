@@ -1,0 +1,11 @@
+id,question,expected_columns,expected_operation,expected_filters,expected_chart,status,accuracy_score,completeness_score,format_compliance_score,execution_success,chart_suitability_score,notes
+1,Which region has the highest total sales?,Region|Sales,SUM,,bar,not_run,,,,False,,Set RUN_LIVE_LLM_TESTS=1 and configure the selected provider.
+2,What are the five most profitable sub-categories?,Sub-Category|Profit,SUM,top 5,bar,not_run,,,,False,,Set RUN_LIVE_LLM_TESTS=1 and configure the selected provider.
+3,Show monthly sales and profit trends.,Order Date|Sales|Profit,SUM,,line,not_run,,,,False,,Set RUN_LIVE_LLM_TESTS=1 and configure the selected provider.
+4,Which customer segment has the highest average order value?,Customer Segment|Sales|Order ID,AVG,,bar,not_run,,,,False,,Set RUN_LIVE_LLM_TESTS=1 and configure the selected provider.
+5,Compare sales in the East and West regions.,Region|Sales,SUM,East|West,bar,not_run,,,,False,,Set RUN_LIVE_LLM_TESTS=1 and configure the selected provider.
+6,Is discount negatively associated with profit?,Discount|Profit,CORRELATION,,scatter,not_run,,,,False,,Set RUN_LIVE_LLM_TESTS=1 and configure the selected provider.
+7,Which countries generated losses?,Country|Profit,SUM,Profit < 0,bar,not_run,,,,False,,Set RUN_LIVE_LLM_TESTS=1 and configure the selected provider.
+8,Show the top ten orders by sales.,Order ID|Sales,TOP_N,top 10,bar,not_run,,,,False,,Set RUN_LIVE_LLM_TESTS=1 and configure the selected provider.
+9,Which ship mode has the highest average profit?,Ship Mode|Profit,AVG,,bar,not_run,,,,False,,Set RUN_LIVE_LLM_TESTS=1 and configure the selected provider.
+10,Find unusual orders with high discounts and negative profit.,Order ID|Discount|Profit,FILTER,high discount|Profit < 0,scatter,not_run,,,,False,,Set RUN_LIVE_LLM_TESTS=1 and configure the selected provider.

@@ -1,0 +1,14 @@
+services:
+  app:
+    build: .
+    ports: ["8501:8501"]
+    environment:
+      LLM_PROVIDER: ollama
+      OLLAMA_BASE_URL: http://ollama:11434/v1
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-gpt-oss:20b}
+    depends_on: [ollama]
+  ollama:
+    image: ollama/ollama:latest
+    volumes: ["ollama_data:/root/.ollama"]
+volumes:
+  ollama_data:
