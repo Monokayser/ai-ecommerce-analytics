@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from html import escape
 from typing import Any, Callable
 
 import pandas as pd
@@ -31,7 +32,22 @@ def active_filter_text(filters: dict[str, Any]) -> str:
 
 def render_empty(message: str) -> None:
     """Render a consistent empty state."""
-    st.info(message, icon="ℹ️")
+    st.markdown(
+        f'<div class="empty-state" role="status"><span class="empty-icon">◇</span>{escape(message)}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def render_signal_cards(cards: list[tuple[str, str, str]]) -> None:
+    """Render compact glass insight cards for qualitative executive signals."""
+    if not cards:
+        return
+    columns = st.columns(len(cards))
+    for column, (label, value, detail) in zip(columns, cards, strict=False):
+        column.markdown(
+            f'<div class="answer-card"><div class="answer-eyebrow">{escape(label)}</div><h3>{escape(value)}</h3><p>{escape(detail)}</p></div>',
+            unsafe_allow_html=True,
+        )
 
 
 def _period_frames(frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame] | None:

@@ -39,7 +39,7 @@ def main() -> None:
     """Configure state, dataset, services, navigation, and page rendering."""
     settings = Settings.from_env()
     configure_logging(settings.log_level)
-    st.set_page_config(page_title=settings.app_name, page_icon="📊", layout="wide", initial_sidebar_state="expanded")
+    st.set_page_config(page_title=settings.app_name, page_icon="✦", layout="wide", initial_sidebar_state="auto")
     inject_theme()
     render_sidebar_brand()
 
@@ -61,13 +61,22 @@ def main() -> None:
     st.sidebar.caption(f"Active scope: {len(filtered):,} of {len(bundle.cleaned):,} rows")
     st.sidebar.divider()
     pages = ["Overview", "Data Exploration", "AI Assistant", "Advanced Analytics", "Data Quality & Performance", "Report Export"]
-    page = st.sidebar.radio("Workspace", pages, key="current_section")
+    page_icons = {
+        "Overview": "◫",
+        "Data Exploration": "⌁",
+        "AI Assistant": "✦",
+        "Advanced Analytics": "◇",
+        "Data Quality & Performance": "✓",
+        "Report Export": "↗",
+    }
+    st.sidebar.caption("WORKSPACE NAVIGATION")
+    page = st.sidebar.radio("Workspace", pages, key="current_section", format_func=lambda item: f"{page_icons[item]}  {item}", label_visibility="collapsed")
 
     aliases = load_aliases(settings.aliases_path)
     client = create_llm_client(settings)
     pipeline = NLQueryPipeline(settings, client, PromptRepository(settings.prompts_path), aliases)
     st.sidebar.divider()
-    st.sidebar.caption(f"AI mode: {pipeline.mode_label}\n\nModel: {pipeline.model_label}")
+    st.sidebar.caption(f"AI MODE\n\n{pipeline.mode_label} · {pipeline.model_label}")
 
     render_app_header(bundle, len(filtered), settings, pipeline)
     if bundle.metadata.is_demo:

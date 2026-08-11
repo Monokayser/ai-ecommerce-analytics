@@ -17,7 +17,10 @@ def render(bundle: DatasetBundle) -> None:
     render_section_intro("Package the evidence", "Report Export", "Create decision-ready PDF and Word reports from the last validated assistant result.")
     last = st.session_state.get("last_ai")
     if not last:
-        st.info("Run an AI Assistant query first to create an analysis report.")
+        st.markdown(
+            '<div class="empty-state" role="status"><span class="empty-icon">↗</span><strong>No verified analysis is ready yet.</strong><br>Run a question in the AI Assistant, then return here to package its evidence.</div>',
+            unsafe_allow_html=True,
+        )
         return
     payload = ReportPayload(
         project_title="AI-Powered E-Commerce Data Analytics and Visualization Platform",
@@ -40,6 +43,7 @@ def render(bundle: DatasetBundle) -> None:
     except Exception as exc:
         st.error(str(exc))
         return
+    st.success("Report package ready · validated query, filters, findings, evidence table, timing, and limitations included")
     first, second = st.columns(2)
     first.download_button("Download PDF report", pdf, "ai_analysis_report.pdf", "application/pdf", use_container_width=True)
     second.download_button("Download Word report", word, "ai_analysis_report.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", use_container_width=True)

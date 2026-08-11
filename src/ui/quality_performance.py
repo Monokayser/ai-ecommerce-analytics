@@ -22,12 +22,12 @@ def render(bundle: DatasetBundle, frame: pd.DataFrame, settings: Settings) -> No
     metrics[1].metric("Missing cells", f"{sum(item['missing_count'] for item in quality['missing']):,}")
     metrics[2].metric("Exact duplicates", f"{quality['duplicate_rows']:,}")
     metrics[3].metric("Load time", f"{bundle.metadata.load_time_ms:.2f} ms")
-    st.subheader("Readiness")
+    st.subheader("Readiness signal")
     if bundle.metadata.official_demo_ready:
         st.success("Official-demo ready: real dataset has at least 5,000 rows.")
     else:
         st.warning("Development mode: upload a non-demo dataset with at least 5,000 rows for official-demo readiness.")
-    tabs = st.tabs(["Missing Data", "Cleaning Log", "Schema", "Validation", "Performance"])
+    tabs = st.tabs(["◇ Missing Data", "✓ Cleaning Log", "▦ Schema", "◉ Validation", "⌁ Performance"])
     with tabs[0]: st.dataframe(pd.DataFrame(quality["missing"]), use_container_width=True)
     with tabs[1]: st.dataframe(pd.DataFrame([item.model_dump() for item in bundle.cleaning_log]), use_container_width=True)
     with tabs[2]:

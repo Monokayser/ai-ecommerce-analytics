@@ -17,7 +17,8 @@ def render(frame: pd.DataFrame, filters: dict) -> None:
         render_empty("No rows are available for exploration.")
         return
     context = active_filter_text(filters)
-    tabs = st.tabs(["Trend", "Geography", "Correlation", "Distribution", "Hierarchy", "Grouped Bar", "Relationship", "Animation"])
+    st.caption("Switch views instantly; hover, zoom, select, and download directly from each chart toolbar.")
+    tabs = st.tabs(["⌁ Trend", "◎ Geography", "▦ Correlation", "◇ Distribution", "◫ Hierarchy", "▥ Grouped Bar", "↗ Relationship", "▶ Animation"])
     with tabs[0]:
         if {"Order Date", "Sales"}.issubset(frame): st.plotly_chart(time_series_chart(frame, context), use_container_width=True)
         else: render_empty("Order Date and Sales are required for this chart.")

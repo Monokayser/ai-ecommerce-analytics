@@ -16,12 +16,14 @@ from src.visualization.themes import apply_theme
 def render(frame: pd.DataFrame) -> None:
     """Render both fully integrated advanced features."""
     render_section_intro("Detect and compare", "Advanced Analytics", "Investigate unusual observations and compare two business subsets with transparent methods.")
-    anomaly_tab, comparison_tab = st.tabs(["Anomaly Detection", "Comparative Analysis"])
+    st.info("Advanced models run on the active filtered dataset. Calculations remain deterministic; AI explains verified outputs only.")
+    anomaly_tab, comparison_tab = st.tabs(["◇ Anomaly Detection", "⇄ Comparative Analysis"])
     with anomaly_tab:
         numeric = [column for column in frame.select_dtypes(include="number").columns if not column.startswith("_outlier_")]
         if not numeric:
             render_empty("No numeric anomaly target is available.")
         else:
+            st.markdown("#### Configure the detector")
             controls = st.columns(4)
             target = controls[0].selectbox("Target", numeric)
             method = controls[1].selectbox("Method", ["IQR", "Isolation Forest"])
@@ -48,6 +50,7 @@ def render(frame: pd.DataFrame) -> None:
             if len(options) < 2:
                 render_empty("At least two subset values are required.")
             else:
+                st.markdown("#### Define the two business cohorts")
                 first, second = st.columns(2)
                 value_a = first.selectbox("Subset A", options, index=0)
                 remaining = [value for value in options if value != value_a]

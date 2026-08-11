@@ -5,7 +5,7 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from src.ui.components import active_filter_text, format_currency, render_empty, render_kpis
+from src.ui.components import active_filter_text, format_currency, render_empty, render_kpis, render_signal_cards
 from src.ui.theme import render_section_intro
 from src.visualization.charts import geographic_chart, grouped_bar_chart, time_series_chart
 
@@ -18,16 +18,17 @@ def render(frame: pd.DataFrame, filters: dict) -> None:
         return
     render_kpis(frame)
     st.subheader("Executive signals")
-    signals = st.columns(3)
+    signals: list[tuple[str, str, str]] = []
     if {"Region", "Sales"}.issubset(frame.columns):
         regional = frame.groupby("Region")["Sales"].sum().sort_values(ascending=False)
-        signals[0].metric("Leading region", str(regional.index[0]), format_currency(float(regional.iloc[0])))
+        signals.append(("Leading region", str(regional.index[0]), f"{format_currency(float(regional.iloc[0]))} in active sales"))
     if {"Product Category", "Profit"}.issubset(frame.columns):
         category = frame.groupby("Product Category")["Profit"].sum().sort_values(ascending=False)
-        signals[1].metric("Top profit category", str(category.index[0]), format_currency(float(category.iloc[0])))
+        signals.append(("Top profit category", str(category.index[0]), f"{format_currency(float(category.iloc[0]))} generated profit"))
     if "Profit" in frame:
         loss_rate = float((frame["Profit"] < 0).mean() * 100)
-        signals[2].metric("Loss-making rows", f"{loss_rate:.1f}%", help="Share of active transaction rows with negative profit")
+        signals.append(("Loss-making rows", f"{loss_rate:.1f}%", "Share of active transactions below zero profit"))
+    render_signal_cards(signals)
     context = active_filter_text(filters)
     left, right = st.columns([1.35, 1])
     if {"Order Date", "Sales"}.issubset(frame.columns):

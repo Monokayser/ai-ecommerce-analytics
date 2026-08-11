@@ -11,9 +11,10 @@ A production-style Streamlit capstone that turns e-commerce files into secure, f
 ## What it does
 
 - Loads validated CSV, JSON, and Parquet uploads up to a configurable 200 MB limit.
+- Uses a responsive dark glassmorphism interface with luminous cards, guided navigation, mobile-aware filters, and accessible reduced-motion behavior.
 - Preserves raw data, cleans a working copy, resolves aliases, profiles every column, and records each cleaning action.
 - Queries data through DuckDB with parameterized filters, row limits, timing, and a 10-second interrupt guard.
-- Answers questions using Gemini 3.6 Flash structured output, with a deterministic local planner as a private, no-key fallback.
+- Answers questions through a guided AI workspace using Gemini 3.6 Flash structured output, with smart prompts, verified follow-ups, visible safety evidence, and a deterministic private fallback.
 - Parses generated SQL with sqlglot and accepts only one read-only `SELECT`/`WITH` query on the registered `dataset` table.
 - Includes six application sections, eight Plotly visualization families, anomaly detection, subset comparison, and Word/PDF/PNG/SVG export.
 - Displays pipeline stages, the validated query, timing, retry/fallback status, and verified evidence—never hidden reasoning.

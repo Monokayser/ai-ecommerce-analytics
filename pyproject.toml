@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ai-ecommerce-analytics"
-version = "1.1.0"
+version = "1.2.0"
 description = "Secure AI-powered e-commerce analytics and visualization platform"
 requires-python = ">=3.11"
 

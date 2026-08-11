@@ -1,4 +1,4 @@
-"""Natural-language analytics workspace with verified evidence and history."""
+"""Conversational natural-language analytics workspace with verified evidence."""
 
 from __future__ import annotations
 
@@ -21,12 +21,12 @@ from src.visualization.export import export_chart
 
 
 SAMPLES = [
-    ("Regional leader", "Which region has the highest total sales?"),
-    ("Profit ranking", "What are the five most profitable sub-categories?"),
-    ("Monthly trend", "Show monthly sales and profit trends."),
-    ("Discount impact", "Is discount negatively associated with profit?"),
-    ("Loss markets", "Which countries generated losses?"),
-    ("Unusual orders", "Find unusual orders with high discounts and negative profit."),
+    ("◎ Regional leader", "Rank markets by revenue", "Which region has the highest total sales?"),
+    ("↗ Profit ranking", "Find the strongest products", "What are the five most profitable sub-categories?"),
+    ("⌁ Monthly trend", "Reveal momentum over time", "Show monthly sales and profit trends."),
+    ("◇ Discount impact", "Test a profit relationship", "Is discount negatively associated with profit?"),
+    ("△ Loss markets", "Surface commercial risk", "Which countries generated losses?"),
+    ("✦ Unusual orders", "Investigate suspicious rows", "Find unusual orders with high discounts and negative profit."),
 ]
 
 
@@ -46,13 +46,14 @@ def _override_spec(frame: pd.DataFrame, auto: ChartSpec, selected: str) -> Chart
     return auto
 
 
-def _render_mode_card(settings: Settings, pipeline: NLQueryPipeline) -> None:
+def _render_mode_card(settings: Settings, pipeline: NLQueryPipeline, frame: pd.DataFrame, filters: dict[str, Any]) -> None:
     if settings.ai_available:
         description = "Structured model planning, AST validation, read-only execution, one safe correction attempt, and evidence-grounded narration."
     else:
-        description = "No API key is required. Common business questions use a deterministic local planner and computed narrative; connect Gemini, OpenAI, or Ollama for deeper language understanding."
+        description = "No API key is required. Common business questions use a deterministic local planner; connect Gemini, OpenAI, or Ollama for broader language understanding."
+    provider_state = "Hosted AI connected" if settings.ai_available else "Private local fallback"
     st.markdown(
-        f'<div class="mode-card"><strong>{escape(pipeline.mode_label)} · {escape(pipeline.model_label)}</strong><br><span>{escape(description)}</span></div>',
+        f"""<div class="mode-card"><div class="mode-orb">✦</div><div><strong>{escape(pipeline.mode_label)} · {escape(pipeline.model_label)}</strong><br><span>{escape(description)}</span><div class="mode-meta"><b>{escape(provider_state)}</b><b>{len(frame):,} active rows</b><b>{len(filters)} active filters</b><b>Read-only execution</b></div></div></div>""",
         unsafe_allow_html=True,
     )
 
@@ -61,7 +62,7 @@ def _render_history(memory: ConversationMemory) -> None:
     records = memory.as_list()
     if not records:
         return
-    with st.expander(f"Recent conversation · {len(records)} interaction(s)"):
+    with st.expander(f"Conversation memory · {len(records)} interaction(s)"):
         for item in records:
             with st.chat_message("user"):
                 st.write(item["question"])
@@ -73,10 +74,10 @@ def _render_history(memory: ConversationMemory) -> None:
 def _render_last_result(last: dict[str, Any], pipeline: NLQueryPipeline) -> None:
     generated, result, narrative = last["generated"], last["result"], last["narrative"]
     st.markdown(
-        f'<div class="answer-card"><h3>{escape(narrative.direct_answer)}</h3><p>{escape(narrative.analysis)}</p></div>',
+        f'<div class="answer-card"><div class="answer-eyebrow">Verified AI answer</div><h3>{escape(narrative.direct_answer)}</h3><p>{escape(narrative.analysis)}</p><div class="trust-row"><span class="trust-pill safe">✓ Query validated</span><span class="trust-pill">Read-only dataset access</span><span class="trust-pill">Evidence grounded</span><span class="trust-pill">{len(result.data):,} result rows</span></div></div>',
         unsafe_allow_html=True,
     )
-    answer_tab, evidence_tab, data_tab, chart_tab = st.tabs(["Answer", "Evidence & safety", "Result data", "Visualization"])
+    answer_tab, evidence_tab, data_tab, chart_tab = st.tabs(["✦ Answer", "✓ Evidence & safety", "▦ Result data", "⌁ Visualization"])
     with answer_tab:
         st.subheader("Key findings")
         for finding in narrative.key_findings:
@@ -131,15 +132,38 @@ def _render_last_result(last: dict[str, Any], pipeline: NLQueryPipeline) -> None
             return
         st.plotly_chart(figure, use_container_width=True)
         st.caption(narrative.chart_caption)
-        try:
-            png = export_chart(figure, "png")
-            svg = export_chart(figure, "svg")
+        if st.button("Prepare PNG and SVG downloads", use_container_width=True, key="prepare_ai_chart_exports"):
+            try:
+                with st.spinner("Rendering publication-quality chart files…"):
+                    png = export_chart(figure, "png")
+                    svg = export_chart(figure, "svg")
+                st.session_state["ai_chart_png"] = png
+                st.session_state["ai_chart_svg"] = svg
+                st.session_state["last_chart_png"] = png
+            except Exception as exc:
+                st.info(str(exc))
+        png = st.session_state.get("ai_chart_png")
+        svg = st.session_state.get("ai_chart_svg")
+        if png and svg:
             first, second = st.columns(2)
             first.download_button("Download chart PNG", png, "ai_query_chart.png", "image/png", use_container_width=True)
             second.download_button("Download chart SVG", svg, "ai_query_chart.svg", "image/svg+xml", use_container_width=True)
-            st.session_state["last_chart_png"] = png
-        except Exception as exc:
-            st.info(str(exc))
+
+
+def _render_followups() -> None:
+    """Offer concrete next questions that work in hosted and local modes."""
+    st.markdown("#### Continue the investigation")
+    st.caption("Choose a verified follow-up or write your own question below.")
+    followups = [
+        ("⌁ Track momentum", "Show monthly sales and profit trends."),
+        ("↗ Find profit drivers", "Which product category has the highest profit?"),
+        ("△ Scan downside", "Which countries generated losses?"),
+    ]
+    columns = st.columns(3)
+    for column, (label, question) in zip(columns, followups, strict=False):
+        if column.button(label, help=question, use_container_width=True, key=f"followup_{label}"):
+            st.session_state["pending_ai_question"] = question
+            st.rerun()
 
 
 def render(
@@ -150,31 +174,42 @@ def render(
     pipeline: NLQueryPipeline,
 ) -> None:
     """Render prompt shortcuts, a secure query workflow, evidence, and memory."""
-    render_section_intro("Ask · validate · explain", "AI Assistant", "Ask the active dataset a business question and inspect every step behind the answer.")
-    _render_mode_card(settings, pipeline)
+    render_section_intro(
+        "Ask · validate · explain",
+        "AI Assistant",
+        "Collaborate with a secure analytics copilot that plans, validates, executes, and explains every answer against the active dataset.",
+    )
+    _render_mode_card(settings, pipeline, frame, filters)
     memory = ConversationMemory(st.session_state.get("conversation", []))
     top_left, top_right = st.columns([4, 1])
-    top_left.markdown("**Try a business question**")
+    top_left.markdown("#### Start with a smart prompt")
     if top_right.button("Clear conversation", use_container_width=True):
         memory.clear()
         st.session_state["conversation"] = []
         st.session_state.pop("last_ai", None)
         st.session_state.pop("last_chart_png", None)
+        st.session_state.pop("ai_chart_png", None)
+        st.session_state.pop("ai_chart_svg", None)
         st.rerun()
 
     preset_question = None
     for start in range(0, len(SAMPLES), 3):
         columns = st.columns(3)
-        for column, (label, question) in zip(columns, SAMPLES[start : start + 3], strict=False):
-            if column.button(label, help=question, use_container_width=True, key=f"sample_{label}"):
+        for column, (label, description, question) in zip(columns, SAMPLES[start : start + 3], strict=False):
+            if column.button(label, help=f"{description} · {question}", use_container_width=True, key=f"sample_{label}"):
                 preset_question = question
     _render_history(memory)
-    question = preset_question or st.chat_input("Ask about sales, profit, customers, products, locations, trends, or unusual orders")
+    pending_question = st.session_state.pop("pending_ai_question", None)
+    st.caption("Current filters take priority over conversation history. Every generated query is validated before execution.")
+    question = pending_question or preset_question or st.chat_input("Ask a business question about sales, profit, customers, products, markets, trends, or risk…")
 
     if question:
+        st.session_state.pop("ai_chart_png", None)
+        st.session_state.pop("ai_chart_svg", None)
+        st.session_state.pop("last_chart_png", None)
         engine = QueryEngine(frame, max_rows=settings.max_result_rows, timeout_seconds=settings.query_timeout_seconds)
-        with st.status("Building a verified answer...", expanded=True) as status:
-            st.write("1 · Interpret the question against the active schema")
+        with st.status("AI analyst is building a verified answer…", expanded=True) as status:
+            st.write("◌ Understanding your question and active filters")
             try:
                 generated, result, narrative, corrected = pipeline.run(
                     question,
@@ -183,9 +218,10 @@ def render(
                     filters=filters,
                     history=memory.prompt_context(),
                 )
-                st.write("2 · Parse and validate the read-only query")
-                st.write("3 · Execute with timeout and row limits")
-                st.write("4 · Ground the answer in computed evidence")
+                st.write("✓ Query plan created from the live schema")
+                st.write("✓ Read-only query parsed and security validated")
+                st.write("✓ Executed with timeout and row limits")
+                st.write("✓ Narrative grounded in computed evidence")
                 status.update(label="Verified answer ready", state="complete", expanded=False)
             except Exception as exc:
                 status.update(label="Analysis stopped safely", state="error")
@@ -215,3 +251,4 @@ def render(
     last = st.session_state.get("last_ai")
     if last:
         _render_last_result(last, pipeline)
+        _render_followups()
