@@ -13,6 +13,7 @@ from src.data.query_engine import QueryEngine
 from src.llm.conversation import ConversationMemory, Interaction
 from src.llm.nl_query import NLQueryPipeline
 from src.models import ChartSpec, DatasetBundle
+from src.ui.brand import inline_brand_icon
 from src.ui.components import render_empty
 from src.ui.theme import render_section_intro
 from src.visualization.chart_selector import select_chart
@@ -46,14 +47,20 @@ def _override_spec(frame: pd.DataFrame, auto: ChartSpec, selected: str) -> Chart
     return auto
 
 
-def _render_mode_card(settings: Settings, pipeline: NLQueryPipeline, frame: pd.DataFrame, filters: dict[str, Any]) -> None:
+def _render_mode_card(
+    settings: Settings,
+    pipeline: NLQueryPipeline,
+    frame: pd.DataFrame,
+    filters: dict[str, Any],
+    analysis_mode: str,
+) -> None:
     if settings.ai_available:
         description = "Structured model planning, AST validation, read-only execution, one safe correction attempt, and evidence-grounded narration."
     else:
         description = "No API key is required. Common business questions use a deterministic local planner; connect Gemini, OpenAI, or Ollama for broader language understanding."
     provider_state = "Hosted AI connected" if settings.ai_available else "Private local fallback"
     st.markdown(
-        f"""<div class="mode-card"><div class="mode-orb">✦</div><div><strong>{escape(pipeline.mode_label)} · {escape(pipeline.model_label)}</strong><br><span>{escape(description)}</span><div class="mode-meta"><b>{escape(provider_state)}</b><b>{len(frame):,} active rows</b><b>{len(filters)} active filters</b><b>Read-only execution</b></div></div></div>""",
+        f"""<div class="mode-card"><div class="mode-orb">{inline_brand_icon('ai-mode-icon')}</div><div><strong>{escape(pipeline.mode_label)} · {escape(pipeline.model_label)}</strong><br><span>{escape(description)}</span><div class="mode-meta"><b>{escape(analysis_mode)} response</b><b>{escape(provider_state)}</b><b>{len(frame):,} active rows</b><b>{len(filters)} active filters</b><b>Read-only execution</b></div></div></div>""",
         unsafe_allow_html=True,
     )
 
@@ -74,7 +81,7 @@ def _render_history(memory: ConversationMemory) -> None:
 def _render_last_result(last: dict[str, Any], pipeline: NLQueryPipeline) -> None:
     generated, result, narrative = last["generated"], last["result"], last["narrative"]
     st.markdown(
-        f'<div class="answer-card"><div class="answer-eyebrow">Verified AI answer</div><h3>{escape(narrative.direct_answer)}</h3><p>{escape(narrative.analysis)}</p><div class="trust-row"><span class="trust-pill safe">✓ Query validated</span><span class="trust-pill">Read-only dataset access</span><span class="trust-pill">Evidence grounded</span><span class="trust-pill">{len(result.data):,} result rows</span></div></div>',
+        f'<div class="answer-card"><div class="answer-eyebrow">Verified AI answer</div><h3>{escape(narrative.direct_answer)}</h3><p>{escape(narrative.analysis)}</p><div class="trust-row"><span class="trust-pill safe">✓ Query validated</span><span class="trust-pill">{escape(str(last.get("pipeline_metrics", {}).get("analysis_mode", "Balanced")))} mode</span><span class="trust-pill">Read-only dataset access</span><span class="trust-pill">Evidence grounded</span><span class="trust-pill">{len(result.data):,} result rows</span></div></div>',
         unsafe_allow_html=True,
     )
     answer_tab, evidence_tab, data_tab, chart_tab = st.tabs(["✦ Answer", "✓ Evidence & safety", "▦ Result data", "⌁ Visualization"])
@@ -85,11 +92,13 @@ def _render_last_result(last: dict[str, Any], pipeline: NLQueryPipeline) -> None
         st.info("Limitation · " + narrative.limitations)
     with evidence_tab:
         metrics = last.get("pipeline_metrics", pipeline.last_run_metrics)
-        cards = st.columns(4)
-        cards[0].metric("Planning", f"{float(metrics.get('planning_ms', 0)):,.1f} ms")
-        cards[1].metric("Execution", f"{result.execution_time_ms:,.1f} ms")
-        cards[2].metric("Returned rows", f"{len(result.data):,}")
-        cards[3].metric("Correction", "Used once" if metrics.get("corrected") else "Not needed")
+        cards = st.columns(5)
+        cards[0].metric("Response mode", str(metrics.get("analysis_mode", "Balanced")))
+        cards[1].metric("Total time", f"{float(metrics.get('total_ms', 0)):,.1f} ms")
+        cards[2].metric("Planning", f"{float(metrics.get('planning_ms', 0)):,.1f} ms")
+        cards[3].metric("Execution", f"{result.execution_time_ms:,.1f} ms")
+        cards[4].metric("Model passes", f"{int(metrics.get('model_calls', 0))}")
+        st.caption("Correction: " + ("used once" if metrics.get("corrected") else "not needed"))
         if metrics.get("provider_fallback"):
             st.warning("The hosted model was unavailable, so this answer used the safe local fallback. " + str(metrics.get("fallback_reason", "")))
         st.success("Read-only query validated · dataset table only · result limit applied")
@@ -150,16 +159,17 @@ def _render_last_result(last: dict[str, Any], pipeline: NLQueryPipeline) -> None
             second.download_button("Download chart SVG", svg, "ai_query_chart.svg", "image/svg+xml", use_container_width=True)
 
 
-def _render_followups() -> None:
+def _render_followups(last: dict[str, Any]) -> None:
     """Offer concrete next questions that work in hosted and local modes."""
     st.markdown("#### Continue the investigation")
     st.caption("Choose a verified follow-up or write your own question below.")
     followups = [
+        ("↻ Retry this question", str(last.get("question", ""))),
         ("⌁ Track momentum", "Show monthly sales and profit trends."),
         ("↗ Find profit drivers", "Which product category has the highest profit?"),
         ("△ Scan downside", "Which countries generated losses?"),
     ]
-    columns = st.columns(3)
+    columns = st.columns(4)
     for column, (label, question) in zip(columns, followups, strict=False):
         if column.button(label, help=question, use_container_width=True, key=f"followup_{label}"):
             st.session_state["pending_ai_question"] = question
@@ -179,7 +189,18 @@ def render(
         "AI Assistant",
         "Collaborate with a secure analytics copilot that plans, validates, executes, and explains every answer against the active dataset.",
     )
-    _render_mode_card(settings, pipeline, frame, filters)
+    mode_control, mode_help = st.columns([1, 3])
+    analysis_mode = mode_control.selectbox(
+        "AI response mode",
+        ["Fast", "Balanced", "Deep"],
+        index=1,
+        key="ai_analysis_mode",
+        help="Fast uses one hosted-model pass and a computed summary. Balanced adds an AI narrative. Deep uses higher reasoning and detail.",
+    )
+    mode_help.caption(
+        "Fast minimizes latency and free-tier usage · Balanced is the default · Deep spends more model effort on complex investigations."
+    )
+    _render_mode_card(settings, pipeline, frame, filters, analysis_mode)
     memory = ConversationMemory(st.session_state.get("conversation", []))
     top_left, top_right = st.columns([4, 1])
     top_left.markdown("#### Start with a smart prompt")
@@ -208,8 +229,13 @@ def render(
         st.session_state.pop("ai_chart_svg", None)
         st.session_state.pop("last_chart_png", None)
         engine = QueryEngine(frame, max_rows=settings.max_result_rows, timeout_seconds=settings.query_timeout_seconds)
-        with st.status("AI analyst is building a verified answer…", expanded=True) as status:
-            st.write("◌ Understanding your question and active filters")
+        with st.status(f"AI analyst is working in {analysis_mode.lower()} mode…", expanded=True) as status:
+            stage_icons = {"planning": "◌", "validation": "✓", "execution": "✓", "narrative": "✦"}
+
+            def report_progress(stage: str, message: str) -> None:
+                if stage != "complete":
+                    st.write(f"{stage_icons.get(stage, '·')} {message}")
+
             try:
                 generated, result, narrative, corrected = pipeline.run(
                     question,
@@ -217,11 +243,9 @@ def render(
                     bundle.schema_profile,
                     filters=filters,
                     history=memory.prompt_context(),
+                    analysis_mode=analysis_mode,
+                    progress=report_progress,
                 )
-                st.write("✓ Query plan created from the live schema")
-                st.write("✓ Read-only query parsed and security validated")
-                st.write("✓ Executed with timeout and row limits")
-                st.write("✓ Narrative grounded in computed evidence")
                 status.update(label="Verified answer ready", state="complete", expanded=False)
             except Exception as exc:
                 status.update(label="Analysis stopped safely", state="error")
@@ -251,4 +275,4 @@ def render(
     last = st.session_state.get("last_ai")
     if last:
         _render_last_result(last, pipeline)
-        _render_followups()
+        _render_followups(last)

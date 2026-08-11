@@ -10,6 +10,7 @@ import streamlit as st
 from config.settings import Settings
 from src.llm.nl_query import NLQueryPipeline
 from src.models import DatasetBundle
+from src.ui.brand import inline_brand_icon
 
 
 APP_CSS = r"""
@@ -314,13 +315,14 @@ APP_CSS = r"""
         display: grid;
         place-items: center;
         margin-bottom: .7rem;
-        border: 1px solid rgba(162, 232, 255, .36);
+        border: 0;
         border-radius: 16px;
-        background: radial-gradient(circle at 72% 80%, #64dcff 0%, #1b87b6 28%, #0b3455 76%);
+        background: transparent;
         color: white;
         font-weight: 850;
-        box-shadow: 0 10px 30px rgba(34, 164, 222, .28), inset 0 1px 0 rgba(255, 255, 255, .26);
+        box-shadow: 0 10px 30px rgba(34, 164, 222, .22);
     }
+    .sidebar-mark svg { width: 100%; height: 100%; display: block; }
     .sidebar-title { color: white; font-size: 1.08rem; font-weight: 780; line-height: 1.2; }
     .sidebar-subtitle { margin-top: .3rem; color: #88a2b9; font-size: .78rem; }
     .sidebar-live { display:flex; align-items:center; gap:.5rem; margin:.8rem 0 .2rem; color:#a8bfd2; font-size:.72rem; }
@@ -364,8 +366,9 @@ APP_CSS = r"""
         background: radial-gradient(circle at 96% 110%, rgba(89, 213, 255, .25), transparent 23%), linear-gradient(135deg, rgba(9, 32, 53, .92), rgba(10, 45, 72, .72));
         box-shadow: var(--glass-shadow);
     }
-    .mode-orb { position:relative; width:46px; height:46px; display:grid; place-items:center; border-radius:16px; background:linear-gradient(145deg,#5fe2ff,#277dc2); color:#02111c; font-size:1.25rem; box-shadow:0 0 30px rgba(77,202,255,.35); transform-style:preserve-3d; }
-    .mode-orb::after { content:""; position:absolute; inset:5px; border:1px solid rgba(255,255,255,.38); border-radius:12px; transform:translateZ(8px); }
+    .mode-orb { position:relative; width:46px; height:46px; display:grid; place-items:center; border-radius:16px; background:transparent; color:#02111c; font-size:1.25rem; box-shadow:0 0 30px rgba(77,202,255,.28); transform-style:preserve-3d; }
+    .mode-orb svg { width: 100%; height: 100%; display: block; }
+    .mode-orb::after { content:""; position:absolute; inset:5px; border:1px solid rgba(255,255,255,.22); border-radius:12px; transform:translateZ(8px); pointer-events:none; }
     .mode-card strong { color: #f5fbff; font-size: .95rem; }
     .mode-card span { color: #9eb4c7; font-size: .82rem; line-height: 1.45; }
     .mode-meta { display:flex; flex-wrap:wrap; gap:.45rem; margin-top:.55rem; }
@@ -453,7 +456,7 @@ def inject_theme() -> None:
 
 def render_sidebar_brand() -> None:
     st.sidebar.markdown(
-        """<div class="sidebar-brand"><div class="sidebar-mark">EA</div><div class="sidebar-title">E-Commerce Analytics</div><div class="sidebar-subtitle">Secure intelligence workspace</div><div class="sidebar-live"><span class="status-dot"></span> Analytics engine online</div></div>""",
+        f"""<div class="sidebar-brand"><div class="sidebar-mark">{inline_brand_icon('sidebar-brand-icon')}</div><div class="sidebar-title">E-Commerce Analytics</div><div class="sidebar-subtitle">Secure intelligence workspace</div><div class="sidebar-live"><span class="status-dot"></span> Analytics engine online</div></div>""",
         unsafe_allow_html=True,
     )
 

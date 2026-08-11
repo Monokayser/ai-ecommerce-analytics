@@ -12,6 +12,7 @@ from src.llm.client import create_llm_client
 from src.llm.nl_query import NLQueryPipeline
 from src.llm.prompts import PromptRepository
 from src.ui import advanced_analytics, ai_assistant, exploration, overview, quality_performance, report_export
+from src.ui.brand import BRAND_ICON_PATH
 from src.ui.sidebar import apply_filters, render_filters
 from src.ui.theme import inject_theme, render_app_header, render_filter_pills, render_sidebar_brand
 from src.utils.logging_config import configure_logging
@@ -39,7 +40,7 @@ def main() -> None:
     """Configure state, dataset, services, navigation, and page rendering."""
     settings = Settings.from_env()
     configure_logging(settings.log_level)
-    st.set_page_config(page_title=settings.app_name, page_icon="✦", layout="wide", initial_sidebar_state="auto")
+    st.set_page_config(page_title=settings.app_name, page_icon=BRAND_ICON_PATH, layout="wide", initial_sidebar_state="auto")
     inject_theme()
     render_sidebar_brand()
 

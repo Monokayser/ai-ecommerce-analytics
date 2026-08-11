@@ -71,4 +71,4 @@ Streamlit session state is process-local. A multi-instance production deployment
 7. Build the Docker image and confirm it runs as `appuser` when Docker is available.
 8. Smoke-test the deployed URL in Chrome/Edge, Firefox, Safari, iOS Safari, and Android Chrome.
 
-The 1.3.0 release passed 67 automated tests with 83% measured coverage. Its dependency audit reported no known vulnerabilities, Bandit reported no unsuppressed findings, and the tracked-file secret signature scan was clean. Docker definitions were statically reviewed and exercised by repository tests; a runtime image build still requires Docker on the workstation or CI runner.
+The 1.4.0 release passed 72 automated tests with 84% measured coverage. Its dependency audit reported no known vulnerabilities, Bandit reported no unsuppressed findings, and the tracked-file secret signature scan was clean. Browser QA verified the SVG favicon/sidebar mark, response-mode switching, Fast-mode execution, grounded result evidence, and the live health endpoint. Docker definitions were statically reviewed and exercised by repository tests; a runtime image build still requires Docker on the workstation or CI runner.

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import time
+from collections.abc import Callable
 from typing import Any
 
 import pandas as pd
@@ -17,6 +18,10 @@ from src.llm.sandbox import PandasInterpreter
 from src.llm.validator import validate_sql
 from src.models import GeneratedQuery, NarrativeResponse, QueryResult, SchemaProfile
 from src.utils.exceptions import AppError, LLMResponseError
+
+
+ProgressCallback = Callable[[str, str], None]
+ANALYSIS_MODES = {"fast", "balanced", "deep"}
 
 
 class NLQueryPipeline:
@@ -51,6 +56,8 @@ class NLQueryPipeline:
         *,
         filters: dict[str, Any] | None = None,
         history: str = "",
+        analysis_mode: str = "balanced",
+        progress: ProgressCallback | None = None,
     ) -> tuple[GeneratedQuery, QueryResult, NarrativeResponse, bool]:
         """Execute the full pipeline, returning whether correction was used."""
         from src.data.schema import schema_for_llm
@@ -58,8 +65,21 @@ class NLQueryPipeline:
         question = question.strip()
         if not question or len(question) > self.settings.question_max_chars:
             raise LLMResponseError(f"Question must contain 1-{self.settings.question_max_chars} characters.")
+        mode = analysis_mode.strip().lower()
+        if mode not in ANALYSIS_MODES:
+            mode = "balanced"
+        query_effort = "low" if mode == "fast" else "high" if mode == "deep" else self.settings.llm_query_reasoning_effort
+        narrative_effort = "high" if mode == "deep" else self.settings.llm_narrative_reasoning_effort
+        narrative_verbosity = "high" if mode == "deep" else self.settings.llm_response_verbosity
+
+        def emit(stage: str, message: str) -> None:
+            if progress is not None:
+                progress(stage, message)
+
         run_started = time.perf_counter()
         plan_started = time.perf_counter()
+        model_calls = 0
+        emit("planning", "Understanding the question and active filters")
         system = self.prompts.query_system(schema_for_llm(schema), self.aliases, filters or {})
         provider_fallback = False
         fallback_reason = ""
@@ -69,11 +89,12 @@ class NLQueryPipeline:
             context_payload = {"recent_interactions": history[-4000:], "current_question": question}
             user = "<user_request>" + json.dumps(context_payload, default=str) + "</user_request>"
             try:
+                model_calls += 1
                 generated = self.client.complete(
                     system=system,
                     user=user,
                     response_model=GeneratedQuery,
-                    reasoning_effort=self.settings.llm_query_reasoning_effort,
+                    reasoning_effort=query_effort,
                     verbosity="low",
                 )
             except LLMResponseError as exc:
@@ -82,6 +103,7 @@ class NLQueryPipeline:
                 generated = OfflineQueryPlanner(engine.frame, max_rows=self.settings.max_result_rows).plan(question)
         plan_ms = (time.perf_counter() - plan_started) * 1000
         corrected = False
+        emit("validation", "Validating the read-only query plan")
         try:
             result = self._execute(generated, engine)
         except AppError as first_error:
@@ -97,11 +119,12 @@ class NLQueryPipeline:
             }
             correction_started = time.perf_counter()
             try:
+                model_calls += 1
                 generated = self.client.complete(
                     system=system,
                     user=json.dumps(correction, default=str),
                     response_model=GeneratedQuery,
-                    reasoning_effort=self.settings.llm_query_reasoning_effort,
+                    reasoning_effort=query_effort,
                     verbosity="low",
                 )
             except LLMResponseError as exc:
@@ -110,18 +133,25 @@ class NLQueryPipeline:
                 generated = OfflineQueryPlanner(engine.frame, max_rows=self.settings.max_result_rows).plan(question)
             plan_ms += (time.perf_counter() - correction_started) * 1000
             result = self._execute(generated, engine)
+        emit("execution", "Query executed with timeout and row limits")
         narrative_started = time.perf_counter()
-        if self.client is None or provider_fallback:
-            narrative = computed_narrative(question, result.data)
+        emit("narrative", "Grounding the answer in computed evidence")
+        if self.client is None or provider_fallback or mode == "fast":
+            narrative = computed_narrative(
+                question,
+                result.data,
+                hosted_plan=self.client is not None and not provider_fallback and mode == "fast",
+            )
         else:
             narrative_input = build_result_evidence(question, generated, result, filters or {})
             try:
+                model_calls += 1
                 narrative = self.client.complete(
                     system=self.prompts.narrative_system(),
                     user="<verified_result>" + json.dumps(narrative_input, default=str)[:18_000] + "</verified_result>",
                     response_model=NarrativeResponse,
-                    reasoning_effort=self.settings.llm_narrative_reasoning_effort,
-                    verbosity=self.settings.llm_response_verbosity,
+                    reasoning_effort=narrative_effort,
+                    verbosity=narrative_verbosity,
                 )
             except LLMResponseError as exc:
                 provider_fallback = True
@@ -129,9 +159,12 @@ class NLQueryPipeline:
                 narrative = computed_narrative(question, result.data)
         narrative_ms = (time.perf_counter() - narrative_started) * 1000
         narrative.chart_caption = validate_caption(narrative.chart_caption, result.data)
+        emit("complete", "Verified answer assembled")
         self.last_run_metrics = {
             "mode": self.mode_label,
             "model": self.model_label,
+            "analysis_mode": mode.title(),
+            "model_calls": model_calls,
             "planning_ms": plan_ms,
             "execution_ms": result.execution_time_ms,
             "narrative_ms": narrative_ms,
@@ -188,14 +221,20 @@ def validate_caption(caption: str, result: pd.DataFrame) -> str:
     return caption[:300]
 
 
-def computed_narrative(question: str, result: pd.DataFrame) -> NarrativeResponse:
+def computed_narrative(question: str, result: pd.DataFrame, *, hosted_plan: bool = False) -> NarrativeResponse:
     """Create a useful, explicitly computed local-mode summary."""
+    plan_description = "validated hosted-model plan" if hosted_plan else "deterministic local plan"
+    limitation = (
+        "Fast mode uses hosted AI for structured planning and a local computed summary to reduce latency and free-tier usage."
+        if hosted_plan
+        else "Local analytics mode uses common e-commerce intents and computed summaries; configure Gemini, OpenAI, or Ollama for deeper language interpretation."
+    )
     if result.empty:
         return NarrativeResponse(
             direct_answer="No matching records were found.",
-            analysis="The safe local query completed successfully but returned zero rows for the active data and filters.",
+            analysis=f"The {plan_description} completed safely but returned zero rows for the active data and filters.",
             key_findings=["No result can be ranked or compared from an empty result set."],
-            limitations="This answer reflects the current filters and the deterministic local planner.",
+            limitations=limitation,
             chart_caption="The validated query returned no matching rows.",
         )
     first = result.iloc[0]
@@ -207,9 +246,9 @@ def computed_narrative(question: str, result: pd.DataFrame) -> NarrativeResponse
             findings.append(f"{column} ranges from {_display_value(numeric[column].min())} to {_display_value(numeric[column].max())} in this result.")
     return NarrativeResponse(
         direct_answer=lead,
-        analysis=f"A deterministic, read-only plan answered: {question.strip()} The first result is shown above; review the complete table for all matching values.",
+        analysis=f"A {plan_description} answered: {question.strip()} The first result is shown above; review the complete table for all matching values.",
         key_findings=findings,
-        limitations="Local analytics mode uses common e-commerce intents and computed summaries; configure Gemini, OpenAI, or Ollama for deeper language interpretation.",
+        limitations=limitation,
         chart_caption=f"Validated result with {len(result):,} row(s) and {len(result.columns)} column(s).",
     )
 

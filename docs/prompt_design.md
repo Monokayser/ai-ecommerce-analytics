@@ -4,7 +4,9 @@ The query system prompt contains the dataset purpose, structured schema, types, 
 
 The LLM returns `GeneratedQuery` JSON: interpreted question, language, query, columns, filters, aggregation, chart recommendation, and a short user-facing rationale. No hidden reasoning is requested or displayed.
 
-Planning and narration use separate controls. Gemini 3.6 Flash is the hosted default. Query planning uses medium thinking because correctness matters more than prose speed; narration uses low thinking because every fact is already computed. The native Gemini SDK receives a Pydantic-derived JSON Schema and the response is validated again locally. Transient provider failures receive at most one transport retry, while an invalid generated query receives exactly one sanitized correction attempt.
+Planning and narration use separate controls. Gemini 3.6 Flash is the hosted default. The user can select Fast, Balanced, or Deep response mode: Fast performs one low-effort hosted planning pass and formats the verified result locally; Balanced uses configured medium planning plus a concise model narrative; Deep uses high effort and higher narrative detail. The native Gemini SDK receives a Pydantic-derived JSON Schema and the response is validated again locally. Transient provider failures receive at most one transport retry, while an invalid generated query receives exactly one sanitized correction attempt.
+
+The pipeline exposes only named operational stages—planning, validation, execution, evidence grounding, and completion—to the Streamlit status component. These are emitted during execution for responsive feedback and never reveal chain-of-thought or hidden reasoning.
 
 After execution, only the question, verified result sample, numeric summary, missing counts, filters, timing, truncation status, and generated query are passed to the narrative prompt inside an untrusted-data boundary. The output distinguishes direct answer, analysis, findings, limitations, and caption. Captions containing unsupported numeric claims fall back to a neutral computed statement.
 

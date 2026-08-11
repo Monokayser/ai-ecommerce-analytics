@@ -1,3 +1,5 @@
+<img src="assets/brand-mark.svg" width="72" height="72" alt="E-Commerce Analytics icon">
+
 # AI-Powered E-Commerce Analytics
 
 [![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
@@ -14,14 +16,14 @@ A production-style Streamlit capstone that turns e-commerce files into secure, f
 - Uses a responsive dark glassmorphism interface with luminous cards, guided navigation, mobile-aware filters, and accessible reduced-motion behavior.
 - Preserves raw data, cleans a working copy, resolves aliases, profiles every column, and records each cleaning action.
 - Queries data through DuckDB with parameterized filters, row limits, timing, and a 10-second interrupt guard.
-- Answers questions through a guided AI workspace using Gemini 3.6 Flash structured output, with smart prompts, verified follow-ups, visible safety evidence, and a deterministic private fallback.
+- Answers questions through a guided AI workspace using Gemini 3.6 Flash structured output, live pipeline-stage feedback, Fast/Balanced/Deep response modes, verified follow-ups, visible safety evidence, and a deterministic private fallback.
 - Parses generated SQL with sqlglot and accepts only one read-only `SELECT`/`WITH` query on the registered `dataset` table.
 - Includes six application sections, nine Plotly visualization families—including a WebGL 3D insight space—anomaly detection, subset comparison, and Word/PDF/PNG/SVG export.
 - Displays pipeline stages, the validated query, timing, retry/fallback status, and verified evidence—never hidden reasoning.
 
 ## Why Gemini 3.6 Flash
 
-Gemini 3.6 Flash is the default hosted planner because it is a stable, low-latency model with native JSON Schema structured output and an API free tier suitable for development and small projects. Planning uses medium thinking; the shorter evidence-grounded narrative uses low thinking for responsiveness. See [docs/model_selection.md](docs/model_selection.md) for the decision matrix and privacy notes.
+Gemini 3.6 Flash is the default hosted planner because it is a stable, low-latency model with native JSON Schema structured output and an API free tier suitable for development and small projects. Fast mode uses one low-effort hosted planning pass plus a local computed summary; Balanced uses medium planning and a concise AI narrative; Deep raises model effort and narrative detail for harder investigations. See [docs/model_selection.md](docs/model_selection.md) for the decision matrix and privacy notes.
 
 No key is required to use the platform. If Gemini is not configured, rate-limited, or unavailable, the same validated query pipeline automatically uses the deterministic local planner and tells the user that fallback occurred.
 

@@ -18,13 +18,15 @@ The application remains provider-neutral and always has a deterministic local pl
 
 ## Runtime policy
 
-- Query planning: Gemini 3.6 Flash with `medium` thinking.
-- Narrative formatting: Gemini 3.6 Flash with `low` thinking.
+- **Fast:** Gemini 3.6 Flash with `low` planning effort, followed by a deterministic computed narrative. This uses one hosted-model pass.
+- **Balanced:** Gemini 3.6 Flash with configured `medium` planning effort and a concise `low`-effort AI narrative. This is the default.
+- **Deep:** Gemini 3.6 Flash with `high` effort for both planning and evidence-grounded narrative formatting.
 - Output: provider-native JSON Schema plus local Pydantic validation.
 - Transport: one bounded retry for transient errors.
 - Invalid query: one sanitized correction attempt followed by full revalidation.
 - Provider unavailable: complete the question through the deterministic local planner and disclose the fallback.
 - Execution: generated output always goes through the SQL or pandas security validator.
+- Progress: planning, validation, execution, and evidence-grounding stages are emitted live; hidden reasoning is never displayed.
 
 ## Privacy choice
 
