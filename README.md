@@ -5,6 +5,7 @@
 [![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.61-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-0F766E.svg)](LICENSE)
+[![GitHub repository](https://img.shields.io/badge/GitHub-Public-22C55E?logo=github)](https://github.com/Monokayser/ai-ecommerce-analytics)
 
 A production-style Streamlit capstone that turns e-commerce files into secure, filter-aware dashboards, natural-language analytics, advanced analysis, and downloadable reports. It works immediately without an API key and upgrades to real-time Gemini planning when a free Gemini API key is configured.
 
@@ -119,6 +120,17 @@ python benchmarks/benchmark_runner.py --provider gemini --dataset data/raw/globa
 ## Deployment
 
 The repository is prepared for Streamlit Community Cloud (`app.py`, `runtime.txt`, `packages.txt`, and pinned requirements) and Docker. Follow [docs/deployment.md](docs/deployment.md) for GitHub, secrets, deployment, health checks, and troubleshooting.
+
+The source repository is public. To create the public website, sign in to [Streamlit Community Cloud](https://share.streamlit.io/) with GitHub and deploy these coordinates:
+
+```text
+Repository: Monokayser/ai-ecommerce-analytics
+Branch: main
+Entrypoint: app.py
+Python: 3.11
+```
+
+Because the repository is public, Streamlit Community Cloud makes the deployed app public by default. For account security, GitHub requires the repository owner to approve the one-time OAuth sign-in.
 
 Cross-browser behavior, responsive breakpoints, accessibility controls, performance budgets, container hardening, and scaling guidance are documented in [docs/production_hardening.md](docs/production_hardening.md).
 

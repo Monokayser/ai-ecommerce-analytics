@@ -465,6 +465,10 @@ def render(
             for label, help_text, question in CAPABILITIES:
                 if st.button(label, help=help_text, use_container_width=True, key=f"capability_{label}"):
                     requested_question = question
+                st.markdown(
+                    f'<div class="capability-note">{escape(help_text)}</div>',
+                    unsafe_allow_html=True,
+                )
             st.divider()
             st.markdown("#### 💬 Ask your own question")
             scope_text = f"Using {len(frame):,} rows" + (f" with {len(filters)} active filter(s)." if filters else " with no filters.")

@@ -442,6 +442,14 @@ APP_CSS = r"""
     }
     .ai-guide strong { color:#eefaff; font-size:.78rem; }
     .ai-guide small { color:#8fa9bc; font-size:.67rem; line-height:1.35; }
+    .capability-note {
+        margin: -.48rem .55rem .7rem;
+        padding: .1rem .35rem .48rem;
+        border-bottom: 1px solid rgba(125, 220, 255, .08);
+        color: #8fa9bc;
+        font-size: .69rem;
+        line-height: 1.42;
+    }
     .ai-pipeline {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(122px, 1fr));
@@ -541,6 +549,7 @@ APP_CSS = r"""
         .ai-guide { grid-template-columns: 1fr; }
         .ai-pipeline { grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); }
         .ai-response-empty { min-height: 300px; }
+        .capability-note { margin-left:.2rem; margin-right:.2rem; }
     }
     @media (max-width: 640px) {
         .block-container { padding-left: .55rem; padding-right: .55rem; }
