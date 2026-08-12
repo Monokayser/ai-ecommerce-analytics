@@ -21,6 +21,7 @@ def test_environment_values_are_bounded_and_endpoints_are_http(monkeypatch):
     monkeypatch.setenv("MAX_UPLOAD_MB", "9999")
     monkeypatch.setenv("MAX_RESULT_ROWS", "-5")
     monkeypatch.setenv("OLLAMA_BASE_URL", "file:///etc/passwd")
+    monkeypatch.setenv("LM_STUDIO_BASE_URL", "file:///etc/passwd")
     monkeypatch.setenv("OPENAI_BASE_URL", "https://user:secret@example.com/v1")
     monkeypatch.setenv("LOG_LEVEL", "verbose")
     settings = Settings.from_env()
@@ -28,8 +29,19 @@ def test_environment_values_are_bounded_and_endpoints_are_http(monkeypatch):
     assert settings.max_upload_mb == 200
     assert settings.max_result_rows == 1
     assert settings.ollama_base_url == "http://localhost:11434/v1"
+    assert settings.lm_studio_base_url == "http://localhost:1234/v1"
     assert settings.openai_base_url == ""
     assert settings.log_level == "INFO"
+
+
+def test_lm_studio_provider_is_a_supported_local_endpoint(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "lmstudio")
+    monkeypatch.setenv("LM_STUDIO_BASE_URL", "http://127.0.0.1:1234/v1")
+    monkeypatch.setenv("LM_STUDIO_MODEL", "openai/gpt-oss-20b")
+    settings = Settings.from_env()
+    assert settings.ai_available is True
+    assert settings.ai_mode == "LM Studio"
+    assert settings.lm_studio_base_url == "http://127.0.0.1:1234/v1"
 
 
 def test_dataset_dimension_guards(ecommerce_frame):

@@ -227,7 +227,7 @@ def computed_narrative(question: str, result: pd.DataFrame, *, hosted_plan: bool
     limitation = (
         "Fast mode uses hosted AI for structured planning and a local computed summary to reduce latency and free-tier usage."
         if hosted_plan
-        else "Local analytics mode uses common e-commerce intents and computed summaries; configure Gemini, OpenAI, or Ollama for deeper language interpretation."
+        else "Local analytics mode uses common e-commerce intents and computed summaries; configure Gemini, OpenAI, Ollama, or LM Studio for deeper language interpretation."
     )
     if result.empty:
         return NarrativeResponse(

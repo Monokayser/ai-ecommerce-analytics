@@ -15,11 +15,11 @@ Threats include prompt injection stored inside dataset cells, malicious uploads,
 - Model errors are sanitized before the single correction attempt. Users see concise messages while logs contain exception types, not secrets or complete rows.
 - API keys remain in environment configuration. Logs include operation, timing, row count, and status but never secret values or raw private rows.
 - Explicit current filters override historical context; only the last five compact interactions are retained in session memory.
-- Local analytics mode does not transmit dataset values to an external service. Hosted Gemini/OpenAI mode sends only bounded schema samples and bounded verified result evidence to the configured endpoint. Ollama sends the same bounded context to the configured local or remote endpoint.
+- Local analytics mode does not transmit dataset values to an external service. Hosted Gemini/OpenAI mode sends only bounded schema samples and bounded verified result evidence to the configured endpoint. Ollama and LM Studio send the same bounded context only to the explicitly configured endpoint; the documented defaults are localhost.
 
 ## Provider privacy
 
-Google states that Gemini API free-tier content may be used to improve its products. Do not submit confidential, regulated, or personally identifying data through the free tier. Use the deterministic local planner or a locally controlled Ollama deployment when data must remain on the machine; use an appropriately contracted paid provider when organizational data-handling terms are required. The demo deployment should contain synthetic or approved public data only.
+Google states that Gemini API free-tier content may be used to improve its products. Do not submit confidential, regulated, or personally identifying data through the free tier. Use the deterministic local planner, LM Studio, or a locally controlled Ollama deployment when data must remain on the machine; use an appropriately contracted paid provider when organizational data-handling terms are required. The demo deployment should contain synthetic or approved public data only.
 
 ## Residual risk
 

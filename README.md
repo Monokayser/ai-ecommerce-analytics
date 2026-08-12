@@ -10,13 +10,15 @@ A production-style Streamlit capstone that turns e-commerce files into secure, f
 
 ![AI-Powered E-Commerce Analytics dashboard showing the responsive executive overview, secure global filters, and interactive workspace](docs/assets/dashboard-overview.jpg)
 
+![AI Assistant agent console showing capability presets, natural-language analytics, the validated five-stage pipeline, and verified response exports](docs/assets/ai-assistant-agent-console.png)
+
 ## What it does
 
 - Loads validated CSV, JSON, and Parquet uploads up to a configurable 200 MB limit.
 - Uses a responsive dark glassmorphism interface with luminous cards, guided navigation, mobile-aware filters, and accessible reduced-motion behavior.
 - Preserves raw data, cleans a working copy, resolves aliases, profiles every column, and records each cleaning action.
 - Queries data through DuckDB with parameterized filters, row limits, timing, and a 10-second interrupt guard.
-- Answers questions through a guided AI workspace using Gemini 3.6 Flash structured output, live pipeline-stage feedback, Fast/Balanced/Deep response modes, verified follow-ups, visible safety evidence, and a deterministic private fallback.
+- Answers questions through a reference-inspired AI agent console with capability presets, a natural-language task box, live pipeline-stage feedback, Fast/Balanced/Deep response modes, saved responses, verified follow-ups, visible safety evidence, and a deterministic private fallback.
 - Parses generated SQL with sqlglot and accepts only one read-only `SELECT`/`WITH` query on the registered `dataset` table.
 - Includes six application sections, nine Plotly visualization families—including a WebGL 3D insight space—anomaly detection, subset comparison, and Word/PDF/PNG/SVG export.
 - Displays pipeline stages, the validated query, timing, retry/fallback status, and verified evidence—never hidden reasoning.
@@ -56,7 +58,20 @@ LLM_QUERY_REASONING_EFFORT=medium
 LLM_NARRATIVE_REASONING_EFFORT=low
 ```
 
-Never commit `.env` or `.streamlit/secrets.toml`. OpenAI and local Ollama remain supported provider-neutral alternatives; see `.env.example`.
+Never commit `.env` or `.streamlit/secrets.toml`. OpenAI, local Ollama, and local LM Studio remain supported provider-neutral alternatives; see `.env.example`.
+
+### Enable private real-time AI with LM Studio
+
+LM Studio is the recommended no-per-request-cost option when the machine has enough memory for a capable local model. Load a structured-output-capable model, start the local server, and configure:
+
+```dotenv
+LLM_PROVIDER=lmstudio
+LM_STUDIO_BASE_URL=http://localhost:1234/v1
+LM_STUDIO_MODEL=openai/gpt-oss-20b
+LM_STUDIO_API_KEY=lm-studio
+```
+
+The model proposes a typed plan only. Every query is still revalidated locally and executed through the read-only DuckDB or restricted pandas layer. If the endpoint is unavailable, the assistant discloses the failure and uses the deterministic planner. See [LM Studio structured output](https://lmstudio.ai/docs/developer/openai-compat/structured-output).
 
 ## Data and demo status
 

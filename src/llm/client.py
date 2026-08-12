@@ -126,13 +126,25 @@ class GeminiClient(LLMClient):
 
 
 class OpenAICompatibleClient(LLMClient):
-    """Use OpenAI Responses API or Ollama's OpenAI-compatible chat endpoint."""
+    """Use OpenAI Responses or a local OpenAI-compatible structured endpoint."""
 
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
-        if settings.llm_provider == "ollama":
-            self.client = OpenAI(base_url=settings.ollama_base_url.rstrip("/") + "/", api_key="ollama", timeout=settings.llm_timeout_seconds, max_retries=0)
-            self.model = settings.ollama_model
+        if settings.llm_provider in {"ollama", "lmstudio"}:
+            if settings.llm_provider == "lmstudio":
+                base_url = settings.lm_studio_base_url
+                api_key = settings.lm_studio_api_key or "lm-studio"
+                self.model = settings.lm_studio_model
+            else:
+                base_url = settings.ollama_base_url
+                api_key = "ollama"
+                self.model = settings.ollama_model
+            self.client = OpenAI(
+                base_url=base_url.rstrip("/") + "/",
+                api_key=api_key,
+                timeout=settings.llm_timeout_seconds,
+                max_retries=0,
+            )
         else:
             kwargs = {"api_key": settings.openai_api_key, "timeout": settings.llm_timeout_seconds, "max_retries": 0}
             if settings.openai_base_url:
@@ -143,7 +155,11 @@ class OpenAICompatibleClient(LLMClient):
 
     @property
     def provider_name(self) -> str:
-        return "Ollama" if self.settings.llm_provider == "ollama" else "OpenAI"
+        if self.settings.llm_provider == "ollama":
+            return "Ollama"
+        if self.settings.llm_provider == "lmstudio":
+            return "LM Studio"
+        return "OpenAI"
 
     def complete(
         self,
@@ -160,7 +176,7 @@ class OpenAICompatibleClient(LLMClient):
         started = time.perf_counter()
         for attempt in range(self.settings.llm_max_retries + 1):
             try:
-                if self.settings.llm_provider == "ollama":
+                if self.settings.llm_provider in {"ollama", "lmstudio"}:
                     response = self.client.chat.completions.create(
                         model=self.model,
                         messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],

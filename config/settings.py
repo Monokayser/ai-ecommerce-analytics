@@ -57,6 +57,9 @@ class Settings:
     openai_base_url: str = ""
     ollama_base_url: str = "http://localhost:11434/v1"
     ollama_model: str = "gpt-oss:20b"
+    lm_studio_base_url: str = "http://localhost:1234/v1"
+    lm_studio_model: str = "openai/gpt-oss-20b"
+    lm_studio_api_key: str = "lm-studio"
     llm_temperature: float = 0.0
     llm_timeout_seconds: float = 45.0
     llm_query_reasoning_effort: str = "medium"
@@ -80,7 +83,7 @@ class Settings:
         """Load settings from ``.env`` and environment variables."""
         load_dotenv(BASE_DIR / ".env")
         return cls(
-            llm_provider=_choice("LLM_PROVIDER", "gemini", {"gemini", "openai", "ollama"}),
+            llm_provider=_choice("LLM_PROVIDER", "gemini", {"gemini", "openai", "ollama", "lmstudio"}),
             gemini_api_key=os.getenv("GEMINI_API_KEY", os.getenv("GOOGLE_API_KEY", "")),
             gemini_model=os.getenv("GEMINI_MODEL", "gemini-3.6-flash"),
             gemini_max_output_tokens=_bounded_int("GEMINI_MAX_OUTPUT_TOKENS", 4096, 512, 8192),
@@ -89,6 +92,9 @@ class Settings:
             openai_base_url=_http_endpoint("OPENAI_BASE_URL", "", allow_empty=True),
             ollama_base_url=_http_endpoint("OLLAMA_BASE_URL", "http://localhost:11434/v1"),
             ollama_model=os.getenv("OLLAMA_MODEL", "gpt-oss:20b"),
+            lm_studio_base_url=_http_endpoint("LM_STUDIO_BASE_URL", "http://localhost:1234/v1"),
+            lm_studio_model=os.getenv("LM_STUDIO_MODEL", "openai/gpt-oss-20b"),
+            lm_studio_api_key=os.getenv("LM_STUDIO_API_KEY", "lm-studio"),
             llm_temperature=_bounded_float("LLM_TEMPERATURE", 0.0, 0.0, 2.0),
             llm_timeout_seconds=_bounded_float("LLM_TIMEOUT_SECONDS", 45.0, 5.0, 120.0),
             llm_query_reasoning_effort=_choice("LLM_QUERY_REASONING_EFFORT", "medium", {"minimal", "low", "medium", "high", "xhigh"}),
@@ -112,13 +118,15 @@ class Settings:
             return bool(self.gemini_api_key)
         if self.llm_provider == "openai":
             return bool(self.openai_api_key)
-        return self.llm_provider == "ollama"
+        return self.llm_provider in {"ollama", "lmstudio"}
 
     @property
     def ai_mode(self) -> str:
         """Return the active assistant mode without exposing secrets."""
         if self.llm_provider == "ollama":
             return "Ollama"
+        if self.llm_provider == "lmstudio":
+            return "LM Studio"
         if self.llm_provider == "gemini" and self.gemini_api_key:
             return "Gemini"
         if self.llm_provider == "openai" and self.openai_api_key:

@@ -388,6 +388,68 @@ APP_CSS = r"""
     .answer-eyebrow { color:#6fe1ff; font-size:.69rem; font-weight:800; letter-spacing:.15em; text-transform:uppercase; }
     .trust-pill { padding:.3rem .58rem; color:#b6d7e8; font-size:.69rem; }
     .trust-pill.safe { color:#a7f5d2; border-color:rgba(85,230,165,.24); background:rgba(32,171,117,.09); }
+    .ai-pipeline {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: .55rem;
+        margin: .25rem 0 1rem;
+        padding: .72rem;
+        border: 1px solid rgba(125, 220, 255, .18);
+        border-radius: 18px;
+        background: rgba(5, 20, 34, .72);
+    }
+    .ai-stage {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1.75rem 1fr;
+        align-items: center;
+        gap: .2rem .45rem;
+        min-width: 0;
+        padding: .55rem;
+        border-radius: 13px;
+        background: linear-gradient(145deg, rgba(18, 53, 79, .72), rgba(9, 35, 57, .75));
+    }
+    .ai-stage:not(:last-child)::after {
+        content: "›";
+        position: absolute;
+        right: -.48rem;
+        top: 50%;
+        z-index: 2;
+        transform: translateY(-50%);
+        color: var(--cyan);
+        font-size: 1.25rem;
+        font-weight: 900;
+    }
+    .ai-stage span {
+        grid-row: 1 / span 2;
+        display: grid;
+        place-items: center;
+        width: 1.65rem;
+        height: 1.65rem;
+        border-radius: 9px;
+        color: #04151d;
+        background: var(--teal);
+        font-size: .76rem;
+        font-weight: 900;
+    }
+    .ai-stage strong { overflow:hidden; color:#effaff; font-size:.73rem; text-overflow:ellipsis; white-space:nowrap; }
+    .ai-stage small { overflow:hidden; color:#85a0b6; font-size:.62rem; text-overflow:ellipsis; white-space:nowrap; }
+    .ai-response-empty {
+        display: grid;
+        place-items: center;
+        align-content: center;
+        min-height: 455px;
+        padding: 2rem;
+        text-align: center;
+        border: 1px dashed rgba(125, 220, 255, .24);
+        border-radius: 22px;
+        background:
+            radial-gradient(circle at 50% 40%, rgba(45, 212, 191, .09), transparent 13rem),
+            rgba(4, 18, 31, .46);
+    }
+    .ai-response-empty span { color:var(--teal); font-size:2.4rem; filter:drop-shadow(0 0 16px rgba(45,212,191,.45)); }
+    .ai-response-empty h3 { margin:.55rem 0 .25rem; color:#f4fbff; font-size:1.35rem; }
+    .ai-response-empty p { max-width:580px; margin:0; color:#91a9bc; line-height:1.65; }
     .empty-state {
         padding: 1.4rem;
         text-align: center;
@@ -432,6 +494,9 @@ APP_CSS = r"""
         .section-shell { padding: 1rem; }
         [data-testid="stTabs"] [role="tablist"] { border-radius: 16px; }
         [data-testid="stTabs"] button[role="tab"] { min-width: max-content; }
+        .ai-pipeline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .ai-stage:not(:last-child)::after { display:none; }
+        .ai-response-empty { min-height: 300px; }
     }
     @media (max-width: 640px) {
         .block-container { padding-left: .55rem; padding-right: .55rem; }
@@ -442,6 +507,7 @@ APP_CSS = r"""
         .mode-card { grid-template-columns: 1fr; }
         .mode-orb { width: 42px; height: 42px; }
         .answer-card { padding: 1rem; border-radius: 20px; }
+        .ai-pipeline { grid-template-columns: 1fr; }
         [data-testid="stDataFrame"], [data-testid="stPlotlyChart"] { border-radius: 18px; }
         .stButton > button, .stDownloadButton > button { width: 100%; min-height: 46px; }
     }

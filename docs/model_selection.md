@@ -14,13 +14,14 @@ The application remains provider-neutral and always has a deterministic local pl
 | Groq with `openai/gpt-oss-20b` | Very high token throughput and a free developer limit | Strict structured output is not supported for this model; JSON is best-effort | Not the default query planner |
 | OpenAI GPT-5.6 family | Strong Responses API and schema support | API usage is paid | Supported optional provider |
 | Local Ollama | Data can remain locally controlled; no per-request API charge | Requires suitable local hardware and model management | Supported privacy-first provider |
+| LM Studio + `openai/gpt-oss-20b` | Local OpenAI-compatible endpoint, JSON Schema output, no per-request charge | Requires a running local server and sufficient RAM/VRAM | Recommended free real-time local option |
 | Deterministic local planner | Instant, private, reproducible, no key | Covers known e-commerce intents rather than arbitrary language | Automatic fallback |
 
 ## Runtime policy
 
-- **Fast:** Gemini 3.6 Flash with `low` planning effort, followed by a deterministic computed narrative. This uses one hosted-model pass.
-- **Balanced:** Gemini 3.6 Flash with configured `medium` planning effort and a concise `low`-effort AI narrative. This is the default.
-- **Deep:** Gemini 3.6 Flash with `high` effort for both planning and evidence-grounded narrative formatting.
+- **Fast:** the selected model with low planning effort, followed by a deterministic computed narrative. This uses one model pass.
+- **Balanced:** the selected model with configured medium planning effort and a concise evidence-grounded narrative. This is the default.
+- **Deep:** the selected model with high effort for both planning and evidence-grounded narrative formatting.
 - Output: provider-native JSON Schema plus local Pydantic validation.
 - Transport: one bounded retry for transient errors.
 - Invalid query: one sanitized correction attempt followed by full revalidation.
@@ -30,7 +31,7 @@ The application remains provider-neutral and always has a deterministic local pl
 
 ## Privacy choice
 
-The Gemini API free tier is suitable for synthetic, public, or approved demonstration data. Google's pricing documentation says free-tier content may be used to improve products. For private business data, select local mode/Ollama or an appropriately governed paid provider and review the provider's current data-use terms.
+The Gemini API free tier is suitable for synthetic, public, or approved demonstration data. Google's pricing documentation says free-tier content may be used to improve products. For private business data, select the deterministic planner, LM Studio, local Ollama, or an appropriately governed paid provider and review the provider's current data-use terms. LM Studio is the preferred free real-time option for this reference architecture because it exposes JSON Schema structured output through an OpenAI-compatible localhost endpoint; model quality and latency still depend on the chosen model and hardware.
 
 ## Primary references
 
@@ -41,3 +42,5 @@ The Gemini API free tier is suitable for synthetic, public, or approved demonstr
 - [Groq production models](https://console.groq.com/docs/models)
 - [Groq structured outputs](https://console.groq.com/docs/structured-outputs)
 - [OpenAI models](https://developers.openai.com/api/docs/models)
+- [LM Studio OpenAI compatibility](https://lmstudio.ai/docs/developer/openai-compat)
+- [LM Studio structured output](https://lmstudio.ai/docs/developer/openai-compat/structured-output)
