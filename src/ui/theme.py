@@ -411,7 +411,7 @@ APP_CSS = r"""
         z-index: 90;
         top: .45rem;
         margin: 0 0 .8rem;
-        padding: .46rem .55rem;
+        padding: .58rem .68rem;
         border: 1px solid rgba(130,255,215,.18);
         border-radius: 18px;
         background: linear-gradient(120deg, rgba(2,14,10,.91), rgba(6,35,26,.88));
@@ -428,10 +428,10 @@ APP_CSS = r"""
     .top-nav-label {
         display: inline-flex;
         align-items: center;
-        min-height: 36px;
-        padding: 0 .55rem;
+        min-height: 44px;
+        padding: 0 .65rem;
         color: #7fffdc;
-        font-size: .64rem;
+        font-size: .7rem;
         font-weight: 850;
         letter-spacing: .16em;
         text-transform: uppercase;
@@ -442,32 +442,35 @@ APP_CSS = r"""
         display: flex !important;
         flex-wrap: nowrap !important;
         justify-content: space-between !important;
-        gap: .12rem !important;
+        gap: .22rem !important;
         width: 100%;
         overflow: visible !important;
         padding: .08rem;
     }
     .st-key-top_navigation [role="radiogroup"] label {
-        min-height: 38px;
+        min-height: 46px;
         flex: 0 0 auto;
-        padding: .48rem .55rem;
+        padding: .58rem .72rem;
         border: 1px solid transparent;
-        border-radius: 12px;
+        border-radius: 14px;
         background: transparent;
-        transition: color .18s ease, background .18s ease, border-color .18s ease, transform .18s ease;
+        cursor: pointer;
+        transition: color .2s ease, background .2s ease, border-color .2s ease, transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s ease;
     }
     .st-key-top_navigation [role="radiogroup"] label:hover {
-        border-color: rgba(130,255,215,.15);
-        background: rgba(58,202,154,.09);
-        transform: translateY(-1px);
+        border-color: rgba(130,255,215,.32);
+        background: linear-gradient(120deg, rgba(58,202,154,.16), rgba(25,111,88,.13));
+        transform: perspective(500px) translateY(-3px) translateZ(8px);
+        box-shadow: 0 10px 24px rgba(0,0,0,.24), 0 0 18px rgba(72,239,185,.08);
     }
     .st-key-top_navigation [role="radiogroup"] label[data-selected="true"] {
         border-color: rgba(127,255,225,.28);
         background: linear-gradient(120deg, rgba(45,189,143,.27), rgba(17,103,78,.3));
         box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 7px 20px rgba(0,0,0,.2);
     }
-    .st-key-top_navigation [role="radiogroup"] label p { color:#b8d4ca; font-size:.68rem; font-weight:750; white-space:nowrap; }
+    .st-key-top_navigation [role="radiogroup"] label p { color:#c3ddd4; font-size:.82rem; font-weight:780; letter-spacing:-.012em; white-space:nowrap; }
     .st-key-top_navigation [role="radiogroup"] label[data-selected="true"] p { color:#f5fffb; }
+    .st-key-top_navigation [role="radiogroup"] label:focus-within { border-color:rgba(127,255,225,.5); box-shadow:0 0 0 3px rgba(127,255,225,.12); }
     .st-key-top_navigation [data-testid="stRadioOption"] > div > div > div:first-child { display:none !important; }
 
     .section-shell {
@@ -805,6 +808,15 @@ APP_CSS = r"""
         100% { opacity:0; transform:translateX(340%) skewX(-15deg); }
     }
     @keyframes edgePulse { 0%,100% { opacity:.42; } 50% { opacity:1; } }
+    @keyframes hoverScan {
+        from { opacity:0; transform:translateX(-190%) skewX(-15deg); }
+        42% { opacity:.82; }
+        to { opacity:0; transform:translateX(340%) skewX(-15deg); }
+    }
+    @keyframes hoverCharge {
+        0%,100% { filter:brightness(1); }
+        50% { filter:brightness(1.35) drop-shadow(0 0 7px rgba(127,255,225,.42)); }
+    }
     @keyframes softFloat { 0%,100% { transform:translate3d(0,0,0) rotateX(0); } 50% { transform:translate3d(0,-3px,8px) rotateX(4deg); } }
     .mode-orb, .sidebar-mark { animation: softFloat 4s ease-in-out infinite; }
     [data-testid="stMetric"], [data-testid="stPlotlyChart"], [data-testid="stVerticalBlockBorderWrapper"] { animation: revealUp .48s ease both; }
@@ -819,14 +831,36 @@ APP_CSS = r"""
         .kpi-card::before { animation:edgePulse 3.6s calc(var(--delay, 0ms) + .4s) ease-in-out infinite; }
     }
     @media (hover: hover) and (pointer: fine) {
-        [data-testid="stMetric"], .mode-card, .answer-card, [data-testid="stPlotlyChart"], .viz-feature, .kpi-card {
-            transform: perspective(900px) translateZ(0);
-            transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+        [data-testid="stMetric"]:hover, [data-testid="stPlotlyChart"]:hover,
+        [data-testid="stVerticalBlockBorderWrapper"]:hover, .viz-feature:hover, .kpi-card:hover {
+            animation: none !important;
         }
-        [data-testid="stMetric"]:hover, .mode-card:hover, .answer-card:hover {
+        [data-testid="stMetric"], .mode-card, .answer-card, [data-testid="stPlotlyChart"], [data-testid="stDataFrame"],
+        [data-testid="stExpander"], [data-testid="stAlert"], .viz-feature, .kpi-card, .ai-guide > div, .ai-stage,
+        .ai-response-empty, .demo-strip, .hero-pill, .filter-pill, .trust-pill {
+            transform: perspective(900px) translateZ(0);
+            transition: transform .24s cubic-bezier(.2,.8,.2,1), border-color .24s ease, box-shadow .24s ease, filter .24s ease, background .24s ease;
+        }
+        [data-testid="stMetric"]:hover, .mode-card:hover, .answer-card:hover, .ai-response-empty:hover {
             transform: perspective(900px) translateY(-3px) translateZ(6px) rotateX(1deg);
             border-color: rgba(137, 223, 255, .42);
             box-shadow: 0 30px 80px rgba(0,0,0,.46), 0 0 34px rgba(42,170,235,.09), inset 0 1px 0 rgba(255,255,255,.1);
+        }
+        [data-testid="stPlotlyChart"]:hover, [data-testid="stDataFrame"]:hover {
+            transform:perspective(1000px) translateY(-4px) translateZ(8px);
+            border-color:rgba(127,255,225,.42);
+            box-shadow:0 30px 78px rgba(0,0,0,.45),0 0 34px rgba(61,231,177,.1),inset 0 1px 0 rgba(255,255,255,.08);
+        }
+        [data-testid="stExpander"]:hover, [data-testid="stAlert"]:hover, .ai-guide > div:hover, .ai-stage:hover, .demo-strip:hover {
+            transform:perspective(700px) translateY(-2px) translateZ(5px);
+            border-color:rgba(127,255,225,.32) !important;
+            box-shadow:0 18px 42px rgba(0,0,0,.3),0 0 24px rgba(61,231,177,.07);
+        }
+        .hero-pill:hover, .filter-pill:hover, .trust-pill:hover {
+            transform:translateY(-3px) scale(1.025);
+            border-color:rgba(127,255,225,.4);
+            background:rgba(67,207,161,.16);
+            box-shadow:0 9px 22px rgba(0,0,0,.22),0 0 18px rgba(61,231,177,.08);
         }
         .viz-feature:hover {
             transform: perspective(900px) translateY(-4px) translateZ(10px) rotateX(2deg);
@@ -839,6 +873,8 @@ APP_CSS = r"""
             box-shadow:0 30px 82px rgba(0,0,0,.46),0 0 35px rgba(61,231,177,.1),inset 0 1px 0 rgba(255,255,255,.1);
         }
         .kpi-card:hover .kpi-value { text-shadow:0 0 22px rgba(127,255,225,.22); }
+        .kpi-card:hover .kpi-scan, .viz-feature:hover::before { animation:hoverScan .85s ease-out both; }
+        .kpi-card:hover .kpi-meter i, .viz-feature:hover .telemetry-rail i { animation:hoverCharge .8s ease-in-out both; }
     }
     @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
         [data-testid="stHeader"], .app-hero, .hero-pill { background-color: #0a2034; }
@@ -876,7 +912,8 @@ APP_CSS = r"""
     }
     @media (max-width: 640px) {
         .block-container { padding-left: .55rem; padding-right: .55rem; }
-        .st-key-top_navigation [role="radiogroup"] label { min-height:42px; padding:.52rem .68rem; }
+        .st-key-top_navigation [role="radiogroup"] label { min-height:46px; padding:.58rem .72rem; }
+        .st-key-top_navigation [role="radiogroup"] label p { font-size:.8rem; }
         .app-hero { padding: 1.15rem; border-radius: 20px; }
         .app-title { font-size: clamp(1.85rem, 10vw, 2.55rem); line-height: 1.05; overflow-wrap: anywhere; }
         .app-subtitle { font-size: .9rem; }
@@ -909,6 +946,14 @@ def render_sidebar_brand() -> None:
 
 def render_top_navigation(pages: list[str], page_icons: dict[str, str]) -> str:
     """Render the primary workspace navigation above the analytical canvas."""
+    friendly_labels = {
+        "Overview": "Overview",
+        "Data Exploration": "Explore data",
+        "AI Assistant": "Ask AI",
+        "Advanced Analytics": "Advanced",
+        "Data Quality & Performance": "Quality & speed",
+        "Report Export": "Export reports",
+    }
     with st.container(key="top_navigation"):
         st.markdown('<span class="top-nav-label">Workspace</span>', unsafe_allow_html=True)
         return st.radio(
@@ -916,7 +961,7 @@ def render_top_navigation(pages: list[str], page_icons: dict[str, str]) -> str:
             pages,
             key="current_section",
             horizontal=True,
-            format_func=lambda item: f"{page_icons[item]}  {item}",
+            format_func=lambda item: f"{page_icons[item]}  {friendly_labels.get(item, item)}",
             label_visibility="collapsed",
         )
 

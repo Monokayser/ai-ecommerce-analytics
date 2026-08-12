@@ -63,6 +63,8 @@ def test_accessibility_and_cross_browser_css_guards_present():
     assert "telemetry-rail" in APP_CSS
     assert "kpi-meter" in APP_CSS
     assert "prefers-reduced-motion: no-preference" in APP_CSS
+    assert "hoverScan" in APP_CSS
+    assert "font-size:.82rem" in APP_CSS
 
 
 def test_streamlit_and_container_security_defaults():
