@@ -9,7 +9,7 @@ The interface uses standards-based HTML, CSS, Streamlit widgets, Plotly, and Web
 - Streamlit's automatic sidebar mode keeps filters open on wide screens and collapses them on small screens.
 - Touch controls have a minimum 44 px target. Tabs scroll horizontally instead of overflowing.
 - Both standard and `-webkit-` backdrop filters are provided. Browsers without glass-filter support receive opaque high-contrast panel fallbacks.
-- The 3D insight space uses Plotly WebGL. The 2D Relationship and Distribution views remain available when WebGL is disabled or constrained.
+- The 3D relationship cloud and aggregated profit terrain use Plotly WebGL. The 2D Relationship and Distribution views remain available when WebGL is disabled or constrained.
 
 Automated application and responsive checks run in Chromium. Firefox and Safari compatibility is supported through standards/fallback review; final deployment acceptance should include a short manual smoke test in the actual institutional browser versions.
 

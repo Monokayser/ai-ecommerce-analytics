@@ -5,7 +5,7 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from src.ui.components import active_filter_text, format_currency, render_empty, render_kpis, render_signal_cards
+from src.ui.components import active_filter_text, format_currency, render_empty, render_kpis, render_signal_cards, render_visualization_ribbon
 from src.ui.theme import render_section_intro
 from src.visualization.charts import geographic_chart, grouped_bar_chart, time_series_chart
 
@@ -16,6 +16,7 @@ def render(frame: pd.DataFrame, filters: dict) -> None:
     if frame.empty:
         render_empty("No rows match the active filters. Reset or broaden them to continue.")
         return
+    render_visualization_ribbon(frame)
     render_kpis(frame)
     st.subheader("Executive signals")
     signals: list[tuple[str, str, str]] = []

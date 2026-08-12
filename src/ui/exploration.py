@@ -7,12 +7,12 @@ import streamlit as st
 
 from src.ui.components import active_filter_text, render_empty
 from src.ui.theme import render_section_intro
-from src.visualization.charts import animated_chart, correlation_chart, distribution_chart, geographic_chart, grouped_bar_chart, hierarchy_chart, scatter_chart, three_dimensional_chart, time_series_chart
+from src.visualization.charts import animated_chart, correlation_chart, distribution_chart, geographic_chart, grouped_bar_chart, hierarchy_chart, profit_terrain_chart, scatter_chart, three_dimensional_chart, time_series_chart
 
 
 def render(frame: pd.DataFrame, filters: dict) -> None:
     """Render the complete visualization suite with feature gates."""
-    render_section_intro("Explore patterns", "Data Exploration", "Nine linked interactive views—including a WebGL 3D insight space—respond to the same global filters.")
+    render_section_intro("Explore patterns", "Data Exploration", "Nine linked visualization workspaces—including relationship-cloud and aggregated profit-terrain 3D modes—respond to the same global filters.")
     if frame.empty:
         render_empty("No rows are available for exploration.")
         return
@@ -49,8 +49,18 @@ def render(frame: pd.DataFrame, filters: dict) -> None:
     with tabs[7]:
         supported_3d = [column for column in ("Sales", "Profit", "Discount", "Quantity") if column in frame]
         if len(supported_3d) >= 3:
+            mode = st.radio(
+                "3D analytical mode",
+                ["Relationship cloud", "Profit terrain"],
+                horizontal=True,
+                help="Use the cloud for individual observations or the terrain for aggregated profitability structure.",
+            )
             st.caption("Drag to rotate · scroll to zoom · double-click to reset the camera")
-            st.plotly_chart(three_dimensional_chart(frame, context), use_container_width=True)
+            if mode == "Profit terrain" and {"Sales", "Profit", "Discount"}.issubset(frame.columns):
+                st.plotly_chart(profit_terrain_chart(frame, context), use_container_width=True)
+                st.caption("Height represents verified mean Profit within each Sales and Discount band; no model prediction is used.")
+            else:
+                st.plotly_chart(three_dimensional_chart(frame, context), use_container_width=True)
         else: render_empty("Three numeric measures are required for the 3D insight space.")
     with tabs[8]:
         if {"Order Date", "Sales"}.issubset(frame) and any(column in frame for column in ("Product Category", "Region")): st.plotly_chart(animated_chart(frame, context), use_container_width=True)

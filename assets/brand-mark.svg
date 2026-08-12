@@ -3,17 +3,17 @@
   <desc id="brand-description">Three rising analytics bars with an intelligent signal point.</desc>
   <defs>
     <linearGradient id="surface" x1="8" y1="4" x2="55" y2="60" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#103A5C"/>
-      <stop offset="1" stop-color="#061827"/>
+      <stop stop-color="#0A392B"/>
+      <stop offset="1" stop-color="#03140F"/>
     </linearGradient>
     <linearGradient id="signal" x1="14" y1="46" x2="49" y2="14" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#37BCEB"/>
-      <stop offset="1" stop-color="#83F2DC"/>
+      <stop stop-color="#24B884"/>
+      <stop offset="1" stop-color="#8AFFD9"/>
     </linearGradient>
   </defs>
-  <rect x="2" y="2" width="60" height="60" rx="17" fill="url(#surface)" stroke="#79E5FF" stroke-opacity=".55" stroke-width="2"/>
-  <path d="M14 47.5h36" fill="none" stroke="#A9D7EA" stroke-opacity=".45" stroke-width="2" stroke-linecap="round"/>
+  <rect x="2" y="2" width="60" height="60" rx="17" fill="url(#surface)" stroke="#7FFFE1" stroke-opacity=".55" stroke-width="2"/>
+  <path d="M14 47.5h36" fill="none" stroke="#B5E8D6" stroke-opacity=".45" stroke-width="2" stroke-linecap="round"/>
   <path d="M16 43V34M28 43V27M40 43V20" fill="none" stroke="url(#signal)" stroke-width="6" stroke-linecap="round"/>
-  <circle cx="47" cy="16" r="5" fill="#83F2DC"/>
-  <circle cx="47" cy="16" r="9" fill="none" stroke="#79E5FF" stroke-opacity=".28" stroke-width="2"/>
+  <circle cx="47" cy="16" r="5" fill="#8AFFD9"/>
+  <circle cx="47" cy="16" r="9" fill="none" stroke="#7FFFE1" stroke-opacity=".28" stroke-width="2"/>
 </svg>

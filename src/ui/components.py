@@ -50,6 +50,29 @@ def render_signal_cards(cards: list[tuple[str, str, str]]) -> None:
         )
 
 
+def render_visualization_ribbon(frame: pd.DataFrame) -> None:
+    """Summarize the active analytical canvas with data-derived readiness cues."""
+    numeric_count = len([column for column in frame.select_dtypes(include="number").columns if not column.startswith("_outlier_")])
+    dimension_count = len(frame.select_dtypes(exclude="number").columns)
+    date_label = "No date axis"
+    if "Order Date" in frame and not frame["Order Date"].dropna().empty:
+        dates = pd.to_datetime(frame["Order Date"], errors="coerce").dropna()
+        if not dates.empty:
+            date_label = f"{dates.min():%b %Y} – {dates.max():%b %Y}"
+    ready_3d = numeric_count >= 3
+    features = [
+        ("Live analytical scope", f"{len(frame):,} filtered records power every view"),
+        ("Measurement depth", f"{numeric_count} measures · {dimension_count} dimensions"),
+        ("Time coverage", date_label),
+        ("3D insight engine", "Ready to rotate and inspect" if ready_3d else "Needs three numeric measures"),
+    ]
+    cards = "".join(
+        f'<div class="viz-feature"><b>{escape(title)}</b><span>{escape(detail)}</span></div>'
+        for title, detail in features
+    )
+    st.markdown(f'<div class="viz-ribbon" aria-label="Visualization readiness">{cards}</div>', unsafe_allow_html=True)
+
+
 def _period_frames(frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame] | None:
     if "Order Date" not in frame or frame["Order Date"].dropna().empty:
         return None

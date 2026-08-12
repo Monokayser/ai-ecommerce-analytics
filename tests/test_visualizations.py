@@ -5,7 +5,7 @@ from __future__ import annotations
 import pandas as pd
 
 from src.visualization.chart_selector import select_chart
-from src.visualization.charts import animated_chart, correlation_chart, distribution_chart, geographic_chart, grouped_bar_chart, hierarchy_chart, scatter_chart, three_dimensional_chart, time_series_chart
+from src.visualization.charts import animated_chart, correlation_chart, distribution_chart, geographic_chart, grouped_bar_chart, hierarchy_chart, profit_terrain_chart, scatter_chart, three_dimensional_chart, time_series_chart
 
 
 def test_chart_selection_rules():
@@ -17,10 +17,11 @@ def test_chart_selection_rules():
 
 
 def test_all_required_chart_constructors(ecommerce_frame):
-    figures = [time_series_chart(ecommerce_frame), geographic_chart(ecommerce_frame), correlation_chart(ecommerce_frame), distribution_chart(ecommerce_frame), hierarchy_chart(ecommerce_frame), grouped_bar_chart(ecommerce_frame), scatter_chart(ecommerce_frame), three_dimensional_chart(ecommerce_frame), animated_chart(ecommerce_frame)]
-    assert len(figures) == 9
+    figures = [time_series_chart(ecommerce_frame), geographic_chart(ecommerce_frame), correlation_chart(ecommerce_frame), distribution_chart(ecommerce_frame), hierarchy_chart(ecommerce_frame), grouped_bar_chart(ecommerce_frame), scatter_chart(ecommerce_frame), three_dimensional_chart(ecommerce_frame), profit_terrain_chart(ecommerce_frame), animated_chart(ecommerce_frame)]
+    assert len(figures) == 10
     assert all(figure.data for figure in figures)
     assert figures[7].data[0].type == "scatter3d"
+    assert figures[8].data[0].type == "surface"
 
 
 def test_webgl_scatter_payload_is_bounded():

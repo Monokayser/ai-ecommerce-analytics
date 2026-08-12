@@ -9,19 +9,21 @@
 
 A production-style Streamlit capstone that turns e-commerce files into secure, filter-aware dashboards, natural-language analytics, advanced analysis, and downloadable reports. It works immediately without an API key and upgrades to real-time Gemini planning when a free Gemini API key is configured.
 
-![AI-Powered E-Commerce Analytics dashboard showing the responsive executive overview, secure global filters, and interactive workspace](docs/assets/dashboard-overview.jpg)
+![AI-Powered E-Commerce Analytics dashboard using the responsive aurora-terrain executive theme](docs/assets/dashboard-overview-aurora.png)
+
+![Interactive 3D profit terrain showing mean profitability across sales and discount bands](docs/assets/aurora-3d-profit-terrain.png)
 
 ![AI Assistant agent console showing capability presets, natural-language analytics, the validated five-stage pipeline, and verified response exports](docs/assets/ai-assistant-agent-console.png)
 
 ## What it does
 
 - Loads validated CSV, JSON, and Parquet uploads up to a configurable 200 MB limit.
-- Uses a responsive dark glassmorphism interface with luminous cards, guided navigation, mobile-aware filters, and accessible reduced-motion behavior.
+- Uses a responsive aurora-terrain interface with dimensional glass surfaces, guided navigation, mobile-aware filters, subtle motion, and accessible reduced-motion behavior.
 - Preserves raw data, cleans a working copy, resolves aliases, profiles every column, and records each cleaning action.
 - Queries data through DuckDB with parameterized filters, row limits, timing, and a 10-second interrupt guard.
 - Answers questions through a reference-inspired AI agent console with capability presets, a natural-language task box, live pipeline-stage feedback, Fast/Balanced/Deep response modes, saved responses, verified follow-ups, visible safety evidence, and a deterministic private fallback.
 - Parses generated SQL with sqlglot and accepts only one read-only `SELECT`/`WITH` query on the registered `dataset` table.
-- Includes six application sections, nine Plotly visualization families—including a WebGL 3D insight space—anomaly detection, subset comparison, and Word/PDF/PNG/SVG export.
+- Includes six application sections and nine Plotly visualization workspaces, with both an observation-level WebGL relationship cloud and a verified aggregated 3D profit terrain, plus anomaly detection, subset comparison, and Word/PDF/PNG/SVG export.
 - Displays pipeline stages, the validated query, timing, retry/fallback status, and verified evidence—never hidden reasoning.
 
 ## Why Gemini 3.6 Flash

@@ -76,7 +76,7 @@
 
 ### 5.2 Chart Types and Design Decisions
 
-[Insert a compact screenshot grid of the nine chart types, including the WebGL 3D insight space, with short captions.]
+[Insert a compact screenshot grid of the nine visualization workspaces, including both WebGL relationship-cloud and profit-terrain modes, with short captions.]
 
 ### 5.3 AI-Driven Visualization
 

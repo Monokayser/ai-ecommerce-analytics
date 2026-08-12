@@ -48,9 +48,24 @@ def time_series_chart(frame: pd.DataFrame, context: str = "") -> go.Figure:
     grouped = data.groupby("Month", as_index=False)[metrics].sum()
     figure = make_subplots(specs=[[{"secondary_y": len(metrics) > 1}]])
     if "Sales" in grouped:
-        figure.add_trace(go.Scatter(x=grouped["Month"], y=grouped["Sales"], name="Sales", mode="lines+markers"), secondary_y=False)
+        figure.add_trace(
+            go.Scatter(
+                x=grouped["Month"], y=grouped["Sales"], name="Sales", mode="lines+markers",
+                line={"color": "#7FFFE1", "width": 3, "shape": "spline"},
+                marker={"size": 7, "color": "#071C15", "line": {"color": "#7FFFE1", "width": 2}},
+                fill="tozeroy", fillcolor="rgba(57,230,189,.08)",
+            ),
+            secondary_y=False,
+        )
     if "Profit" in grouped:
-        figure.add_trace(go.Scatter(x=grouped["Month"], y=grouped["Profit"], name="Profit", mode="lines+markers"), secondary_y=True)
+        figure.add_trace(
+            go.Scatter(
+                x=grouped["Month"], y=grouped["Profit"], name="Profit", mode="lines+markers",
+                line={"color": "#B7F06D", "width": 2.4, "shape": "spline"},
+                marker={"size": 6, "color": "#071C15", "line": {"color": "#B7F06D", "width": 2}},
+            ),
+            secondary_y=True,
+        )
     figure.update_layout(title="Monthly Sales and Profit Trend")
     figure.update_xaxes(title="Month")
     figure.update_yaxes(title="Sales", secondary_y=False)
@@ -72,7 +87,7 @@ def geographic_chart(frame: pd.DataFrame, context: str = "") -> go.Figure:
                 locationmode="ISO-3",
                 hover_name="Country",
                 color=metric,
-                color_continuous_scale="Teal",
+                color_continuous_scale=["#09231B", "#1F7D5F", "#7FFFE1"],
                 title=f"{metric} by Country",
             )
             return apply_theme(figure, source_context=context)
@@ -148,11 +163,66 @@ def three_dimensional_chart(frame: pd.DataFrame, context: str = "") -> go.Figure
     figure.update_traces(marker={"size": 4, "line": {"width": 0}})
     figure = apply_theme(figure, source_context=context)
     figure.update_scenes(
-        bgcolor="rgba(5,15,26,0.28)",
-        xaxis={"backgroundcolor": "rgba(8,31,50,.45)", "gridcolor": "rgba(132,183,219,.18)", "showbackground": True},
-        yaxis={"backgroundcolor": "rgba(8,31,50,.45)", "gridcolor": "rgba(132,183,219,.18)", "showbackground": True},
-        zaxis={"backgroundcolor": "rgba(8,31,50,.45)", "gridcolor": "rgba(132,183,219,.18)", "showbackground": True},
+        bgcolor="rgba(2,12,9,0.22)",
+        xaxis={"backgroundcolor": "rgba(4,28,20,.45)", "gridcolor": "rgba(116,244,194,.18)", "showbackground": True},
+        yaxis={"backgroundcolor": "rgba(4,28,20,.45)", "gridcolor": "rgba(116,244,194,.18)", "showbackground": True},
+        zaxis={"backgroundcolor": "rgba(4,28,20,.45)", "gridcolor": "rgba(116,244,194,.18)", "showbackground": True},
         camera={"eye": {"x": 1.45, "y": 1.45, "z": 1.15}},
+    )
+    return figure
+
+
+def profit_terrain_chart(frame: pd.DataFrame, context: str = "") -> go.Figure:
+    """Render a 3D surface of mean profit across sales and discount bands."""
+    required = ["Sales", "Profit", "Discount"]
+    if not set(required).issubset(frame.columns):
+        raise ValueError("Sales, Profit, and Discount are required for the profit terrain.")
+    data = _bounded_sample(frame[required].dropna(), 100_000)
+    if data.empty or data["Sales"].nunique() < 2 or data["Discount"].nunique() < 2:
+        raise ValueError("The profit terrain needs variation in Sales and Discount.")
+
+    sales_bins = min(10, int(data["Sales"].nunique()))
+    discount_bins = min(12, int(data["Discount"].nunique()))
+    data["Sales band"] = pd.qcut(data["Sales"], q=sales_bins, duplicates="drop")
+    data["Discount band"] = pd.cut(data["Discount"], bins=discount_bins, duplicates="drop")
+    terrain = data.pivot_table(
+        index="Sales band",
+        columns="Discount band",
+        values="Profit",
+        aggfunc="mean",
+        observed=True,
+    )
+    if terrain.shape[0] < 2 or terrain.shape[1] < 2:
+        raise ValueError("The active data does not produce enough populated terrain bands.")
+
+    x_values = [float(interval.mid) for interval in terrain.columns]
+    y_values = [float(interval.mid) for interval in terrain.index]
+    figure = go.Figure(
+        go.Surface(
+            x=x_values,
+            y=y_values,
+            z=terrain.to_numpy(),
+            colorscale=[
+                [0.0, "#5c1627"],
+                [0.32, "#a25735"],
+                [0.5, "#183c31"],
+                [0.72, "#27a77d"],
+                [1.0, "#8affd9"],
+            ],
+            colorbar={"title": "Mean profit", "tickprefix": "$"},
+            contours={"z": {"show": True, "usecolormap": True, "highlightcolor": "#b9ffeb", "project_z": True}},
+            hovertemplate="Discount %{x:.1%}<br>Sales band midpoint $%{y:,.0f}<br>Mean profit $%{z:,.2f}<extra></extra>",
+        )
+    )
+    figure.update_layout(title="3D Profit Terrain: Sales × Discount × Mean Profit")
+    figure = apply_theme(figure, source_context=context)
+    figure.update_scenes(
+        bgcolor="rgba(2,12,9,0.18)",
+        xaxis={"title": "Discount", "tickformat": ".0%", "gridcolor": "rgba(116,244,194,.18)", "showbackground": True, "backgroundcolor": "rgba(4,28,20,.48)"},
+        yaxis={"title": "Sales band midpoint", "tickprefix": "$", "gridcolor": "rgba(116,244,194,.18)", "showbackground": True, "backgroundcolor": "rgba(4,28,20,.48)"},
+        zaxis={"title": "Mean profit", "tickprefix": "$", "gridcolor": "rgba(116,244,194,.18)", "showbackground": True, "backgroundcolor": "rgba(4,28,20,.48)"},
+        camera={"eye": {"x": 1.55, "y": 1.45, "z": 1.15}},
+        aspectmode="cube",
     )
     return figure
 
