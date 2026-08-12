@@ -143,6 +143,16 @@ APP_CSS = r"""
         background: rgba(87, 191, 255, .10);
         transform: translateX(2px);
     }
+    [data-testid="stSidebar"] [data-testid="stExpander"] {
+        border-color: rgba(127, 255, 213, .25) !important;
+        background:
+            radial-gradient(circle at 105% 0%, rgba(57,230,189,.12), transparent 10rem),
+            linear-gradient(145deg, rgba(5,34,25,.96), rgba(3,23,17,.98)) !important;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 15px 38px rgba(0,0,0,.2);
+    }
+    [data-testid="stSidebar"] [data-testid="stExpander"] summary:hover {
+        background: rgba(57,230,189,.055);
+    }
 
     /* Inputs */
     [data-baseweb="select"] > div,
@@ -163,6 +173,56 @@ APP_CSS = r"""
     [role="option"]:hover { background: rgba(73, 171, 229, .16) !important; }
     [data-testid="stSlider"] [role="slider"] { background: var(--cyan) !important; box-shadow: 0 0 18px rgba(98, 220, 255, .55); }
     [data-testid="stFileUploaderDropzone"] { padding: 1rem !important; }
+
+    /* Streamlit React-Aria multiselects: align every filter state with the emerald theme */
+    [data-testid="stSidebar"] [data-testid="stMultiSelect"] [role="group"][data-rac] {
+        min-height: 42px;
+        border: 1px solid rgba(127,255,213,.17) !important;
+        border-radius: 12px !important;
+        color: #eafff8 !important;
+        background: linear-gradient(135deg, rgba(2,18,13,.98), rgba(5,31,23,.98)) !important;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 8px 20px rgba(0,0,0,.16);
+        transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    [data-testid="stSidebar"] [data-testid="stMultiSelect"] [role="group"][data-rac][data-focus-within="true"] {
+        border-color: rgba(127,255,225,.62) !important;
+        background: linear-gradient(135deg, rgba(3,26,19,.99), rgba(7,43,32,.99)) !important;
+        box-shadow: 0 0 0 3px rgba(57,230,189,.1), 0 0 24px rgba(57,230,189,.1), inset 0 1px 0 rgba(255,255,255,.06);
+    }
+    [data-testid="stSidebar"] [data-testid="stMultiSelect"] input { color:#eafff8 !important; }
+    [data-testid="stSidebar"] [data-testid="stMultiSelect"] svg { color:#b9e8d9 !important; }
+    [data-testid="stSidebar"] [data-tag] {
+        overflow: hidden;
+        border: 1px solid rgba(143,255,218,.38) !important;
+        border-radius: 8px !important;
+        color: #042119 !important;
+        background: linear-gradient(120deg, #54e0b5, #8affd8) !important;
+        box-shadow: 0 5px 14px rgba(34,190,143,.2), inset 0 1px 0 rgba(255,255,255,.38);
+    }
+    [data-testid="stSidebar"] [data-tag] > span,
+    [data-testid="stSidebar"] [data-tag] button {
+        color: #042119 !important;
+        background: transparent !important;
+        font-weight: 780 !important;
+    }
+    [data-testid="stSidebar"] [data-tag] button:hover { color:#000e0a !important; background:rgba(0,62,45,.1) !important; }
+    [data-testid="stMultiSelectDropdown"] {
+        border: 1px solid rgba(127,255,213,.28) !important;
+        border-radius: 14px !important;
+        color: #eafff8 !important;
+        background: linear-gradient(145deg, rgba(3,27,20,.99), rgba(2,18,13,.99)) !important;
+        box-shadow: 0 22px 55px rgba(0,0,0,.48), 0 0 28px rgba(57,230,189,.08) !important;
+    }
+    [data-testid="stMultiSelectDropdown"] [role="option"] { color:#dff9f0 !important; border-radius:9px; }
+    [data-testid="stMultiSelectDropdown"] [role="option"]:hover,
+    [data-testid="stMultiSelectDropdown"] [role="option"][data-focused="true"] {
+        color:#f5fffb !important;
+        background:rgba(57,230,189,.14) !important;
+    }
+    [data-testid="stMultiSelectDropdown"] [role="option"][aria-selected="true"] {
+        color:#bfffe8 !important;
+        background:rgba(37,181,136,.18) !important;
+    }
 
     /* Buttons */
     .stButton > button, .stDownloadButton > button, [data-testid="stBaseButton-secondary"] {
@@ -255,7 +315,7 @@ APP_CSS = r"""
         overflow: hidden;
         border: 1px solid var(--line) !important;
         border-radius: 18px !important;
-        background: rgba(9, 30, 49, .72) !important;
+        background: rgba(5, 29, 22, .78) !important;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05);
     }
     [data-testid="stAlert"] p { color: #dff5ff !important; }
