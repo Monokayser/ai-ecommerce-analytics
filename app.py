@@ -79,9 +79,13 @@ def main() -> None:
     st.sidebar.divider()
     st.sidebar.caption(f"AI MODE\n\n{pipeline.mode_label} · {pipeline.model_label}")
 
-    render_app_header(bundle, len(filtered), settings, pipeline)
+    render_app_header(bundle, len(filtered), settings, pipeline, compact=page == "AI Assistant")
     if bundle.metadata.is_demo:
-        st.warning("DEMO DATA · Synthetic development records are active. Upload a real dataset with at least 5,000 rows for the official presentation.")
+        demo_message = "DEMO DATA · Synthetic development records are active. Upload a real dataset with at least 5,000 rows for the official presentation."
+        if page == "AI Assistant":
+            st.markdown(f'<div class="demo-strip" role="status">{demo_message}</div>', unsafe_allow_html=True)
+        else:
+            st.warning(demo_message)
     render_filter_pills(filters)
     st.write("")
 

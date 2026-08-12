@@ -19,5 +19,5 @@ def test_app_starts_without_api_key(monkeypatch):
         if section == "AI Assistant":
             labels = [button.label for button in test.button]
             assert "💡 Generate Commerce Insights" in labels
-            assert "▶ Run Verified Task" in labels
+            assert "Analyze my question" in labels
             assert any(area.key == "ai_query_draft" for area in test.text_area)

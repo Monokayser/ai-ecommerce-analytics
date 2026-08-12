@@ -238,24 +238,50 @@ def computed_narrative(question: str, result: pd.DataFrame, *, hosted_plan: bool
             chart_caption="The validated query returned no matching rows.",
         )
     first = result.iloc[0]
-    lead = ", ".join(f"{column}: {_display_value(value)}" for column, value in first.items())
+    lead = _direct_result_sentence(first, len(result))
     numeric = result.select_dtypes(include="number")
     findings = [f"The query returned {len(result):,} row(s) across {len(result.columns)} column(s)."]
     if not numeric.empty:
         for column in list(numeric.columns)[:2]:
-            findings.append(f"{column} ranges from {_display_value(numeric[column].min())} to {_display_value(numeric[column].max())} in this result.")
+            if len(result) == 1:
+                findings.append(f"{column} is {_display_value(numeric[column].iloc[0], column)} for this result.")
+            else:
+                findings.append(
+                    f"{column} ranges from {_display_value(numeric[column].min(), column)} "
+                    f"to {_display_value(numeric[column].max(), column)} across the results."
+                )
     return NarrativeResponse(
         direct_answer=lead,
-        analysis=f"A {plan_description} answered: {question.strip()} The first result is shown above; review the complete table for all matching values.",
+        analysis=f"Based on the active data and filters, the {plan_description} answered “{question.strip()}” Review the chart and data tabs for the supporting values.",
         key_findings=findings,
         limitations=limitation,
         chart_caption=f"Validated result with {len(result):,} row(s) and {len(result.columns)} column(s).",
     )
 
 
-def _display_value(value: Any) -> str:
+def _direct_result_sentence(first: pd.Series, row_count: int) -> str:
+    """Turn the first verified row into a concise business-language answer."""
+    items = list(first.items())
+    if len(items) >= 2:
+        label_column, label_value = items[0]
+        metric_column, metric_value = items[1]
+        label = _display_value(label_value, label_column)
+        metric = _display_value(metric_value, metric_column)
+        if row_count == 1:
+            return f"{label} is the leading result, with {metric_column} of {metric}."
+        return f"{row_count:,} results match. The first is {label}, with {metric_column} of {metric}."
+    column, value = items[0]
+    return f"{column} is {_display_value(value, column)}."
+
+
+def _display_value(value: Any, column: str = "") -> str:
     if pd.isna(value):
         return "missing"
     if isinstance(value, float):
+        name = column.casefold()
+        if any(term in name for term in ("sales", "profit", "revenue", "cost", "price", "amount")):
+            return f"${value:,.2f}"
+        if any(term in name for term in ("margin", "rate", "percent")):
+            return f"{value:,.2f}%"
         return f"{value:,.2f}"
     return str(value)

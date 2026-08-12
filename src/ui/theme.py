@@ -162,6 +162,17 @@ APP_CSS = r"""
         transform: translateY(-2px);
         box-shadow: 0 12px 30px rgba(25, 143, 217, .24), inset 0 1px 0 rgba(255, 255, 255, .13);
     }
+    [data-testid="stBaseButton-primary"] {
+        border-color: rgba(88, 239, 220, .72) !important;
+        color: #03171d !important;
+        background: linear-gradient(120deg, #4de2cf, #69cfff) !important;
+        box-shadow: 0 12px 30px rgba(31, 195, 202, .2), inset 0 1px 0 rgba(255,255,255,.42) !important;
+    }
+    [data-testid="stBaseButton-primary"]:hover {
+        color: #03171d !important;
+        border-color: #9ff8ed !important;
+        box-shadow: 0 16px 36px rgba(31, 195, 202, .3), inset 0 1px 0 rgba(255,255,255,.55) !important;
+    }
     .stButton > button:focus-visible, .stDownloadButton > button:focus-visible { outline: 3px solid rgba(98, 220, 255, .48) !important; outline-offset: 2px; }
 
     /* Metrics and data surfaces */
@@ -280,6 +291,16 @@ APP_CSS = r"""
         font-size: 1.1rem;
         letter-spacing: .75rem;
     }
+    .app-hero.compact {
+        padding: 1rem 1.25rem;
+        border-radius: 22px;
+    }
+    .app-hero.compact::after { width: 26%; opacity: .65; }
+    .app-hero.compact .app-eyebrow { display: none; }
+    .app-hero.compact .app-title { font-size: clamp(1.45rem, 2.4vw, 2rem); }
+    .app-hero.compact .app-subtitle { display: none; }
+    .app-hero.compact .hero-pills { margin-top: .65rem; }
+    .app-hero.compact .hero-pill:nth-child(n+4) { display: none; }
     .app-eyebrow, .section-kicker {
         margin-bottom: .5rem;
         color: #7fe7ff;
@@ -337,6 +358,10 @@ APP_CSS = r"""
     }
     .section-title { margin: 0; color: #f6fbff; font-size: clamp(1.55rem, 2.5vw, 2.15rem); font-weight: 790; line-height: 1.08; }
     .section-description { margin: .5rem 0 0; max-width: 850px; color: #9eb3c7; font-size: .9rem; line-height: 1.55; }
+    .ai-workspace-intro { margin:.1rem 0 .8rem; padding:.35rem .15rem; }
+    .ai-workspace-intro h2 { margin:.18rem 0 .25rem; color:#f6fbff; font-size:clamp(1.65rem,2.6vw,2.2rem); line-height:1.1; }
+    .ai-workspace-intro p { margin:0; max-width:920px; color:#9eb3c7; font-size:.88rem; line-height:1.5; }
+    .demo-strip { margin:.7rem 0; padding:.62rem .85rem; border:1px solid rgba(230,201,99,.24); border-radius:14px; color:#f1e5b9; background:rgba(130,108,36,.22); font-size:.78rem; line-height:1.45; }
     [data-testid="stVerticalBlockBorderWrapper"] {
         border-color: rgba(133, 211, 255, .16) !important;
         border-radius: 22px !important;
@@ -388,9 +413,38 @@ APP_CSS = r"""
     .answer-eyebrow { color:#6fe1ff; font-size:.69rem; font-weight:800; letter-spacing:.15em; text-transform:uppercase; }
     .trust-pill { padding:.3rem .58rem; color:#b6d7e8; font-size:.69rem; }
     .trust-pill.safe { color:#a7f5d2; border-color:rgba(85,230,165,.24); background:rgba(32,171,117,.09); }
+    .ai-guide {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: .7rem;
+        margin: .2rem 0 1rem;
+    }
+    .ai-guide > div {
+        display: grid;
+        grid-template-columns: 2rem 1fr;
+        gap: .15rem .65rem;
+        align-items: center;
+        padding: .78rem .85rem;
+        border: 1px solid rgba(125, 220, 255, .17);
+        border-radius: 16px;
+        background: rgba(8, 29, 48, .65);
+    }
+    .ai-guide span {
+        grid-row: 1 / span 2;
+        display: grid;
+        place-items: center;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 10px;
+        color: #03171d;
+        background: linear-gradient(135deg, var(--teal), var(--cyan));
+        font-weight: 900;
+    }
+    .ai-guide strong { color:#eefaff; font-size:.78rem; }
+    .ai-guide small { color:#8fa9bc; font-size:.67rem; line-height:1.35; }
     .ai-pipeline {
         display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(122px, 1fr));
         gap: .55rem;
         margin: .25rem 0 1rem;
         padding: .72rem;
@@ -409,17 +463,6 @@ APP_CSS = r"""
         border-radius: 13px;
         background: linear-gradient(145deg, rgba(18, 53, 79, .72), rgba(9, 35, 57, .75));
     }
-    .ai-stage:not(:last-child)::after {
-        content: "›";
-        position: absolute;
-        right: -.48rem;
-        top: 50%;
-        z-index: 2;
-        transform: translateY(-50%);
-        color: var(--cyan);
-        font-size: 1.25rem;
-        font-weight: 900;
-    }
     .ai-stage span {
         grid-row: 1 / span 2;
         display: grid;
@@ -432,13 +475,13 @@ APP_CSS = r"""
         font-size: .76rem;
         font-weight: 900;
     }
-    .ai-stage strong { overflow:hidden; color:#effaff; font-size:.73rem; text-overflow:ellipsis; white-space:nowrap; }
-    .ai-stage small { overflow:hidden; color:#85a0b6; font-size:.62rem; text-overflow:ellipsis; white-space:nowrap; }
+    .ai-stage strong { color:#effaff; font-size:.73rem; line-height:1.25; }
+    .ai-stage small { color:#91adbf; font-size:.62rem; line-height:1.25; }
     .ai-response-empty {
         display: grid;
         place-items: center;
         align-content: center;
-        min-height: 455px;
+        min-height: 350px;
         padding: 2rem;
         text-align: center;
         border: 1px dashed rgba(125, 220, 255, .24);
@@ -450,6 +493,7 @@ APP_CSS = r"""
     .ai-response-empty span { color:var(--teal); font-size:2.4rem; filter:drop-shadow(0 0 16px rgba(45,212,191,.45)); }
     .ai-response-empty h3 { margin:.55rem 0 .25rem; color:#f4fbff; font-size:1.35rem; }
     .ai-response-empty p { max-width:580px; margin:0; color:#91a9bc; line-height:1.65; }
+    .empty-hint { margin-top:1rem; padding:.55rem .8rem; border:1px solid rgba(98,220,255,.17); border-radius:999px; color:#bdefff; background:rgba(40,127,180,.1); font-size:.74rem; }
     .empty-state {
         padding: 1.4rem;
         text-align: center;
@@ -494,8 +538,8 @@ APP_CSS = r"""
         .section-shell { padding: 1rem; }
         [data-testid="stTabs"] [role="tablist"] { border-radius: 16px; }
         [data-testid="stTabs"] button[role="tab"] { min-width: max-content; }
-        .ai-pipeline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .ai-stage:not(:last-child)::after { display:none; }
+        .ai-guide { grid-template-columns: 1fr; }
+        .ai-pipeline { grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); }
         .ai-response-empty { min-height: 300px; }
     }
     @media (max-width: 640px) {
@@ -527,11 +571,18 @@ def render_sidebar_brand() -> None:
     )
 
 
-def render_app_header(bundle: DatasetBundle, active_rows: int, settings: Settings, pipeline: NLQueryPipeline) -> None:
+def render_app_header(
+    bundle: DatasetBundle,
+    active_rows: int,
+    settings: Settings,
+    pipeline: NLQueryPipeline,
+    *,
+    compact: bool = False,
+) -> None:
     source = "Demo dataset" if bundle.metadata.is_demo else "Uploaded dataset"
     readiness = "Presentation ready" if bundle.metadata.official_demo_ready else "Development mode"
     st.markdown(
-        f"""<section id="main-content" tabindex="-1" class="app-hero" aria-label="Application summary"><div class="app-eyebrow">AI decision intelligence</div><h1 class="app-title">{escape(settings.app_name)}</h1><p class="app-subtitle">Turn raw transactions into interactive evidence. Explore the business, ask questions in natural language, validate every query, and export decision-ready findings.</p><div class="hero-pills"><span class="hero-pill"><span class="status-dot"></span>{escape(pipeline.mode_label)} · {escape(pipeline.model_label)}</span><span class="hero-pill">{source}</span><span class="hero-pill">{active_rows:,} active rows</span><span class="hero-pill">{bundle.metadata.columns} source columns</span><span class="hero-pill">{readiness}</span></div></section>""",
+        f"""<section id="main-content" tabindex="-1" class="app-hero{' compact' if compact else ''}" aria-label="Application summary"><div class="app-eyebrow">AI decision intelligence</div><h1 class="app-title">{escape(settings.app_name)}</h1><p class="app-subtitle">Turn raw transactions into interactive evidence. Explore the business, ask questions in natural language, validate every query, and export decision-ready findings.</p><div class="hero-pills"><span class="hero-pill"><span class="status-dot"></span>{escape(pipeline.mode_label)} · {escape(pipeline.model_label)}</span><span class="hero-pill">{source}</span><span class="hero-pill">{active_rows:,} active rows</span><span class="hero-pill">{bundle.metadata.columns} source columns</span><span class="hero-pill">{readiness}</span></div></section>""",
         unsafe_allow_html=True,
     )
 

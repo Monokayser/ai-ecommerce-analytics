@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from datetime import datetime, timezone
 from html import escape
 from typing import Any
@@ -18,7 +19,6 @@ from src.reporting.pdf_report import generate_pdf_report
 from src.reporting.word_report import generate_word_report
 from src.ui.brand import inline_brand_icon
 from src.ui.components import render_empty
-from src.ui.theme import render_section_intro
 from src.visualization.chart_selector import select_chart
 from src.visualization.charts import result_chart
 from src.visualization.export import export_chart
@@ -27,22 +27,22 @@ from src.visualization.export import export_chart
 CAPABILITIES = [
     (
         "💡 Generate Commerce Insights",
-        "Identify the strongest sales market",
+        "Find the strongest market and the value behind it.",
         "Which region has the highest total sales?",
     ),
     (
         "🛡️ Profitability & Risk Analysis",
-        "Surface loss-making markets",
+        "Surface loss-making countries before they become larger risks.",
         "Which countries generated losses?",
     ),
     (
         "📋 Executive Recommendations",
-        "Rank the most profitable product areas",
+        "Rank profitable product areas for an executive decision.",
         "What are the five most profitable sub-categories?",
     ),
     (
         "🔎 Root Cause Investigation",
-        "Find high-discount loss patterns",
+        "Investigate high-discount orders associated with losses.",
         "Find unusual orders with high discounts and negative profit.",
     ),
 ]
@@ -53,6 +53,22 @@ FOLLOW_UPS = [
     ("↗ Find profit drivers", "Which product category has the highest profit?"),
     ("△ Scan downside", "Which countries generated losses?"),
 ]
+
+
+def _generate_report_files(payload: ReportPayload) -> tuple[bytes, bytes]:
+    """Build the Word and PDF versions of one verified response."""
+    return generate_word_report(payload), generate_pdf_report(payload)
+
+
+def _report_cache_key(payload: ReportPayload) -> str:
+    """Create a stable key without asking Streamlit to hash a Pydantic/DataFrame graph."""
+    digest = hashlib.sha256()
+    digest.update(payload.question.encode("utf-8"))
+    digest.update(payload.generated_query.encode("utf-8"))
+    digest.update(payload.generated_at.isoformat().encode("utf-8"))
+    digest.update(payload.result_table.to_csv(index=False).encode("utf-8"))
+    digest.update(payload.chart_image or b"")
+    return digest.hexdigest()
 
 
 def _override_spec(frame: pd.DataFrame, auto: ChartSpec, selected: str) -> ChartSpec:
@@ -73,13 +89,13 @@ def _override_spec(frame: pd.DataFrame, auto: ChartSpec, selected: str) -> Chart
 
 def _active_pipeline(pipeline: NLQueryPipeline, profile: str) -> NLQueryPipeline:
     """Return the configured pipeline or a guaranteed-private local profile."""
-    if profile == "Private local planner":
+    if profile == "Private local analytics":
         return NLQueryPipeline(pipeline.settings, None, pipeline.prompts, pipeline.aliases)
     return pipeline
 
 
 def _model_profiles(pipeline: NLQueryPipeline) -> list[str]:
-    profiles = ["Private local planner"]
+    profiles = ["Private local analytics"]
     if pipeline.client is not None:
         profiles.append(f"{pipeline.mode_label} · {pipeline.model_label}")
     return profiles
@@ -92,13 +108,13 @@ def _render_mode_card(
     analysis_mode: str,
 ) -> None:
     if pipeline.client is not None:
-        description = "Structured model planning, AST validation, read-only execution, one safe correction attempt, and evidence-grounded narration."
-        provider_state = "Configured model endpoint"
+        description = "Your selected AI model interprets the request. The application validates every plan and only runs approved, read-only analysis."
+        provider_state = "AI interpretation enabled"
     else:
-        description = "A deterministic local planner handles common e-commerce tasks with no API key, network call, or model-generated code execution."
-        provider_state = "Private offline mode"
+        description = "Common e-commerce questions are answered on this machine. No API key is needed and no dataset content is sent to an AI provider."
+        provider_state = "Data stays on this device"
     st.markdown(
-        f"""<div class="mode-card"><div class="mode-orb">{inline_brand_icon('ai-mode-icon')}</div><div><strong>{escape(pipeline.mode_label)} · {escape(pipeline.model_label)}</strong><br><span>{escape(description)}</span><div class="mode-meta"><b>{escape(analysis_mode)} response</b><b>{escape(provider_state)}</b><b>{len(frame):,} active rows</b><b>{len(filters)} active filters</b><b>Read-only execution</b></div></div></div>""",
+        f"""<div class="mode-card"><div class="mode-orb">{inline_brand_icon('ai-mode-icon')}</div><div><strong>{escape(pipeline.mode_label)} · {escape(pipeline.model_label)}</strong><br><span>{escape(description)}</span><div class="mode-meta"><b>{escape(analysis_mode)} detail</b><b>{escape(provider_state)}</b><b>{len(frame):,} rows in scope</b><b>{len(filters)} active filters</b><b>Verified read-only analysis</b></div></div></div>""",
         unsafe_allow_html=True,
     )
 
@@ -106,11 +122,11 @@ def _render_mode_card(
 def _render_pipeline_trace(last: dict[str, Any], pipeline: NLQueryPipeline) -> None:
     metrics = last.get("pipeline_metrics", pipeline.last_run_metrics)
     stages = [
-        ("1", "Understand", "Schema + filters"),
-        ("2", "Plan", f"{float(metrics.get('planning_ms', 0)):,.0f} ms"),
-        ("3", "Validate", "AST allowlist"),
-        ("4", "Execute", f"{float(metrics.get('execution_ms', 0)):,.1f} ms"),
-        ("5", "Explain", "Verified evidence"),
+        ("1", "Understand", "Question + filters"),
+        ("2", "Plan", f"Prepared in {float(metrics.get('planning_ms', 0)):,.0f} ms"),
+        ("3", "Safety check", "Read-only plan approved"),
+        ("4", "Analyze", f"Completed in {float(metrics.get('execution_ms', 0)):,.1f} ms"),
+        ("5", "Answer", "Grounded in results"),
     ]
     items = "".join(
         f'<div class="ai-stage"><span>{number}</span><strong>{escape(label)}</strong><small>{escape(detail)}</small></div>'
@@ -166,7 +182,7 @@ def _report_payload(bundle: DatasetBundle, last: dict[str, Any]) -> ReportPayloa
         project_title="AI-Powered E-Commerce Data Analytics and Visualization Platform",
         dataset_name=bundle.metadata.name,
         dataset_dimensions=f"{bundle.metadata.rows:,} rows x {bundle.metadata.columns} columns",
-        generated_at=datetime.now(timezone.utc),
+        generated_at=last.get("completed_at", datetime.now(timezone.utc)),
         applied_filters=last["filters"],
         question=last["question"],
         generated_query=last["generated"].query,
@@ -180,22 +196,27 @@ def _report_payload(bundle: DatasetBundle, last: dict[str, Any]) -> ReportPayloa
 
 
 def _render_response_toolbar(bundle: DatasetBundle, last: dict[str, Any] | None) -> None:
-    st.markdown("### 🤖 AI Response")
+    st.markdown("### 🤖 Verified response")
     save_column, word_column, pdf_column = st.columns(3)
     if not last:
-        save_column.button("Save", disabled=True, use_container_width=True, help="Save this response in the current session")
-        word_column.button("Word", disabled=True, use_container_width=True, help="Download a Word report")
-        pdf_column.button("PDF", disabled=True, use_container_width=True, help="Download a PDF report")
+        save_column.button("Save response", disabled=True, use_container_width=True, help="Save this response in the current session")
+        word_column.button("Download Word", disabled=True, use_container_width=True, help="Download a Word report")
+        pdf_column.button("Download PDF", disabled=True, use_container_width=True, help="Download a PDF report")
         return
-    if save_column.button("Save", use_container_width=True, key="save_ai_response", help="Save this response in the current session"):
+    if save_column.button("Save response", use_container_width=True, key="save_ai_response", help="Save this response in the current session"):
         _save_last_response(last)
         st.toast("Verified response saved in this session", icon="✅")
     try:
         payload = _report_payload(bundle, last)
-        word = generate_word_report(payload)
-        pdf = generate_pdf_report(payload)
+        cache_key = _report_cache_key(payload)
+        cached = st.session_state.get("ai_report_files")
+        if not cached or cached.get("key") != cache_key:
+            word, pdf = _generate_report_files(payload)
+            cached = {"key": cache_key, "word": word, "pdf": pdf}
+            st.session_state["ai_report_files"] = cached
+        word, pdf = cached["word"], cached["pdf"]
         word_column.download_button(
-            "Word",
+            "Download Word",
             word,
             "ai_verified_response.docx",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -203,7 +224,7 @@ def _render_response_toolbar(bundle: DatasetBundle, last: dict[str, Any] | None)
             help="Download a Word report",
         )
         pdf_column.download_button(
-            "PDF",
+            "Download PDF",
             pdf,
             "ai_verified_response.pdf",
             "application/pdf",
@@ -211,9 +232,9 @@ def _render_response_toolbar(bundle: DatasetBundle, last: dict[str, Any] | None)
             help="Download a PDF report",
         )
     except Exception as exc:
-        word_column.button("Word", disabled=True, use_container_width=True, help="Word export is temporarily unavailable")
-        pdf_column.button("PDF", disabled=True, use_container_width=True, help="PDF export is temporarily unavailable")
-        st.caption(f"Report export is temporarily unavailable: {exc}")
+        word_column.button("Download Word", disabled=True, use_container_width=True, help="Word export is temporarily unavailable")
+        pdf_column.button("Download PDF", disabled=True, use_container_width=True, help="PDF export is temporarily unavailable")
+        st.caption(f"Report downloads are temporarily unavailable. {type(exc).__name__}.")
 
 
 def _render_last_result(last: dict[str, Any], pipeline: NLQueryPipeline) -> None:
@@ -223,79 +244,82 @@ def _render_last_result(last: dict[str, Any], pipeline: NLQueryPipeline) -> None
         f'<div class="answer-card"><div class="answer-eyebrow">Verified AI answer</div><h3>{escape(narrative.direct_answer)}</h3><p>{escape(narrative.analysis)}</p><div class="trust-row"><span class="trust-pill safe">✓ Query validated</span><span class="trust-pill">{escape(str(last.get("pipeline_metrics", {}).get("analysis_mode", "Balanced")))} mode</span><span class="trust-pill">Read-only dataset access</span><span class="trust-pill">Evidence grounded</span><span class="trust-pill">{len(result.data):,} result rows</span></div></div>',
         unsafe_allow_html=True,
     )
-    answer_tab, evidence_tab, data_tab, chart_tab = st.tabs(["✦ Answer", "✓ Evidence & safety", "▦ Result data", "⌁ Visualization"])
+    answer_tab, chart_tab, data_tab, evidence_tab = st.tabs(["✦ Answer", "⌁ Chart", "▦ Data", "✓ How it was verified"])
     with answer_tab:
         st.subheader("Key findings")
         for finding in narrative.key_findings:
             st.markdown(f"- {finding}")
         st.info("Limitation · " + narrative.limitations)
-    with evidence_tab:
-        metrics = last.get("pipeline_metrics", pipeline.last_run_metrics)
-        cards = st.columns(5)
-        cards[0].metric("Response mode", str(metrics.get("analysis_mode", "Balanced")))
-        cards[1].metric("Total time", f"{float(metrics.get('total_ms', 0)):,.1f} ms")
-        cards[2].metric("Planning", f"{float(metrics.get('planning_ms', 0)):,.1f} ms")
-        cards[3].metric("Execution", f"{result.execution_time_ms:,.1f} ms")
-        cards[4].metric("Model passes", f"{int(metrics.get('model_calls', 0))}")
-        st.caption("Correction: " + ("used once" if metrics.get("corrected") else "not needed"))
-        if metrics.get("provider_fallback"):
-            st.warning("The configured model was unavailable, so this answer used the safe local fallback. " + str(metrics.get("fallback_reason", "")))
-        st.success("Read-only query validated · dataset table only · timeout and result limit applied")
-        st.markdown("**Interpreted question**")
-        st.write(generated.interpreted_question)
-        st.code(generated.query, language="sql" if generated.query_language == "duckdb_sql" else "python")
-        st.json(
-            {
-                "mode": metrics.get("mode", pipeline.mode_label),
-                "model": metrics.get("model", pipeline.model_label),
-                "columns": generated.columns_used,
-                "filters": generated.filters_used,
-                "operation": generated.aggregation,
-                "chart rationale": generated.reason,
-            }
-        )
+    with chart_tab:
+        if result.data.empty:
+            render_empty("A chart needs at least one result row.")
+        else:
+            auto = select_chart(result.data)
+            choice = st.selectbox("Choose how to show this result", ["Recommended", "Bar chart", "Line chart", "Scatter plot", "Table only"], index=0)
+            choice_map = {"Recommended": "Auto-selected", "Bar chart": "Bar", "Line chart": "Line", "Scatter plot": "Scatter", "Table only": "Table only"}
+            spec = _override_spec(result.data, auto, choice_map[choice])
+            st.caption(f"Recommended view: {spec.chart_type} · {spec.rationale or generated.reason}")
+            figure = result_chart(result.data, spec)
+            if figure is None:
+                st.dataframe(result.data, use_container_width=True, hide_index=True)
+            else:
+                st.plotly_chart(figure, use_container_width=True)
+                st.caption(narrative.chart_caption)
+                if st.button("Prepare chart downloads", use_container_width=True, key="prepare_ai_chart_exports"):
+                    try:
+                        with st.spinner("Preparing high-quality PNG and SVG files…"):
+                            png = export_chart(figure, "png")
+                            svg = export_chart(figure, "svg")
+                        st.session_state["ai_chart_png"] = png
+                        st.session_state["ai_chart_svg"] = svg
+                        st.session_state["last_chart_png"] = png
+                    except Exception as exc:
+                        st.info(str(exc))
+                png = st.session_state.get("ai_chart_png")
+                svg = st.session_state.get("ai_chart_svg")
+                if png and svg:
+                    first, second = st.columns(2)
+                    first.download_button("Download PNG", png, "ai_query_chart.png", "image/png", use_container_width=True)
+                    second.download_button("Download SVG", svg, "ai_query_chart.svg", "image/svg+xml", use_container_width=True)
     with data_tab:
         if result.data.empty:
-            render_empty("The validated query returned no matching rows.")
+            render_empty("The verified analysis returned no matching rows.")
         else:
             st.dataframe(result.data, use_container_width=True, hide_index=True)
             st.download_button(
-                "Download result CSV",
+                "Download result as CSV",
                 result.data.to_csv(index=False).encode("utf-8"),
                 "ai_query_result.csv",
                 "text/csv",
                 use_container_width=True,
             )
-    with chart_tab:
-        if result.data.empty:
-            render_empty("A visualization needs at least one result row.")
-            return
-        auto = select_chart(result.data)
-        choice = st.selectbox("Chart presentation", ["Auto-selected", "Bar", "Line", "Scatter", "Table only"], index=0)
-        spec = _override_spec(result.data, auto, choice)
-        st.caption(f"Selected: {spec.chart_type} · {spec.rationale or generated.reason}")
-        figure = result_chart(result.data, spec)
-        if figure is None:
-            st.dataframe(result.data, use_container_width=True, hide_index=True)
-            return
-        st.plotly_chart(figure, use_container_width=True)
-        st.caption(narrative.chart_caption)
-        if st.button("Prepare PNG and SVG downloads", use_container_width=True, key="prepare_ai_chart_exports"):
-            try:
-                with st.spinner("Rendering publication-quality chart files…"):
-                    png = export_chart(figure, "png")
-                    svg = export_chart(figure, "svg")
-                st.session_state["ai_chart_png"] = png
-                st.session_state["ai_chart_svg"] = svg
-                st.session_state["last_chart_png"] = png
-            except Exception as exc:
-                st.info(str(exc))
-        png = st.session_state.get("ai_chart_png")
-        svg = st.session_state.get("ai_chart_svg")
-        if png and svg:
-            first, second = st.columns(2)
-            first.download_button("Download chart PNG", png, "ai_query_chart.png", "image/png", use_container_width=True)
-            second.download_button("Download chart SVG", svg, "ai_query_chart.svg", "image/svg+xml", use_container_width=True)
+    with evidence_tab:
+        metrics = last.get("pipeline_metrics", pipeline.last_run_metrics)
+        cards = st.columns(3)
+        cards[0].metric("Answer detail", str(metrics.get("analysis_mode", "Balanced")))
+        cards[1].metric("Total time", f"{float(metrics.get('total_ms', 0)):,.1f} ms")
+        cards[2].metric("Rows returned", f"{len(result.data):,}")
+        correction = "one safe correction was used" if metrics.get("corrected") else "no correction was needed"
+        st.caption(
+            f"Query time: {result.execution_time_ms:,.1f} ms · Model passes: {int(metrics.get('model_calls', 0))} · {correction}."
+        )
+        if metrics.get("provider_fallback"):
+            st.warning("The configured model was unavailable, so this answer used the safe local fallback. " + str(metrics.get("fallback_reason", "")))
+        st.success("Safety check passed · read-only dataset access · time and result limits applied")
+        st.markdown("**What the assistant understood**")
+        st.write(generated.interpreted_question)
+        with st.expander("View the validated query and technical details"):
+            st.code(generated.query, language="sql" if generated.query_language == "duckdb_sql" else "python")
+            st.json(
+                {
+                    "analysis engine": metrics.get("mode", pipeline.mode_label),
+                    "model": metrics.get("model", pipeline.model_label),
+                    "columns used": generated.columns_used,
+                    "filters used": generated.filters_used,
+                    "operation": generated.aggregation,
+                    "chart rationale": generated.reason,
+                }
+            )
 
 
 def _run_question(
@@ -311,6 +335,7 @@ def _run_question(
     st.session_state.pop("ai_chart_png", None)
     st.session_state.pop("ai_chart_svg", None)
     st.session_state.pop("last_chart_png", None)
+    st.session_state.pop("ai_report_files", None)
     engine = QueryEngine(frame, max_rows=settings.max_result_rows, timeout_seconds=settings.query_timeout_seconds)
     with st.status(f"AI agent is working in {analysis_mode.lower()} mode…", expanded=True) as status:
         stage_icons = {"planning": "①", "validation": "②", "execution": "③", "narrative": "④"}
@@ -352,6 +377,7 @@ def _run_question(
         "narrative": narrative,
         "filters": filters,
         "pipeline_metrics": pipeline.last_run_metrics.copy(),
+        "completed_at": datetime.now(timezone.utc),
     }
     st.toast(f"{pipeline.mode_label} task completed", icon="✅")
 
@@ -374,73 +400,90 @@ def render(
     pipeline: NLQueryPipeline,
 ) -> None:
     """Render a reference-inspired agent console with secure task execution."""
-    render_section_intro(
-        "Ask · act · validate",
-        "AI Assistant",
-        "Select an analytical capability or write a natural-language task. The agent plans, validates, executes, and explains every response against the active dataset.",
+    st.markdown(
+        """<section class="ai-workspace-intro">
+        <div class="section-kicker">Ask · act · validate</div>
+        <h2>AI Assistant</h2>
+        <p>Ask in everyday language or choose a guided task. Every answer is checked against the active dataset before you see it.</p>
+        </section>""",
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        """<div class="ai-guide" aria-label="How to use the AI assistant">
+        <div><span>1</span><strong>Choose or ask</strong><small>Select a ready-made task or write your own question.</small></div>
+        <div><span>2</span><strong>Review the answer</strong><small>See the result, chart, data, and verification status.</small></div>
+        <div><span>3</span><strong>Save or export</strong><small>Keep the response or download a report for submission.</small></div>
+        </div>""",
+        unsafe_allow_html=True,
     )
 
     profiles = _model_profiles(pipeline)
-    model_control, mode_control, reset_control = st.columns([2.1, 1.2, 1])
-    selected_profile = model_control.selectbox(
-        "AI model",
-        profiles,
-        index=len(profiles) - 1,
-        key="ai_model_profile",
-        help="Choose the guaranteed-private planner or the configured model endpoint.",
-    )
-    analysis_mode = mode_control.selectbox(
-        "Response mode",
-        ["Fast", "Balanced", "Deep"],
-        index=1,
-        key="ai_analysis_mode",
-        help="Fast minimizes latency. Balanced adds a concise narrative. Deep uses more model effort.",
-    )
-    if reset_control.button("Reset agent", use_container_width=True, key="reset_ai_agent"):
-        for key in (
-            "conversation",
-            "last_ai",
-            "last_chart_png",
-            "ai_chart_png",
-            "ai_chart_svg",
-            "saved_ai_responses",
-            "pending_ai_question",
-            "ai_query_draft",
-        ):
-            st.session_state.pop(key, None)
-        st.rerun()
+    with st.expander("⚙️ Agent settings and privacy", expanded=False):
+        model_control, mode_control, reset_control = st.columns([2.1, 1.2, 1])
+        selected_profile = model_control.selectbox(
+            "Analysis engine",
+            profiles,
+            index=len(profiles) - 1,
+            key="ai_model_profile",
+            help="Private local analytics stays on this device. A configured model understands a wider range of questions.",
+        )
+        analysis_mode = mode_control.selectbox(
+            "Answer detail",
+            ["Fast", "Balanced", "Deep"],
+            index=1,
+            key="ai_analysis_mode",
+            help="Fast gives a short answer. Balanced includes context. Deep provides the most detailed interpretation.",
+        )
+        if reset_control.button("Reset agent", use_container_width=True, key="reset_ai_agent"):
+            for key in (
+                "conversation",
+                "last_ai",
+                "last_chart_png",
+                "ai_chart_png",
+                "ai_chart_svg",
+                "saved_ai_responses",
+                "pending_ai_question",
+                "ai_query_draft",
+                "ai_report_files",
+            ):
+                st.session_state.pop(key, None)
+            st.rerun()
 
-    active_pipeline = _active_pipeline(pipeline, selected_profile)
-    _render_mode_card(active_pipeline, frame, filters, analysis_mode)
+        active_pipeline = _active_pipeline(pipeline, selected_profile)
+        _render_mode_card(active_pipeline, frame, filters, analysis_mode)
     memory = ConversationMemory(st.session_state.get("conversation", []))
     pending = st.session_state.pop("pending_ai_question", None)
 
-    capability_panel, response_panel = st.columns([0.36, 0.64], gap="large")
+    capability_panel, response_panel = st.columns([0.38, 0.62], gap="large", vertical_alignment="top")
     requested_question: str | None = pending
 
     with capability_panel:
         with st.container(border=True):
             st.markdown("### 🤖 AI Capabilities")
-            st.caption("Run a common e-commerce investigation with one click.")
+            st.caption("Choose a ready-made investigation. It runs immediately using the current filters.")
             for label, help_text, question in CAPABILITIES:
                 if st.button(label, help=help_text, use_container_width=True, key=f"capability_{label}"):
                     requested_question = question
             st.divider()
-            st.markdown("#### 💬 Natural Language Task")
-            st.caption("Current global filters are applied automatically and override conversation history.")
-            draft = st.text_area(
-                "Ask the AI agent",
-                key="ai_query_draft",
-                height=165,
-                placeholder="Example: Compare sales and profit by region, then rank the results from highest to lowest.",
-                label_visibility="collapsed",
-            )
-            if st.button("▶ Run Verified Task", type="primary", use_container_width=True, key="run_ai_query"):
-                requested_question = draft
+            st.markdown("#### 💬 Ask your own question")
+            scope_text = f"Using {len(frame):,} rows" + (f" with {len(filters)} active filter(s)." if filters else " with no filters.")
+            st.caption(scope_text + " Current filters always take priority over earlier conversation.")
+            with st.form("ai_task_form", border=False):
+                draft = st.text_area(
+                    "Your question",
+                    key="ai_query_draft",
+                    height=132,
+                    max_chars=settings.question_max_chars,
+                    placeholder="Example: Compare sales and profit by region and rank the results.",
+                    help="Ask about sales, profit, customers, products, countries, regions, discounts, or trends.",
+                )
+                if st.form_submit_button("Analyze my question", type="primary", use_container_width=True):
+                    requested_question = draft
             st.divider()
             with st.expander("💾 Saved Responses", expanded=False):
                 _render_saved_responses()
-            with st.expander(f"🕘 Conversation · {len(memory.as_list())}/5", expanded=False):
+            with st.expander("🕘 Recent conversation", expanded=False):
                 _render_history(memory)
 
     with response_panel:
@@ -467,7 +510,7 @@ def render(
                 _render_last_result(last, active_pipeline)
             else:
                 st.markdown(
-                    '<div class="ai-response-empty" role="status"><span>✦</span><h3>Ready for a verified task</h3><p>Choose a capability on the left or enter a natural-language request. The agent will show the plan, validation status, execution evidence, and result—never hidden reasoning.</p></div>',
+                    '<div class="ai-response-empty" role="status"><span>✦</span><h3>What would you like to understand?</h3><p>Choose a guided task or ask your own business question. Your verified answer, chart, source data, and safety checks will appear here.</p><div class="empty-hint">Try: “Which category has the highest profit?”</div></div>',
                     unsafe_allow_html=True,
                 )
         if last:

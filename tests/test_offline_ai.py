@@ -103,7 +103,8 @@ def test_fast_mode_uses_one_model_pass_and_reports_live_stages(ecommerce_frame):
     assert len(client.calls) == 1
     assert client.calls[0][0] == "low"
     assert len(result.data) == 4
-    assert narrative.direct_answer.startswith("Region: West")
+    assert "West" in narrative.direct_answer
+    assert "$1,100.00" in narrative.direct_answer
     assert stages == ["planning", "validation", "execution", "narrative", "complete"]
     assert pipeline.last_run_metrics["analysis_mode"] == "Fast"
     assert pipeline.last_run_metrics["model_calls"] == 1
