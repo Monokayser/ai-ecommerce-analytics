@@ -497,7 +497,7 @@ APP_CSS = r"""
         background: linear-gradient(145deg, rgba(8, 40, 30, .79), rgba(3, 20, 15, .88));
         box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 18px 42px rgba(0,0,0,.22);
         transform-style: preserve-3d;
-        animation: revealUp .55s both;
+        animation: telemetryLaunch .62s cubic-bezier(.2,.8,.2,1) both;
     }
     .viz-feature:nth-child(2) { animation-delay: .06s; }
     .viz-feature:nth-child(3) { animation-delay: .12s; }
@@ -513,8 +513,130 @@ APP_CSS = r"""
         background: rgba(78, 245, 188, .13);
         filter: blur(8px);
     }
+    .viz-feature::before {
+        content: "";
+        position: absolute;
+        z-index: 0;
+        inset: 0;
+        width: 42%;
+        pointer-events: none;
+        opacity: 0;
+        background: linear-gradient(100deg, transparent, rgba(151,255,222,.12), transparent);
+        transform: translateX(-180%) skewX(-15deg);
+    }
     .viz-feature b { display:block; color:#f0fff9; font-size:.85rem; margin-bottom:.3rem; }
     .viz-feature span { color:#8db3a5; font-size:.71rem; line-height:1.45; }
+    .viz-feature b, .viz-feature span, .telemetry-rail { position:relative; z-index:1; }
+    .telemetry-rail, .kpi-meter {
+        overflow: hidden;
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(126,255,211,.08);
+        box-shadow: inset 0 1px 2px rgba(0,0,0,.42);
+    }
+    .telemetry-rail { margin-top:.72rem; }
+    .telemetry-rail i, .kpi-meter i {
+        position: relative;
+        display: block;
+        width: var(--meter, 0%);
+        height: 100%;
+        border-radius: inherit;
+        transform-origin: left center;
+        background: linear-gradient(90deg, #24b98d, #7fffe1 72%, #e4fff7);
+        box-shadow: 0 0 12px rgba(84,255,202,.55);
+    }
+    .telemetry-rail i::after, .kpi-meter i::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: -1px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #eafff9;
+        box-shadow: 0 0 10px #7fffe1, 0 0 20px rgba(127,255,225,.7);
+        transform: translateY(-50%);
+    }
+
+    /* Data-driven KPI telemetry */
+    .kpi-card {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        min-height: 136px;
+        padding: 1rem 1.05rem .9rem;
+        border: 1px solid rgba(132,255,213,.2);
+        border-radius: 22px;
+        background:
+            radial-gradient(circle at 112% 112%, rgba(78,245,188,.17), transparent 38%),
+            linear-gradient(145deg, rgba(8,40,30,.88), rgba(3,20,15,.94));
+        box-shadow: var(--glass-shadow);
+        transform-style: preserve-3d;
+        animation: telemetryLaunch .68s var(--delay, 0ms) cubic-bezier(.2,.8,.2,1) both;
+    }
+    .kpi-card::before {
+        content: "";
+        position: absolute;
+        z-index: 0;
+        top: 0;
+        left: 10%;
+        width: 80%;
+        height: 1px;
+        opacity: .7;
+        background: linear-gradient(90deg, transparent, rgba(127,255,225,.78), transparent);
+        filter: drop-shadow(0 0 7px rgba(127,255,225,.62));
+    }
+    .kpi-card::after {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        width: 110px;
+        height: 110px;
+        right: -55px;
+        bottom: -68px;
+        border-radius: 50%;
+        background: rgba(94,244,192,.2);
+        filter: blur(14px);
+    }
+    .kpi-scan {
+        position: absolute;
+        z-index: 0;
+        inset: 0;
+        width: 38%;
+        pointer-events: none;
+        opacity: 0;
+        background: linear-gradient(100deg, transparent, rgba(167,255,226,.12), transparent);
+        transform: translateX(-190%) skewX(-15deg);
+    }
+    .kpi-label, .kpi-value, .kpi-delta, .kpi-meter { position:relative; z-index:1; }
+    .kpi-label { color:#a8c4ba; font-size:.78rem; font-weight:720; letter-spacing:-.01em; }
+    .kpi-value {
+        margin:.55rem 0 .34rem;
+        color:#f8fffc;
+        font-size:clamp(1.65rem,2.6vw,2.25rem);
+        font-weight:820;
+        letter-spacing:-.055em;
+        line-height:1;
+        text-shadow:0 0 24px rgba(127,255,225,.06);
+    }
+    .kpi-delta {
+        align-self:flex-start;
+        padding:.23rem .46rem;
+        border:1px solid rgba(150,255,216,.12);
+        border-radius:999px;
+        color:#b8d0c7;
+        background:rgba(92,132,118,.15);
+        font-size:.69rem;
+        font-weight:760;
+        line-height:1.15;
+    }
+    .kpi-card.positive .kpi-delta { color:#b9fdd7; background:rgba(29,164,96,.24); border-color:rgba(103,255,170,.15); }
+    .kpi-card.negative .kpi-delta { color:#ffd2d7; background:rgba(184,65,79,.25); border-color:rgba(255,114,133,.18); }
+    .kpi-card.negative .kpi-meter i { background:linear-gradient(90deg,#a7394c,#ff7285 72%,#ffd7dd); box-shadow:0 0 12px rgba(255,114,133,.5); }
+    .kpi-card.neutral .kpi-meter i { background:linear-gradient(90deg,#408c7b,#9ed9cb); box-shadow:0 0 9px rgba(158,217,203,.28); }
+    .kpi-meter { margin-top:auto; }
     .ai-workspace-intro { margin:.1rem 0 .8rem; padding:.35rem .15rem; }
     .ai-workspace-intro h2 { margin:.18rem 0 .25rem; color:#f6fbff; font-size:clamp(1.65rem,2.6vw,2.2rem); line-height:1.1; }
     .ai-workspace-intro p { margin:0; max-width:920px; color:#9eb3c7; font-size:.88rem; line-height:1.5; }
@@ -672,11 +794,32 @@ APP_CSS = r"""
     @keyframes auroraDrift { 0% { transform:translate3d(-3%, -2%, 0) rotate(8deg) skewX(-9deg); opacity:.62; } 100% { transform:translate3d(5%, 4%, 0) rotate(12deg) skewX(-4deg); opacity:1; } }
     @keyframes heroAurora { 0% { transform:translate3d(-6%,0,0) rotate(-9deg) skewX(-18deg); opacity:.72; } 100% { transform:translate3d(7%,4%,0) rotate(-4deg) skewX(-10deg); opacity:1; } }
     @keyframes revealUp { from { opacity:0; transform:translate3d(0,12px,-12px); } to { opacity:1; transform:translate3d(0,0,0); } }
+    @keyframes telemetryLaunch {
+        from { opacity:0; filter:blur(5px); transform:perspective(900px) translate3d(0,16px,-16px) rotateX(5deg); }
+        to { opacity:1; filter:blur(0); transform:perspective(900px) translate3d(0,0,0) rotateX(0); }
+    }
+    @keyframes railGrow { from { transform:scaleX(0); } to { transform:scaleX(1); } }
+    @keyframes scanSweep {
+        0%, 64% { opacity:0; transform:translateX(-190%) skewX(-15deg); }
+        72% { opacity:.72; }
+        100% { opacity:0; transform:translateX(340%) skewX(-15deg); }
+    }
+    @keyframes edgePulse { 0%,100% { opacity:.42; } 50% { opacity:1; } }
     @keyframes softFloat { 0%,100% { transform:translate3d(0,0,0) rotateX(0); } 50% { transform:translate3d(0,-3px,8px) rotateX(4deg); } }
     .mode-orb, .sidebar-mark { animation: softFloat 4s ease-in-out infinite; }
     [data-testid="stMetric"], [data-testid="stPlotlyChart"], [data-testid="stVerticalBlockBorderWrapper"] { animation: revealUp .48s ease both; }
+    @media (prefers-reduced-motion: no-preference) {
+        .telemetry-rail i { animation:railGrow .95s .28s cubic-bezier(.2,.8,.2,1) both; }
+        .kpi-meter i { animation:railGrow .9s calc(var(--delay, 0ms) + .28s) cubic-bezier(.2,.8,.2,1) both; }
+        .viz-feature::before { animation:scanSweep 7s ease-in-out infinite; }
+        .viz-feature:nth-child(2)::before { animation-delay:.8s; }
+        .viz-feature:nth-child(3)::before { animation-delay:1.6s; }
+        .viz-feature:nth-child(4)::before { animation-delay:2.4s; }
+        .kpi-scan { animation:scanSweep 7.5s calc(var(--delay, 0ms) + .5s) ease-in-out infinite; }
+        .kpi-card::before { animation:edgePulse 3.6s calc(var(--delay, 0ms) + .4s) ease-in-out infinite; }
+    }
     @media (hover: hover) and (pointer: fine) {
-        [data-testid="stMetric"], .mode-card, .answer-card, [data-testid="stPlotlyChart"], .viz-feature {
+        [data-testid="stMetric"], .mode-card, .answer-card, [data-testid="stPlotlyChart"], .viz-feature, .kpi-card {
             transform: perspective(900px) translateZ(0);
             transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
         }
@@ -690,15 +833,23 @@ APP_CSS = r"""
             border-color: rgba(132,255,214,.38);
             box-shadow: 0 25px 58px rgba(0,0,0,.35), 0 0 30px rgba(61,231,177,.08), inset 0 1px 0 rgba(255,255,255,.08);
         }
+        .kpi-card:hover {
+            transform:perspective(900px) translateY(-5px) translateZ(11px) rotateX(2deg);
+            border-color:rgba(132,255,214,.45);
+            box-shadow:0 30px 82px rgba(0,0,0,.46),0 0 35px rgba(61,231,177,.1),inset 0 1px 0 rgba(255,255,255,.1);
+        }
+        .kpi-card:hover .kpi-value { text-shadow:0 0 22px rgba(127,255,225,.22); }
     }
     @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
         [data-testid="stHeader"], .app-hero, .hero-pill { background-color: #0a2034; }
-        .mode-card, .answer-card, [data-testid="stMetric"] { background-color: #0b2237; }
+        .mode-card, .answer-card, [data-testid="stMetric"], .kpi-card { background-color: #0b2237; }
     }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; } }
     @media (forced-colors: active) {
-        .app-hero, .mode-card, .answer-card, [data-testid="stMetric"], [data-testid="stPlotlyChart"] { border: 1px solid CanvasText; }
+        .app-hero, .mode-card, .answer-card, .kpi-card, .viz-feature, [data-testid="stMetric"], [data-testid="stPlotlyChart"] { border: 1px solid CanvasText; }
         .status-dot { background: Highlight; box-shadow: none; }
+        .telemetry-rail, .kpi-meter { border:1px solid CanvasText; background:Canvas; }
+        .telemetry-rail i, .kpi-meter i { background:Highlight; box-shadow:none; }
     }
     @media (max-width: 1200px) {
         .block-container { max-width: 100%; padding-left: 1rem; padding-right: 1rem; }
@@ -713,6 +864,7 @@ APP_CSS = r"""
         .app-hero { padding: 1.3rem; border-radius: 23px; }
         .app-hero::after { display: none; }
         [data-testid="stMetric"] { min-height: 105px; border-radius: 18px; }
+        .kpi-card { min-height:122px; border-radius:18px; }
         .section-shell { padding: 1rem; }
         [data-testid="stTabs"] [role="tablist"] { border-radius: 16px; }
         [data-testid="stTabs"] button[role="tab"] { min-width: max-content; }
@@ -736,6 +888,8 @@ APP_CSS = r"""
         [data-testid="stDataFrame"], [data-testid="stPlotlyChart"] { border-radius: 18px; }
         .stButton > button, .stDownloadButton > button { width: 100%; min-height: 46px; }
         .viz-ribbon { grid-template-columns: 1fr; }
+        .kpi-card { min-height:116px; padding:.9rem; }
+        .kpi-value { font-size:clamp(1.55rem,8vw,2rem); }
     }
 </style>
 """
