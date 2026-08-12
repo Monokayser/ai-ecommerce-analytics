@@ -19,7 +19,7 @@ A production-style Streamlit capstone that turns e-commerce files into secure, f
 ## What it does
 
 - Loads validated CSV, JSON, and Parquet uploads up to a configurable 200 MB limit.
-- Uses a responsive aurora-terrain interface with a large plain-language workspace navigator, click-to-Home product mark, fully theme-matched emerald filters, dimensional glass surfaces, data-driven animated telemetry rails, and purposeful hover motion—with accessible reduced-motion behavior.
+- Uses a responsive aurora-terrain interface with a large, equally spaced six-feature workspace grid, click-to-Home product mark, fully theme-matched emerald filters, dimensional glass surfaces, data-driven animated telemetry rails, and purposeful hover motion—with accessible reduced-motion behavior.
 - Preserves raw data, cleans a working copy, resolves aliases, profiles every column, and records each cleaning action.
 - Queries data through DuckDB with parameterized filters, row limits, timing, and a 10-second interrupt guard.
 - Answers questions through a reference-inspired AI agent console with capability presets, a natural-language task box, live pipeline-stage feedback, Fast/Balanced/Deep response modes, saved responses, verified follow-ups, visible safety evidence, and a deterministic private fallback.

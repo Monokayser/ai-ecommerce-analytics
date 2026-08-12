@@ -471,7 +471,7 @@ APP_CSS = r"""
         z-index: 90;
         top: .45rem;
         margin: 0 0 .8rem;
-        padding: .58rem .68rem;
+        padding: .7rem .78rem .78rem;
         border: 1px solid rgba(130,255,215,.18);
         border-radius: 18px;
         background: linear-gradient(120deg, rgba(2,14,10,.91), rgba(6,35,26,.88));
@@ -480,16 +480,16 @@ APP_CSS = r"""
         backdrop-filter: blur(20px) saturate(130%);
     }
     .st-key-top_navigation > div {
-        display: grid;
-        grid-template-columns: auto minmax(0, 1fr);
-        align-items: center;
-        gap: .55rem;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: .38rem;
     }
     .top-nav-label {
         display: inline-flex;
         align-items: center;
-        min-height: 44px;
-        padding: 0 .65rem;
+        min-height: 30px;
+        padding: 0 .55rem;
         color: #7fffdc;
         font-size: .7rem;
         font-weight: 850;
@@ -497,23 +497,27 @@ APP_CSS = r"""
         text-transform: uppercase;
         white-space: nowrap;
     }
-    .st-key-top_navigation [data-testid="stRadio"] { min-width: 0; }
+    .st-key-top_navigation [data-testid="stRadio"] { width:100%; min-width:0; }
     .st-key-top_navigation [role="radiogroup"] {
-        display: flex !important;
-        flex-wrap: nowrap !important;
-        justify-content: space-between !important;
-        gap: .22rem !important;
+        display: grid !important;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        align-items: stretch;
+        gap: .5rem !important;
         width: 100%;
         overflow: visible !important;
-        padding: .08rem;
+        padding: .1rem;
     }
     .st-key-top_navigation [role="radiogroup"] label {
-        min-height: 46px;
-        flex: 0 0 auto;
-        padding: .58rem .72rem;
-        border: 1px solid transparent;
-        border-radius: 14px;
-        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-width: 0;
+        min-height: 58px;
+        padding: .72rem .58rem;
+        border: 1px solid rgba(127,255,225,.09);
+        border-radius: 16px;
+        background: rgba(5,37,28,.36);
         cursor: pointer;
         transition: color .2s ease, background .2s ease, border-color .2s ease, transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s ease;
     }
@@ -524,11 +528,22 @@ APP_CSS = r"""
         box-shadow: 0 10px 24px rgba(0,0,0,.24), 0 0 18px rgba(72,239,185,.08);
     }
     .st-key-top_navigation [role="radiogroup"] label[data-selected="true"] {
-        border-color: rgba(127,255,225,.28);
-        background: linear-gradient(120deg, rgba(45,189,143,.27), rgba(17,103,78,.3));
-        box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 7px 20px rgba(0,0,0,.2);
+        border-color: rgba(127,255,225,.46);
+        background: linear-gradient(120deg, rgba(45,189,143,.34), rgba(17,103,78,.4));
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 9px 24px rgba(0,0,0,.24), 0 0 20px rgba(57,230,189,.07);
     }
-    .st-key-top_navigation [role="radiogroup"] label p { color:#c3ddd4; font-size:.82rem; font-weight:780; letter-spacing:-.012em; white-space:nowrap; }
+    .st-key-top_navigation [role="radiogroup"] label p {
+        width:100%;
+        margin:0;
+        color:#cbe3da;
+        font-size:.92rem;
+        font-weight:790;
+        letter-spacing:-.015em;
+        line-height:1.2;
+        text-align:center;
+        white-space:normal;
+        text-wrap:balance;
+    }
     .st-key-top_navigation [role="radiogroup"] label[data-selected="true"] p { color:#f5fffb; }
     .st-key-top_navigation [role="radiogroup"] label:focus-within { border-color:rgba(127,255,225,.5); box-shadow:0 0 0 3px rgba(127,255,225,.12); }
     .st-key-top_navigation [data-testid="stRadioOption"] > div > div > div:first-child { display:none !important; }
@@ -950,13 +965,16 @@ APP_CSS = r"""
     @media (max-width: 1200px) {
         .block-container { max-width: 100%; padding-left: 1rem; padding-right: 1rem; }
         .app-title { font-size: clamp(1.9rem, 4.4vw, 3rem); }
+        .st-key-top_navigation [role="radiogroup"] { grid-template-columns:repeat(3,minmax(0,1fr)); }
     }
     @media (max-width: 900px) {
         .block-container { padding: .85rem .75rem 3rem; }
-        .st-key-top_navigation { top:.25rem; border-radius:15px; padding:.38rem; }
-        .st-key-top_navigation > div { grid-template-columns:1fr; gap:.15rem; }
+        .st-key-top_navigation { position:relative; top:auto; border-radius:15px; padding:.48rem; }
+        .st-key-top_navigation > div { gap:.15rem; }
         .top-nav-label { display:none; }
-        .st-key-top_navigation [role="radiogroup"] { justify-content:flex-start !important; overflow-x:auto !important; scrollbar-width:thin; scrollbar-color:rgba(127,255,225,.32) transparent; }
+        .st-key-top_navigation [role="radiogroup"] { grid-template-columns:repeat(3,minmax(0,1fr)); gap:.4rem !important; overflow:visible !important; }
+        .st-key-top_navigation [role="radiogroup"] label { min-height:54px; }
+        .st-key-top_navigation [role="radiogroup"] label p { font-size:.86rem; }
         .app-hero { padding: 1.3rem; border-radius: 23px; }
         .app-hero::after { display: none; }
         [data-testid="stMetric"] { min-height: 105px; border-radius: 18px; }
@@ -972,8 +990,9 @@ APP_CSS = r"""
     }
     @media (max-width: 640px) {
         .block-container { padding-left: .55rem; padding-right: .55rem; }
-        .st-key-top_navigation [role="radiogroup"] label { min-height:46px; padding:.58rem .72rem; }
-        .st-key-top_navigation [role="radiogroup"] label p { font-size:.8rem; }
+        .st-key-top_navigation [role="radiogroup"] { grid-template-columns:repeat(2,minmax(0,1fr)); }
+        .st-key-top_navigation [role="radiogroup"] label { min-height:52px; padding:.58rem .45rem; }
+        .st-key-top_navigation [role="radiogroup"] label p { font-size:.82rem; }
         .app-hero { padding: 1.15rem; border-radius: 20px; }
         .app-title { font-size: clamp(1.85rem, 10vw, 2.55rem); line-height: 1.05; overflow-wrap: anywhere; }
         .app-subtitle { font-size: .9rem; }
