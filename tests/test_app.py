@@ -13,7 +13,8 @@ def test_app_starts_without_api_key(monkeypatch):
     assert any("DEMO DATA" in warning.value for warning in test.warning)
     assert any("Overview" in title.value for title in test.header)
     for section in ["Data Exploration", "AI Assistant", "Advanced Analytics", "Data Quality & Performance", "Report Export"]:
-        test.sidebar.radio[0].set_value(section)
+        navigation = next(radio for radio in test.radio if radio.key == "current_section")
+        navigation.set_value(section)
         test.run()
         assert not test.exception, f"Section failed: {section}"
         if section == "AI Assistant":

@@ -29,3 +29,21 @@ def test_webgl_scatter_payload_is_bounded():
     figure = scatter_chart(frame)
     assert figure.data[0].type == "scattergl"
     assert len(figure.data[0].x) == 8000
+
+
+def test_interactive_chart_controls(ecommerce_frame):
+    trend = time_series_chart(ecommerce_frame)
+    grouped = grouped_bar_chart(ecommerce_frame)
+    treemap = hierarchy_chart(ecommerce_frame, mode="treemap")
+    animation_frame = ecommerce_frame.copy()
+    animation_frame["Order Date"] = pd.to_datetime(["2023-01-01", "2023-02-01", "2024-01-01", "2024-02-01", "2025-01-01", "2025-02-01"])
+    animated = animated_chart(animation_frame, metric="Profit")
+    custom_3d = three_dimensional_chart(ecommerce_frame, axes=("Quantity", "Discount", "Profit"), color_field="Region")
+
+    assert trend.layout.xaxis.rangeslider.visible is True
+    assert len(trend.layout.xaxis.rangeselector.buttons) == 4
+    assert len(grouped.layout.updatemenus[0].buttons) == 2
+    assert treemap.data[0].type == "treemap"
+    assert animated.frames
+    assert custom_3d.data[0].type == "scatter3d"
+    assert custom_3d.layout.scene.xaxis.title.text == "Quantity"

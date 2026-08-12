@@ -67,7 +67,28 @@ def time_series_chart(frame: pd.DataFrame, context: str = "") -> go.Figure:
             secondary_y=True,
         )
     figure.update_layout(title="Monthly Sales and Profit Trend")
-    figure.update_xaxes(title="Month")
+    figure.update_layout(hovermode="x unified")
+    figure.update_xaxes(
+        title="Month",
+        rangeselector={
+            "buttons": [
+                {"count": 3, "label": "3M", "step": "month", "stepmode": "backward"},
+                {"count": 6, "label": "6M", "step": "month", "stepmode": "backward"},
+                {"count": 1, "label": "1Y", "step": "year", "stepmode": "backward"},
+                {"step": "all", "label": "All"},
+            ],
+            "bgcolor": "rgba(5,31,23,.86)",
+            "activecolor": "rgba(57,230,189,.38)",
+            "bordercolor": "rgba(127,255,225,.22)",
+        },
+        rangeslider={
+            "visible": True,
+            "thickness": 0.06,
+            "bgcolor": "rgba(3,24,17,.68)",
+            "bordercolor": "rgba(127,255,225,.14)",
+            "borderwidth": 1,
+        },
+    )
     figure.update_yaxes(title="Sales", secondary_y=False)
     if len(metrics) > 1:
         figure.update_yaxes(title="Profit", secondary_y=True)
@@ -89,6 +110,13 @@ def geographic_chart(frame: pd.DataFrame, context: str = "") -> go.Figure:
                 color=metric,
                 color_continuous_scale=["#09231B", "#1F7D5F", "#7FFFE1"],
                 title=f"{metric} by Country",
+            )
+            figure.update_geos(
+                projection_type="natural earth",
+                showframe=False,
+                showcoastlines=True,
+                coastlinecolor="rgba(156,233,207,.25)",
+                bgcolor="rgba(2,14,10,.15)",
             )
             return apply_theme(figure, source_context=context)
     dimension = "Region" if "Region" in frame else "Country"
@@ -113,12 +141,16 @@ def distribution_chart(frame: pd.DataFrame, metric: str = "Sales", context: str 
     return apply_theme(figure, source_context=context)
 
 
-def hierarchy_chart(frame: pd.DataFrame, context: str = "") -> go.Figure:
-    """Region to category to sub-category sunburst."""
+def hierarchy_chart(frame: pd.DataFrame, context: str = "", mode: str = "sunburst") -> go.Figure:
+    """Region to category to sub-category drill-down view."""
     path = [column for column in ("Region", "Product Category", "Sub-Category") if column in frame]
     value = "Sales" if "Sales" in frame else "Quantity"
     data = frame.groupby(path, as_index=False, dropna=False)[value].sum()
-    figure = px.sunburst(data, path=path, values=value, title=f"{value} Hierarchy: {' > '.join(path)}")
+    if mode == "treemap":
+        figure = px.treemap(data, path=path, values=value, color=value, color_continuous_scale=["#09231B", "#27A77D", "#8AFFD9"], title=f"{value} Treemap: {' > '.join(path)}")
+    else:
+        figure = px.sunburst(data, path=path, values=value, color=value, color_continuous_scale=["#09231B", "#27A77D", "#8AFFD9"], title=f"{value} Sunburst: {' > '.join(path)}")
+    figure.update_traces(hovertemplate="%{label}<br>%{value:,.2f}<br>%{percentParent:.1%} of parent<extra></extra>")
     return apply_theme(figure, source_context=context)
 
 
@@ -126,13 +158,44 @@ def grouped_bar_chart(frame: pd.DataFrame, dimension: str = "Product Category", 
     """Grouped Sales and Profit comparison."""
     measures = [column for column in ("Sales", "Profit") if column in frame]
     grouped = frame.groupby(dimension, as_index=False)[measures].sum().melt(id_vars=dimension, var_name="Metric", value_name="Value")
-    return apply_theme(px.bar(grouped, x=dimension, y="Value", color="Metric", barmode="group", title=f"Sales and Profit by {dimension}"), source_context=context)
+    figure = px.bar(grouped, x=dimension, y="Value", color="Metric", barmode="group", title=f"Sales and Profit by {dimension}")
+    figure.update_layout(
+        updatemenus=[{
+            "type": "buttons",
+            "direction": "right",
+            "x": 1,
+            "xanchor": "right",
+            "y": 1.16,
+            "buttons": [
+                {"label": "Grouped", "method": "relayout", "args": [{"barmode": "group"}]},
+                {"label": "Stacked", "method": "relayout", "args": [{"barmode": "relative"}]},
+            ],
+            "bgcolor": "rgba(5,31,23,.86)",
+            "bordercolor": "rgba(127,255,225,.2)",
+        }]
+    )
+    return apply_theme(figure, source_context=context)
 
 
 def scatter_chart(frame: pd.DataFrame, x: str = "Discount", y: str = "Profit", context: str = "") -> go.Figure:
     """Numeric relationship scatter with least-squares trend line."""
-    data = _bounded_sample(frame[[x, y]].dropna(), 8_000)
-    figure = px.scatter(data, x=x, y=y, opacity=0.55, render_mode="webgl", title=f"{y} versus {x}")
+    color = next((column for column in ("Product Category", "Region", "Customer Segment") if column in frame), None)
+    size = "Sales" if "Sales" in frame and "Sales" not in {x, y} and frame["Sales"].min() >= 0 else None
+    hover = [column for column in ("Order ID", "Country", "Sub-Category") if column in frame]
+    required = list(dict.fromkeys([x, y] + ([color] if color else []) + ([size] if size else []) + hover))
+    data = _bounded_sample(frame[required].dropna(subset=[x, y]), 8_000)
+    figure = px.scatter(
+        data,
+        x=x,
+        y=y,
+        color=color,
+        size=size,
+        size_max=22,
+        hover_data=hover,
+        opacity=0.62,
+        render_mode="webgl",
+        title=f"{y} versus {x}",
+    )
     if len(data) >= 2 and data[x].nunique() > 1:
         slope, intercept = np.polyfit(data[x], data[y], 1)
         xs = np.linspace(data[x].min(), data[x].max(), 100)
@@ -140,15 +203,20 @@ def scatter_chart(frame: pd.DataFrame, x: str = "Discount", y: str = "Profit", c
     return apply_theme(figure, source_context=context)
 
 
-def three_dimensional_chart(frame: pd.DataFrame, context: str = "") -> go.Figure:
+def three_dimensional_chart(
+    frame: pd.DataFrame,
+    context: str = "",
+    axes: tuple[str, str, str] | None = None,
+    color_field: str | None = None,
+) -> go.Figure:
     """WebGL 3D relationship space for three business measures."""
-    preferred = [column for column in ("Sales", "Profit", "Discount", "Quantity") if column in frame]
+    preferred = list(axes) if axes else [column for column in ("Sales", "Profit", "Discount", "Quantity") if column in frame]
     if len(preferred) < 3:
         raise ValueError("At least three supported numeric measures are required for the 3D view.")
     x, y, z = preferred[:3]
-    color = next((column for column in ("Product Category", "Region", "Customer Segment") if column in frame), None)
+    color = color_field or next((column for column in ("Product Category", "Region", "Customer Segment") if column in frame), None)
     hover = [column for column in ("Order ID", "Country", "Sub-Category") if column in frame]
-    required = [x, y, z] + ([color] if color else []) + hover
+    required = list(dict.fromkeys([x, y, z] + ([color] if color else []) + hover))
     data = _bounded_sample(frame[required].dropna(subset=[x, y, z]), 4_000)
     figure = px.scatter_3d(
         data,
@@ -227,14 +295,29 @@ def profit_terrain_chart(frame: pd.DataFrame, context: str = "") -> go.Figure:
     return figure
 
 
-def animated_chart(frame: pd.DataFrame, context: str = "") -> go.Figure:
+def animated_chart(frame: pd.DataFrame, context: str = "", metric: str = "Sales") -> go.Figure:
     """Animated category performance by year."""
     data = frame.dropna(subset=["Order Date"]).copy()
     data["Year"] = pd.to_datetime(data["Order Date"]).dt.year.astype(str)
     dimension = "Product Category" if "Product Category" in data else "Region"
-    grouped = data.groupby(["Year", dimension], as_index=False)["Sales"].sum()
-    figure = px.bar(grouped, x=dimension, y="Sales", color=dimension, animation_frame="Year", range_y=[0, grouped["Sales"].max() * 1.1], title=f"Animated Sales by {dimension}")
-    return apply_theme(figure, source_context=context)
+    if metric not in data:
+        raise ValueError(f"{metric} is unavailable for animation.")
+    grouped = data.groupby(["Year", dimension], as_index=False)[metric].sum()
+    upper = max(float(grouped[metric].max()) * 1.12, 1.0)
+    figure = px.bar(
+        grouped,
+        x=dimension,
+        y=metric,
+        color=dimension,
+        animation_frame="Year",
+        animation_group=dimension,
+        range_y=[min(0.0, float(grouped[metric].min()) * 1.12), upper],
+        title=f"Animated {metric} by {dimension}",
+    )
+    figure = apply_theme(figure, source_context=context)
+    for slider in figure.layout.sliders or []:
+        slider.transition = {"duration": 350, "easing": "cubic-in-out"}
+    return figure
 
 
 def result_chart(frame: pd.DataFrame, spec: ChartSpec) -> go.Figure | None:

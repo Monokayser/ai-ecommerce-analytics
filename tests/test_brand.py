@@ -30,3 +30,10 @@ def test_app_uses_svg_as_page_icon():
     app_source = (ROOT / "app.py").read_text(encoding="utf-8")
 
     assert "page_icon=BRAND_ICON_PATH" in app_source
+
+
+def test_brand_mark_links_to_overview_home():
+    theme_source = (ROOT / "src" / "ui" / "theme.py").read_text(encoding="utf-8")
+
+    assert 'href="?home=1"' in theme_source
+    assert 'aria-label="Go to Overview home"' in theme_source

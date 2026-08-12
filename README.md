@@ -19,12 +19,12 @@ A production-style Streamlit capstone that turns e-commerce files into secure, f
 ## What it does
 
 - Loads validated CSV, JSON, and Parquet uploads up to a configurable 200 MB limit.
-- Uses a responsive aurora-terrain interface with dimensional glass surfaces, guided navigation, mobile-aware filters, subtle motion, and accessible reduced-motion behavior.
+- Uses a responsive aurora-terrain interface with a sticky top workspace navigator, click-to-Home product mark, focused sidebar filters, dimensional glass surfaces, subtle motion, and accessible reduced-motion behavior.
 - Preserves raw data, cleans a working copy, resolves aliases, profiles every column, and records each cleaning action.
 - Queries data through DuckDB with parameterized filters, row limits, timing, and a 10-second interrupt guard.
 - Answers questions through a reference-inspired AI agent console with capability presets, a natural-language task box, live pipeline-stage feedback, Fast/Balanced/Deep response modes, saved responses, verified follow-ups, visible safety evidence, and a deterministic private fallback.
 - Parses generated SQL with sqlglot and accepts only one read-only `SELECT`/`WITH` query on the registered `dataset` table.
-- Includes six application sections and nine Plotly visualization workspaces, with both an observation-level WebGL relationship cloud and a verified aggregated 3D profit terrain, plus anomaly detection, subset comparison, and Word/PDF/PNG/SVG export.
+- Includes six application sections and nine Plotly visualization workspaces with time-range controls, hierarchy drill-down, grouped/stacked switching, selectable relationship measures, configurable WebGL axes, a verified 3D profit terrain, fixed-range animation, anomaly detection, subset comparison, and Word/PDF/PNG/SVG export.
 - Displays pipeline stages, the validated query, timing, retry/fallback status, and verified evidence—never hidden reasoning.
 
 ## Why Gemini 3.6 Flash

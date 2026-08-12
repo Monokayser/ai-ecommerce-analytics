@@ -59,6 +59,7 @@ def test_accessibility_and_cross_browser_css_guards_present():
     assert "forced-colors" in APP_CSS
     assert "focus-visible" in APP_CSS
     assert "skip-link" in APP_CSS
+    assert "st-key-top_navigation" in APP_CSS
 
 
 def test_streamlit_and_container_security_defaults():

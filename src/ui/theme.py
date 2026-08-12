@@ -369,12 +369,30 @@ APP_CSS = r"""
 
     /* Custom components */
     .sidebar-brand { padding: .25rem .08rem 1rem; }
+    .sidebar-home-link {
+        display: flex;
+        align-items: center;
+        gap: .8rem;
+        padding: .45rem;
+        margin: -.35rem -.35rem .2rem;
+        border: 1px solid transparent;
+        border-radius: 18px;
+        color: inherit !important;
+        text-decoration: none !important;
+        transition: background .2s ease, border-color .2s ease, transform .2s ease;
+    }
+    .sidebar-home-link:hover {
+        border-color: rgba(126,255,211,.18);
+        background: rgba(48,193,146,.08);
+        transform: translateY(-1px);
+    }
+    .sidebar-home-link:focus-visible { outline: 3px solid rgba(127,255,225,.58) !important; }
     .sidebar-mark {
         width: 46px;
         height: 46px;
         display: grid;
         place-items: center;
-        margin-bottom: .7rem;
+        flex: 0 0 auto;
         border: 0;
         border-radius: 16px;
         background: transparent;
@@ -386,6 +404,71 @@ APP_CSS = r"""
     .sidebar-title { color: white; font-size: 1.08rem; font-weight: 780; line-height: 1.2; }
     .sidebar-subtitle { margin-top: .3rem; color: #88a2b9; font-size: .78rem; }
     .sidebar-live { display:flex; align-items:center; gap:.5rem; margin:.8rem 0 .2rem; color:#a8bfd2; font-size:.72rem; }
+
+    /* Top workspace navigation */
+    .st-key-top_navigation {
+        position: sticky;
+        z-index: 90;
+        top: .45rem;
+        margin: 0 0 .8rem;
+        padding: .46rem .55rem;
+        border: 1px solid rgba(130,255,215,.18);
+        border-radius: 18px;
+        background: linear-gradient(120deg, rgba(2,14,10,.91), rgba(6,35,26,.88));
+        box-shadow: 0 16px 45px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.05);
+        -webkit-backdrop-filter: blur(20px) saturate(130%);
+        backdrop-filter: blur(20px) saturate(130%);
+    }
+    .st-key-top_navigation > div {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: center;
+        gap: .55rem;
+    }
+    .top-nav-label {
+        display: inline-flex;
+        align-items: center;
+        min-height: 36px;
+        padding: 0 .55rem;
+        color: #7fffdc;
+        font-size: .64rem;
+        font-weight: 850;
+        letter-spacing: .16em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+    .st-key-top_navigation [data-testid="stRadio"] { min-width: 0; }
+    .st-key-top_navigation [role="radiogroup"] {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        justify-content: space-between !important;
+        gap: .12rem !important;
+        width: 100%;
+        overflow: visible !important;
+        padding: .08rem;
+    }
+    .st-key-top_navigation [role="radiogroup"] label {
+        min-height: 38px;
+        flex: 0 0 auto;
+        padding: .48rem .55rem;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        background: transparent;
+        transition: color .18s ease, background .18s ease, border-color .18s ease, transform .18s ease;
+    }
+    .st-key-top_navigation [role="radiogroup"] label:hover {
+        border-color: rgba(130,255,215,.15);
+        background: rgba(58,202,154,.09);
+        transform: translateY(-1px);
+    }
+    .st-key-top_navigation [role="radiogroup"] label[data-selected="true"] {
+        border-color: rgba(127,255,225,.28);
+        background: linear-gradient(120deg, rgba(45,189,143,.27), rgba(17,103,78,.3));
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 7px 20px rgba(0,0,0,.2);
+    }
+    .st-key-top_navigation [role="radiogroup"] label p { color:#b8d4ca; font-size:.68rem; font-weight:750; white-space:nowrap; }
+    .st-key-top_navigation [role="radiogroup"] label[data-selected="true"] p { color:#f5fffb; }
+    .st-key-top_navigation [data-testid="stRadioOption"] > div > div > div:first-child { display:none !important; }
 
     .section-shell {
         margin: .2rem 0 1.1rem;
@@ -623,6 +706,10 @@ APP_CSS = r"""
     }
     @media (max-width: 900px) {
         .block-container { padding: .85rem .75rem 3rem; }
+        .st-key-top_navigation { top:.25rem; border-radius:15px; padding:.38rem; }
+        .st-key-top_navigation > div { grid-template-columns:1fr; gap:.15rem; }
+        .top-nav-label { display:none; }
+        .st-key-top_navigation [role="radiogroup"] { justify-content:flex-start !important; overflow-x:auto !important; scrollbar-width:thin; scrollbar-color:rgba(127,255,225,.32) transparent; }
         .app-hero { padding: 1.3rem; border-radius: 23px; }
         .app-hero::after { display: none; }
         [data-testid="stMetric"] { min-height: 105px; border-radius: 18px; }
@@ -637,6 +724,7 @@ APP_CSS = r"""
     }
     @media (max-width: 640px) {
         .block-container { padding-left: .55rem; padding-right: .55rem; }
+        .st-key-top_navigation [role="radiogroup"] label { min-height:42px; padding:.52rem .68rem; }
         .app-hero { padding: 1.15rem; border-radius: 20px; }
         .app-title { font-size: clamp(1.85rem, 10vw, 2.55rem); line-height: 1.05; overflow-wrap: anywhere; }
         .app-subtitle { font-size: .9rem; }
@@ -660,9 +748,23 @@ def inject_theme() -> None:
 
 def render_sidebar_brand() -> None:
     st.sidebar.markdown(
-        f"""<div class="sidebar-brand"><div class="sidebar-mark">{inline_brand_icon('sidebar-brand-icon')}</div><div class="sidebar-title">E-Commerce Analytics</div><div class="sidebar-subtitle">Secure intelligence workspace</div><div class="sidebar-live"><span class="status-dot"></span> Analytics engine online</div></div>""",
+        f"""<div class="sidebar-brand"><a class="sidebar-home-link" href="?home=1" target="_self" aria-label="Go to Overview home" title="Go to Overview"><div class="sidebar-mark">{inline_brand_icon('sidebar-brand-icon')}</div><div><div class="sidebar-title">E-Commerce Analytics</div><div class="sidebar-subtitle">Secure intelligence workspace</div></div></a><div class="sidebar-live"><span class="status-dot"></span> Analytics engine online</div></div>""",
         unsafe_allow_html=True,
     )
+
+
+def render_top_navigation(pages: list[str], page_icons: dict[str, str]) -> str:
+    """Render the primary workspace navigation above the analytical canvas."""
+    with st.container(key="top_navigation"):
+        st.markdown('<span class="top-nav-label">Workspace</span>', unsafe_allow_html=True)
+        return st.radio(
+            "Workspace navigation",
+            pages,
+            key="current_section",
+            horizontal=True,
+            format_func=lambda item: f"{page_icons[item]}  {item}",
+            label_visibility="collapsed",
+        )
 
 
 def render_app_header(
