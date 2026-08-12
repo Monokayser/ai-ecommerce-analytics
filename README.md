@@ -6,6 +6,7 @@
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.61-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-0F766E.svg)](LICENSE)
 [![GitHub repository](https://img.shields.io/badge/GitHub-Public-22C55E?logo=github)](https://github.com/Monokayser/ai-ecommerce-analytics)
+[![Live application](https://img.shields.io/badge/Live%20App-Open-39E6BD?logo=streamlit&logoColor=white)](https://beah4wbufhqjqgzanubteb.streamlit.app/)
 
 A production-style Streamlit capstone that turns e-commerce files into secure, filter-aware dashboards, natural-language analytics, advanced analysis, and downloadable reports. It works immediately without an API key and upgrades to real-time Gemini planning when a free Gemini API key is configured.
 
@@ -120,6 +121,8 @@ python benchmarks/benchmark_runner.py --provider gemini --dataset data/raw/globa
 ```
 
 ## Deployment
+
+**Live public application:** [https://beah4wbufhqjqgzanubteb.streamlit.app/](https://beah4wbufhqjqgzanubteb.streamlit.app/)
 
 The repository is prepared for Streamlit Community Cloud (`app.py`, `runtime.txt`, `packages.txt`, and pinned requirements) and Docker. Follow [docs/deployment.md](docs/deployment.md) for GitHub, secrets, deployment, health checks, and troubleshooting.
 
