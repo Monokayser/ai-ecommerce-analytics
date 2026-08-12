@@ -9,6 +9,11 @@ logs/
 tmp/
 reports/generated/*
 !reports/generated/.gitkeep
+!reports/generated/AI_Ecommerce_Analytics_Academic_Report.docx
+!reports/generated/AI_Ecommerce_Analytics_Academic_Report.pdf
+!reports/generated/AI_Ecommerce_Analytics_Capstone_Presentation.pptx
+!reports/generated/assets/
+!reports/generated/assets/*.png
 data/raw/*
 !data/raw/.gitkeep
 data/processed/*

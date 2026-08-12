@@ -120,6 +120,31 @@ LLM output is treated as untrusted data. SQL is parsed and restricted; pandas fa
 
 AI coding assistance helped scaffold, implement, test, and document this project. Submitters must review and understand every component, disclose the actual assistance used, and replace placeholder dataset references with the approved course dataset source. Live benchmark evidence must be measured and must not be fabricated.
 
+## Academic submission artefacts
+
+The repository includes the professionally formatted capstone evidence pack:
+
+- [Academic report — Word](reports/generated/AI_Ecommerce_Analytics_Academic_Report.docx)
+- [Academic report — PDF](reports/generated/AI_Ecommerce_Analytics_Academic_Report.pdf) — verified at the assignment maximum of 20 pages
+- [Capstone presentation — PowerPoint](reports/generated/AI_Ecommerce_Analytics_Capstone_Presentation.pptx) — 18 slides for a 15-minute presentation plus Q&A
+
+The report uses measured local evidence only. It labels the 2,000-row seed-42 dataset as synthetic development data and leaves live-provider benchmark rows as `not_run` until an API key is configured. Replace the editable student-ID, team-member, final-date, and deployed-URL placeholders before submission.
+
+Rebuild the report figures and Word report with:
+
+```bash
+python scripts/generate_academic_assets.py
+python scripts/generate_academic_report.py
+```
+
+On Windows with Microsoft Word installed, export the matching PDF with:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/export_report_pdf.ps1 `
+  -InputDocx reports/generated/AI_Ecommerce_Analytics_Academic_Report.docx `
+  -OutputPdf reports/generated/AI_Ecommerce_Analytics_Academic_Report.pdf
+```
+
 ## License
 
 Released under the [MIT License](LICENSE).
