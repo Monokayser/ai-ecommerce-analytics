@@ -12,6 +12,15 @@ export async function openApplication(page: Page): Promise<AppContext> {
 }
 
 export async function selectSection(app: AppContext, accessibleName: RegExp): Promise<void> {
+  const mobileViewport = await app.locator("html").evaluate(() => window.innerWidth <= 900);
+  const sidebar = app.getByTestId("stSidebar");
+  if (mobileViewport && (await sidebar.getAttribute("aria-expanded")) === "true") {
+    const collapse = app.locator('button[data-testid="stSidebarCollapseButton"], [data-testid="stSidebarCollapseButton"] button');
+    if (await collapse.count()) {
+      await collapse.first().click({ force: true });
+      await expect(sidebar).toHaveAttribute("aria-expanded", "false");
+    }
+  }
   const navigation = app.getByRole("radio", { name: accessibleName });
   await navigation.locator("xpath=ancestor::label[1]").click();
   await expect(navigation).toBeChecked();
