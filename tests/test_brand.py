@@ -45,6 +45,7 @@ def test_navigation_uses_vector_icons_and_portable_typography():
 
     assert "--font-sans:" in theme_source
     assert "Segoe UI Variable Text" in theme_source
+    assert ".stApp p," in theme_source
     assert 'label:nth-of-type(6) p::before' in theme_source
     assert "mask-image:url" in theme_source
     assert "page_icons" not in app_source

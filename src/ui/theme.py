@@ -47,6 +47,16 @@ APP_CSS = r"""
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
     }
+    .stApp p,
+    .stApp li,
+    .stApp label,
+    .stApp small,
+    .stApp strong,
+    .stApp table,
+    .stApp [role="tab"],
+    .stApp [role="option"] {
+        font-family: var(--font-sans) !important;
+    }
     body { margin: 0; overflow-x: hidden; }
     ::selection { color: #031019; background: #7de5ff; }
     .stApp {
