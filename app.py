@@ -15,7 +15,7 @@ from src.llm.prompts import PromptRepository
 from src.ui import advanced_analytics, ai_assistant, exploration, overview, quality_performance, report_export
 from src.ui.brand import BRAND_ICON_PATH
 from src.ui.sidebar import apply_filters, render_filters
-from src.ui.theme import inject_theme, render_app_header, render_build_marker, render_filter_pills, render_sidebar_brand, render_top_navigation
+from src.ui.theme import inject_theme, render_agent_launcher, render_app_header, render_build_marker, render_filter_pills, render_sidebar_brand, render_top_navigation
 from src.utils.logging_config import configure_logging
 
 
@@ -46,6 +46,9 @@ def main() -> None:
     pages = ["Overview", "Data Exploration", "AI Assistant", "Advanced Analytics", "Data Quality & Performance", "Report Export"]
     if st.query_params.get("home") == "1":
         st.session_state["current_section"] = "Overview"
+        st.query_params.clear()
+    elif st.query_params.get("assistant") == "1":
+        st.session_state["current_section"] = "AI Assistant"
         st.query_params.clear()
     render_sidebar_brand()
 
@@ -80,6 +83,7 @@ def main() -> None:
     st.sidebar.caption(f"AI MODE\n\n{pipeline.mode_label} · {pipeline.model_label}")
 
     page = render_top_navigation(pages, page_icons)
+    render_agent_launcher(active=page == "AI Assistant")
     render_app_header(bundle, len(filtered), settings, pipeline, compact=page == "AI Assistant")
     if bundle.metadata.is_demo:
         demo_message = "DEMO DATA · Synthetic development records are active. Upload a real dataset with at least 5,000 rows for the official presentation."

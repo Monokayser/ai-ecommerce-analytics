@@ -248,6 +248,12 @@ def _render_response_toolbar(bundle: DatasetBundle, last: dict[str, Any] | None)
 def _render_last_result(last: dict[str, Any], pipeline: NLQueryPipeline) -> None:
     generated, result, narrative = last["generated"], last["result"], last["narrative"]
     st.markdown(
+        '<div class="agent-task-receipt" role="status" aria-label="Autonomous task completed">'
+        '<span><i>✓</i>Understood</span><span><i>✓</i>Planned</span><span><i>✓</i>Validated</span>'
+        '<span><i>✓</i>Analyzed</span><span><i>✓</i>Delivered</span></div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
         f'<div class="ai-chat-thread" role="log" aria-live="polite" aria-label="AI conversation"><article class="ai-chat-turn user" aria-label="Your question"><div class="ai-chat-bubble"><span class="ai-chat-label">You asked</span><p>{escape(str(last.get("question", "")))}</p></div><div class="ai-chat-avatar" aria-hidden="true">YOU</div></article></div>',
         unsafe_allow_html=True,
     )
@@ -266,7 +272,7 @@ def _render_last_result(last: dict[str, Any], pipeline: NLQueryPipeline) -> None
         if result.data.empty:
             render_empty("A chart needs at least one result row.")
         else:
-            auto = select_chart(result.data)
+            auto = last.get("chart_spec") or select_chart(result.data)
             choice = st.selectbox("Choose how to show this result", ["Recommended", "Bar chart", "Line chart", "Scatter plot", "Table only"], index=0)
             choice_map = {"Recommended": "Auto-selected", "Bar chart": "Bar", "Line chart": "Line", "Scatter plot": "Scatter", "Table only": "Table only"}
             spec = _override_spec(result.data, auto, choice_map[choice])
@@ -366,7 +372,8 @@ def _run_question(
                 analysis_mode=analysis_mode,
                 progress=report_progress,
             )
-            status.update(label="Verified response ready", state="complete", expanded=False)
+            chart_spec = select_chart(result.data) if not result.data.empty else ChartSpec(chart_type="table", title="No matching rows")
+            status.update(label="Autonomous task completed", state="complete", expanded=False)
         except AppError as exc:
             status.update(label="Analysis stopped safely", state="error")
             st.error(str(exc))
@@ -392,6 +399,7 @@ def _run_question(
         "generated": generated,
         "result": result,
         "narrative": narrative,
+        "chart_spec": chart_spec,
         "filters": filters,
         "pipeline_metrics": pipeline.last_run_metrics.copy(),
         "completed_at": datetime.now(timezone.utc),
@@ -419,18 +427,18 @@ def render(
     """Render a reference-inspired agent console with secure task execution."""
     st.markdown(
         """<section class="ai-workspace-intro">
-        <div class="section-kicker">Ask · act · validate</div>
-        <h2>AI Assistant</h2>
-        <p>Ask in everyday language or choose a guided task. Every answer is checked against the active dataset before you see it.</p>
+        <div class="section-kicker">Delegate · execute · verify</div>
+        <h2>Autonomous Analytics Agent</h2>
+        <p>Give the agent an outcome in everyday language. It will plan the analysis, validate the query, execute it, choose a visualization, explain the evidence, and prepare downloadable deliverables.</p>
         </section>""",
         unsafe_allow_html=True,
     )
 
     st.markdown(
         """<div class="ai-guide" aria-label="How to use the AI assistant">
-        <div><span>1</span><strong>Choose or ask</strong><small>Select a ready-made task or write your own question.</small></div>
-        <div><span>2</span><strong>Review the answer</strong><small>See the result, chart, data, and verification status.</small></div>
-        <div><span>3</span><strong>Save or export</strong><small>Keep the response or download a report for submission.</small></div>
+        <div><span>1</span><strong>Describe the outcome</strong><small>Choose a task or explain what you want the agent to investigate.</small></div>
+        <div><span>2</span><strong>The agent does the work</strong><small>It plans, validates, analyzes, visualizes, and writes the answer automatically.</small></div>
+        <div><span>3</span><strong>Receive deliverables</strong><small>Review evidence or download the result, chart, Word report, and PDF.</small></div>
         </div>""",
         unsafe_allow_html=True,
     )
@@ -487,7 +495,8 @@ def render(
                     unsafe_allow_html=True,
                 )
             st.divider()
-            st.markdown("#### 💬 Ask your own question")
+            st.markdown('<div id="ai-task-composer"></div>', unsafe_allow_html=True)
+            st.markdown("#### 💬 Give the agent a task")
             scope_text = f"Using {len(frame):,} rows" + (f" with {len(filters)} active filter(s)." if filters else " with no filters.")
             st.markdown(
                 f'<div class="ai-scope-note" role="status"><span>●</span><div>{escape(scope_text)} Current filters always take priority over earlier conversation.</div></div>',
@@ -495,15 +504,15 @@ def render(
             )
             with st.form("ai_task_form", border=False):
                 draft = st.text_area(
-                    "Your question",
+                    "Describe the task or outcome",
                     key="ai_query_draft",
                     height=118,
                     max_chars=settings.question_max_chars,
-                    placeholder="Example: Compare sales and profit by region and rank the results.",
-                    help="Ask about sales, profit, customers, products, countries, regions, discounts, or trends.",
+                    placeholder="Example: Compare sales and profit by region, rank the results, visualize them, and explain the key finding.",
+                    help="Delegate an analysis involving sales, profit, customers, products, geography, discounts, unusual records, or trends.",
                 )
-                st.markdown('<div class="composer-guidance">For the clearest answer, include a measure, dimension, comparison, or time period.</div>', unsafe_allow_html=True)
-                if st.form_submit_button("Analyze my question", type="primary", width="stretch"):
+                st.markdown('<div class="composer-guidance">No query writing is needed. State the goal; the agent will choose and execute the safe analytical steps.</div>', unsafe_allow_html=True)
+                if st.form_submit_button("Run task autonomously", type="primary", width="stretch"):
                     requested_question = draft
             st.divider()
             with st.expander("💾 Saved Responses", expanded=False):
@@ -525,7 +534,7 @@ def render(
                 analysis_mode,
             )
         elif requested_question is not None:
-            st.warning("Enter a natural-language task before running the agent.")
+            st.warning("Describe the outcome you want before running the agent.")
 
         last = st.session_state.get("last_ai", last_before_run)
         with st.container(border=True):
@@ -535,7 +544,7 @@ def render(
                 _render_last_result(last, active_pipeline)
             else:
                 st.markdown(
-                    '<div class="ai-response-empty" role="status"><span>✦</span><h3>What would you like to understand?</h3><p>Choose a guided task or ask your own business question. Your verified answer, chart, source data, and safety checks will appear here.</p><div class="empty-hint">Try: “Which category has the highest profit?”</div></div>',
+                    '<div class="ai-response-empty" role="status"><span>✦</span><h3>What should the agent accomplish?</h3><p>Delegate a guided task or describe the outcome. The agent will complete the safe analytical workflow and return a verified answer, chart, source data, and reports.</p><div class="empty-hint">Try: “Find the strongest profit driver, visualize it, and explain the evidence.”</div></div>',
                     unsafe_allow_html=True,
                 )
         if last:

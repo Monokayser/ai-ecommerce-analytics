@@ -398,7 +398,7 @@ APP_CSS = r"""
 
     /* AI question composer: strong contrast, clear boundary, and touch-safe action */
     .st-key-ai_task_form,
-    [data-testid="stForm"]:has(textarea[aria-label="Your question"]) {
+    [data-testid="stForm"]:has(textarea[aria-label="Describe the task or outcome"]) {
         padding: .78rem !important;
         border: 1px solid rgba(127,255,213,.2) !important;
         border-radius: 18px !important;
@@ -406,7 +406,7 @@ APP_CSS = r"""
         box-shadow: inset 0 1px 0 rgba(255,255,255,.045), 0 16px 34px rgba(0,0,0,.18);
     }
     .st-key-ai_task_form [data-testid="stTextAreaRootElement"],
-    [data-testid="stForm"]:has(textarea[aria-label="Your question"]) [data-testid="stTextAreaRootElement"] {
+    [data-testid="stForm"]:has(textarea[aria-label="Describe the task or outcome"]) [data-testid="stTextAreaRootElement"] {
         overflow: hidden;
         border: 1px solid rgba(127,255,213,.25) !important;
         border-radius: 14px !important;
@@ -415,12 +415,12 @@ APP_CSS = r"""
         transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
     }
     .st-key-ai_task_form [data-testid="stTextAreaRootElement"]:focus-within,
-    [data-testid="stForm"]:has(textarea[aria-label="Your question"]) [data-testid="stTextAreaRootElement"]:focus-within {
+    [data-testid="stForm"]:has(textarea[aria-label="Describe the task or outcome"]) [data-testid="stTextAreaRootElement"]:focus-within {
         border-color: rgba(127,255,225,.72) !important;
         background:#041b14 !important;
         box-shadow: 0 0 0 3px rgba(57,230,189,.11), 0 0 24px rgba(57,230,189,.09);
     }
-    textarea[aria-label="Your question"] {
+    textarea[aria-label="Describe the task or outcome"] {
         min-height: 106px !important;
         padding: .9rem !important;
         color:#f2fff9 !important;
@@ -443,6 +443,88 @@ APP_CSS = r"""
     }
     .ai-scope-note span { color:var(--teal); font-size:.82rem; filter:drop-shadow(0 0 6px rgba(57,230,189,.42)); }
     .composer-guidance { margin:.5rem .15rem .15rem; color:#a6bfb6; font-size:.72rem; line-height:1.45; }
+
+    /* Persistent AI task launcher */
+    .agent-launcher {
+        position:fixed;
+        z-index:999990;
+        right:1.2rem;
+        bottom:1.15rem;
+        display:flex;
+        align-items:center;
+        gap:.65rem;
+        min-width:172px;
+        min-height:58px;
+        padding:.55rem .78rem .55rem .58rem;
+        border:1px solid rgba(139,255,222,.52);
+        border-radius:19px;
+        color:#effff9 !important;
+        text-decoration:none !important;
+        background:linear-gradient(135deg,rgba(5,52,38,.97),rgba(3,28,21,.98));
+        box-shadow:0 20px 55px rgba(0,0,0,.48),0 0 30px rgba(57,230,189,.16),inset 0 1px 0 rgba(255,255,255,.11);
+        backdrop-filter:blur(16px);
+        -webkit-backdrop-filter:blur(16px);
+        transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease,background .22s ease;
+    }
+    .agent-launcher::before {
+        content:"";
+        position:absolute;
+        inset:-5px;
+        z-index:-1;
+        border:1px solid rgba(90,255,207,.18);
+        border-radius:23px;
+        opacity:.7;
+        animation:agentBeacon 2.6s ease-out infinite;
+    }
+    .agent-launcher-icon {
+        position:relative;
+        display:grid;
+        place-items:center;
+        flex:0 0 auto;
+        width:42px;
+        height:42px;
+        border-radius:14px;
+        color:#032019;
+        background:linear-gradient(135deg,#62efc3,#9affdf);
+        box-shadow:0 8px 22px rgba(34,209,157,.25);
+    }
+    .agent-launcher-icon svg { width:25px; height:25px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .agent-launcher-copy { display:flex; flex-direction:column; gap:.04rem; line-height:1.18; }
+    .agent-launcher-copy strong { color:#f5fffb; font-size:.84rem; font-weight:850; }
+    .agent-launcher-copy small { color:#a7c8bc; font-size:.67rem; }
+    .agent-launcher-status {
+        position:absolute;
+        top:6px;
+        left:43px;
+        width:8px;
+        height:8px;
+        border:2px solid #073023;
+        border-radius:50%;
+        background:#7fffe1;
+        box-shadow:0 0 10px rgba(127,255,225,.72);
+    }
+    .agent-launcher:hover {
+        transform:translateY(-4px) scale(1.015);
+        border-color:rgba(167,255,231,.82);
+        background:linear-gradient(135deg,rgba(8,72,52,.98),rgba(4,38,28,.99));
+        box-shadow:0 25px 68px rgba(0,0,0,.55),0 0 40px rgba(57,230,189,.24),inset 0 1px 0 rgba(255,255,255,.15);
+    }
+    .agent-launcher:focus-visible { outline:3px solid #9affdf; outline-offset:4px; }
+    .agent-launcher.active { border-color:rgba(127,255,225,.78); }
+    @keyframes agentBeacon { 0%{transform:scale(.96);opacity:.65} 72%,100%{transform:scale(1.12);opacity:0} }
+
+    .agent-task-receipt {
+        display:grid;
+        grid-template-columns:repeat(5,minmax(0,1fr));
+        gap:.42rem;
+        margin:.45rem 0 .8rem;
+        padding:.55rem;
+        border:1px solid rgba(127,255,213,.17);
+        border-radius:17px;
+        background:rgba(3,27,20,.7);
+    }
+    .agent-task-receipt span { display:flex; align-items:center; gap:.34rem; color:#b9d2c9; font-size:.67rem; font-weight:720; }
+    .agent-task-receipt i { display:grid; place-items:center; width:1.15rem; height:1.15rem; border-radius:50%; color:#032019; background:#7fffe1; font-style:normal; font-size:.62rem; font-weight:900; }
 
     /* Aurora command hero inspired by the supplied Aether reference */
     .app-hero {
@@ -1168,6 +1250,7 @@ APP_CSS = r"""
         .viz-ribbon { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .st-key-animation_workspace { padding:.58rem; border-radius:18px; }
         .st-key-animation_workspace [data-testid="stPlotlyChart"] { min-height:600px; }
+        .agent-task-receipt { grid-template-columns:repeat(3,minmax(0,1fr)); }
     }
     @media (max-width: 640px) {
         .block-container { padding-left: .55rem; padding-right: .55rem; }
@@ -1194,6 +1277,10 @@ APP_CSS = r"""
         .animation-header strong { font-size:.92rem; }
         .animation-header small { font-size:.7rem; }
         .st-key-animation_workspace [data-testid="stPlotlyChart"] { min-height:570px; }
+        .agent-launcher { right:.72rem; bottom:.72rem; min-width:58px; width:58px; height:58px; padding:.48rem; border-radius:18px; }
+        .agent-launcher-copy { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+        .agent-launcher-status { left:42px; top:5px; }
+        .agent-task-receipt { grid-template-columns:repeat(2,minmax(0,1fr)); }
         .kpi-card { min-height:116px; padding:.9rem; }
         .kpi-value { font-size:clamp(1.55rem,8vw,2rem); }
     }
@@ -1204,6 +1291,25 @@ APP_CSS = r"""
 def inject_theme() -> None:
     st.markdown(APP_CSS, unsafe_allow_html=True)
     st.markdown('<a class="skip-link" href="#main-content">Skip to main content</a>', unsafe_allow_html=True)
+
+
+def render_agent_launcher(*, active: bool = False) -> None:
+    """Render an always-visible, keyboard-accessible shortcut to the AI agent."""
+    href = "#ai-task-composer" if active else "?assistant=1"
+    label = "Jump to the AI task composer" if active else "Open the AI analytics agent"
+    state_class = " active" if active else ""
+    icon = (
+        '<svg viewBox="0 0 24 24" aria-hidden="true">'
+        '<path d="M5 17.5 3.5 21l4.2-1.6A9 9 0 1 0 5 17.5Z"/>'
+        '<path d="M8 11h.01M12 11h.01M16 11h.01"/>'
+        "</svg>"
+    )
+    st.markdown(
+        f'<a class="agent-launcher{state_class}" href="{href}" target="_self" aria-label="{label}" title="{label}">'
+        f'<span class="agent-launcher-icon">{icon}</span><span class="agent-launcher-status" aria-hidden="true"></span>'
+        '<span class="agent-launcher-copy"><strong>Ask the AI agent</strong><small>Give me an analytics task</small></span></a>',
+        unsafe_allow_html=True,
+    )
 
 
 def render_sidebar_brand() -> None:

@@ -32,6 +32,25 @@ test.describe("local production interface", () => {
     }
   });
 
+  test("persistent chat launcher opens the autonomous agent", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "The launcher routing regression runs once; responsive navigation covers every engine.");
+    await page.setViewportSize({ width: 390, height: 844 });
+    const app = await openApplication(page);
+    const launcher = app.locator('a.agent-launcher[aria-label="Open the AI analytics agent"]');
+    await expect(launcher).toBeVisible();
+    const bounds = await launcher.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.width).toBeGreaterThanOrEqual(58);
+    expect(bounds!.height).toBeGreaterThanOrEqual(58);
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(390);
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(844);
+
+    await launcher.click();
+    await expect(app.getByRole("heading", { name: "Autonomous Analytics Agent" })).toBeVisible({ timeout: 45_000 });
+    await expect(app.getByRole("textbox", { name: "Describe the task or outcome" })).toBeVisible();
+    await expect(app.locator('a.agent-launcher[aria-label="Jump to the AI task composer"]')).toBeVisible();
+  });
+
   test("chart canvas resizes with the Streamlit sidebar", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "chromium", "The layout regression runs once; engines retain functional chart coverage.");
     await page.setViewportSize({ width: 1280, height: 800 });
@@ -94,13 +113,13 @@ test.describe("local production interface", () => {
     page.on("console", (message) => message.type() === "error" && browserErrors.push(message.text()));
     page.on("pageerror", (error) => browserErrors.push(error.message));
     const app = await openApplication(page);
-    await expect(app.locator('[data-app-version="v1.12.1"]')).toBeVisible();
+    await expect(app.locator('[data-app-version="v1.12.2"]')).toBeVisible();
     await expectBalancedNavigation(app);
     await expectNoHorizontalOverflow(app);
     for (const [name, heading] of [
       [/Overview/, "Overview"],
       [/Explore data/, "Data Exploration"],
-      [/Ask AI/, "AI Assistant"],
+      [/Ask AI/, "Autonomous Analytics Agent"],
       [/Advanced/, "Advanced Analytics"],
       [/Quality & speed/, "Data Quality and Performance"],
       [/Export reports/, "Report Export"],
@@ -136,8 +155,8 @@ test.describe("local production interface", () => {
     const app = await openApplication(page);
     await selectSection(app, /Ask AI/);
 
-    const question = app.getByRole("textbox", { name: "Your question" });
-    const submit = app.getByRole("button", { name: "Analyze my question" });
+    const question = app.getByRole("textbox", { name: "Describe the task or outcome" });
+    const submit = app.getByRole("button", { name: "Run task autonomously" });
     const buttonPresentation = await submit.evaluate((element) => {
       const button = element as HTMLElement;
       const label = button.querySelector("p") || button;
@@ -161,6 +180,7 @@ test.describe("local production interface", () => {
     await submit.click();
     await expect(app.locator('article[aria-label="Your question"]')).toContainText(prompt, { timeout: 45_000 });
     await expect(app.locator('article[aria-label="Verified assistant answer"]')).toBeVisible();
+    await expect(app.locator('.agent-task-receipt')).toContainText("Delivered");
     await expect(app.getByText("Query validated", { exact: false })).toBeVisible();
     await expect(app.getByRole("button", { name: "Download Word" })).toBeVisible();
     await expect(app.getByRole("button", { name: "Download PDF" })).toBeVisible();
@@ -169,7 +189,7 @@ test.describe("local production interface", () => {
     await expect(app.getByText(/Verified response saved/i)).toBeVisible();
     await app.getByText(/Agent settings and privacy/i).click();
     await app.getByRole("button", { name: /Reset agent/i }).click();
-    await expect(app.getByText(/What would you like to understand/i)).toBeVisible();
+    await expect(app.getByText(/What should the agent accomplish/i)).toBeVisible();
   });
 
   test("has no serious or critical automated accessibility violations", async ({ page }) => {

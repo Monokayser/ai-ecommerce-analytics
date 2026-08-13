@@ -32,7 +32,7 @@ def test_app_starts_without_api_key(monkeypatch):
         if section == "AI Assistant":
             labels = [button.label for button in test.button]
             assert "💡 Generate Commerce Insights" in labels
-            assert "Analyze my question" in labels
+            assert "Run task autonomously" in labels
             assert any(area.key == "ai_query_draft" for area in test.text_area)
 
 
@@ -53,11 +53,11 @@ def test_ai_composer_validates_an_empty_question(monkeypatch):
     app = Path(__file__).resolve().parents[1] / "app.py"
     test = _open_ai_assistant(AppTest.from_file(str(app), default_timeout=30).run())
 
-    _button(test, "Analyze my question").click()
+    _button(test, "Run task autonomously").click()
     test.run()
 
     assert not test.exception
-    assert any("Enter a natural-language task" in warning.value for warning in test.warning)
+    assert any("Describe the outcome you want" in warning.value for warning in test.warning)
 
 
 def test_ai_composer_runs_saves_and_resets_a_verified_local_answer(monkeypatch):
@@ -67,7 +67,7 @@ def test_ai_composer_runs_saves_and_resets_a_verified_local_answer(monkeypatch):
     question = "Compare total sales by region from highest to lowest."
 
     next(area for area in test.text_area if area.key == "ai_query_draft").set_value(question)
-    _button(test, "Analyze my question").click()
+    _button(test, "Run task autonomously").click()
     test.run()
 
     assert not test.exception
@@ -75,6 +75,7 @@ def test_ai_composer_runs_saves_and_resets_a_verified_local_answer(monkeypatch):
     assert len(test.session_state["conversation"]) == 1
     html = " ".join(item.value for item in test.markdown)
     assert "Verified assistant answer" in html
+    assert "Autonomous task completed" in html
     assert "You asked" in html
     assert question in html
 
@@ -87,3 +88,22 @@ def test_ai_composer_runs_saves_and_resets_a_verified_local_answer(monkeypatch):
     assert "last_ai" not in test.session_state
     assert "conversation" not in test.session_state
     assert "saved_ai_responses" not in test.session_state
+
+
+def test_global_agent_launcher_routes_to_the_task_workspace(monkeypatch):
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    app = Path(__file__).resolve().parents[1] / "app.py"
+    test = AppTest.from_file(str(app), default_timeout=30).run()
+
+    html = " ".join(item.value for item in test.markdown)
+    assert 'class="agent-launcher"' in html
+    assert 'href="?assistant=1"' in html
+    assert 'aria-label="Open the AI analytics agent"' in html
+
+    test.query_params["assistant"] = "1"
+    test.run()
+    navigation = next(radio for radio in test.radio if radio.key == "current_section")
+    assert navigation.value == "AI Assistant"
+    html = " ".join(item.value for item in test.markdown)
+    assert "Autonomous Analytics Agent" in html
+    assert 'aria-label="Jump to the AI task composer"' in html
