@@ -93,8 +93,17 @@ test.describe("local production interface", () => {
   test("filters reset and AI fallback remain usable", async ({ page }) => {
     const app = await openApplication(page);
     await expect(app.getByText(/Local analytics/i).first()).toBeVisible();
+    const expandSidebar = app.getByTestId("stExpandSidebarButton");
+    if (await expandSidebar.isVisible()) {
+      await expandSidebar.click();
+      await expect(app.getByRole("button", { name: /Reset filters/i })).toBeVisible();
+    }
     await expect(app.getByRole("button", { name: /Reset filters/i })).toBeEnabled();
     await app.getByRole("button", { name: /Reset filters/i }).click();
+    if ((await app.getByTestId("stSidebar").getAttribute("aria-expanded")) === "true") {
+      await app.locator('button[data-testid="stSidebarCollapseButton"], [data-testid="stSidebarCollapseButton"] button').click({ force: true });
+      await expect(expandSidebar).toBeVisible();
+    }
     await selectSection(app, /Ask AI/);
     await expect(app.getByRole("button", { name: /Generate Commerce Insights/i })).toBeEnabled();
     await app.getByText(/Agent settings and privacy/i).click();
