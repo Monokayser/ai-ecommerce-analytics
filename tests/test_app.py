@@ -4,6 +4,8 @@ from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
 
+from config.version import APP_RELEASE
+
 
 def test_app_starts_without_api_key(monkeypatch):
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
@@ -22,3 +24,15 @@ def test_app_starts_without_api_key(monkeypatch):
             assert "💡 Generate Commerce Insights" in labels
             assert "Analyze my question" in labels
             assert any(area.key == "ai_query_draft" for area in test.text_area)
+
+
+def test_app_exposes_release_marker_and_navigation_reset(monkeypatch):
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    app = Path(__file__).resolve().parents[1] / "app.py"
+    test = AppTest.from_file(str(app), default_timeout=30).run()
+    navigation = next(radio for radio in test.radio if radio.key == "current_section")
+    assert [label.split("  ", 1)[-1] for label in navigation.options] == [
+        "Overview", "Explore data", "Ask AI", "Advanced", "Quality & speed", "Export reports"
+    ]
+    html = " ".join(item.value for item in test.markdown)
+    assert f"data-app-version=\"{APP_RELEASE}\"" in html

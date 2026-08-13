@@ -45,5 +45,5 @@ def render(bundle: DatasetBundle) -> None:
         return
     st.success("Report package ready · validated query, filters, findings, evidence table, timing, and limitations included")
     first, second = st.columns(2)
-    first.download_button("Download PDF report", pdf, "ai_analysis_report.pdf", "application/pdf", use_container_width=True)
-    second.download_button("Download Word report", word, "ai_analysis_report.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", use_container_width=True)
+    first.download_button("Download PDF report", pdf, "ai_analysis_report.pdf", "application/pdf", width="stretch")
+    second.download_button("Download Word report", word, "ai_analysis_report.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", width="stretch")

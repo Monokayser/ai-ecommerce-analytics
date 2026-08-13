@@ -28,8 +28,8 @@ def render(bundle: DatasetBundle, frame: pd.DataFrame, settings: Settings) -> No
     else:
         st.warning("Development mode: upload a non-demo dataset with at least 5,000 rows for official-demo readiness.")
     tabs = st.tabs(["◇ Missing Data", "✓ Cleaning Log", "▦ Schema", "◉ Validation", "⌁ Performance"])
-    with tabs[0]: st.dataframe(pd.DataFrame(quality["missing"]), use_container_width=True)
-    with tabs[1]: st.dataframe(pd.DataFrame([item.model_dump() for item in bundle.cleaning_log]), use_container_width=True)
+    with tabs[0]: st.dataframe(pd.DataFrame(quality["missing"]), width="stretch")
+    with tabs[1]: st.dataframe(pd.DataFrame([item.model_dump() for item in bundle.cleaning_log]), width="stretch")
     with tabs[2]:
         schema_rows = []
         for item in bundle.schema_profile.columns:
@@ -38,7 +38,7 @@ def render(bundle: DatasetBundle, frame: pd.DataFrame, settings: Settings) -> No
             row["minimum"] = "" if row["minimum"] is None else str(row["minimum"])
             row["maximum"] = "" if row["maximum"] is None else str(row["maximum"])
             schema_rows.append(row)
-        st.dataframe(pd.DataFrame(schema_rows), use_container_width=True)
+        st.dataframe(pd.DataFrame(schema_rows), width="stretch")
     with tabs[3]: st.json({key: value for key, value in quality.items() if key not in {"missing", "numeric_statistics", "categorical_frequencies"}})
     with tabs[4]:
         st.write({"load_time_ms": bundle.metadata.load_time_ms, "schema_time_ms": bundle.schema_profile.generation_time_ms, "memory_mb": bundle.metadata.memory_bytes / 1024**2})

@@ -253,6 +253,16 @@ APP_CSS = r"""
         box-shadow: 0 16px 36px rgba(31, 195, 202, .3), inset 0 1px 0 rgba(255,255,255,.55) !important;
     }
     .stButton > button:focus-visible, .stDownloadButton > button:focus-visible { outline: 3px solid rgba(98, 220, 255, .48) !important; outline-offset: 2px; }
+    .stButton > button:disabled, .stDownloadButton > button:disabled,
+    [data-testid^="stBaseButton"]:disabled {
+        color: #91a69f !important;
+        border-color: rgba(145,166,159,.16) !important;
+        background: rgba(24,40,35,.68) !important;
+        box-shadow: none !important;
+        cursor: not-allowed !important;
+        opacity: .72 !important;
+        transform: none !important;
+    }
 
     /* Metrics and data surfaces */
     [data-testid="stMetric"] {
@@ -736,6 +746,25 @@ APP_CSS = r"""
         font-weight: 700;
     }
     .scope-note { display:flex; align-items:center; gap:.5rem; color:#8098ae; font-size:.8rem; }
+    .build-marker {
+        display:flex;
+        justify-content:flex-end;
+        align-items:center;
+        gap:.45rem;
+        margin:2.2rem 0 -2.4rem;
+        padding:.55rem .15rem;
+        color:#718b82;
+        font-size:.68rem;
+        letter-spacing:.035em;
+    }
+    .build-marker::before {
+        content:"";
+        width:.38rem;
+        height:.38rem;
+        border-radius:50%;
+        background:var(--teal);
+        box-shadow:0 0 10px rgba(57,230,189,.42);
+    }
     .mode-card {
         display: grid;
         grid-template-columns: auto 1fr;
@@ -1070,6 +1099,15 @@ def render_filter_pills(filters: dict[str, Any]) -> None:
         display = ", ".join(map(str, value)) if isinstance(value, list) else " → ".join(map(str, value)) if isinstance(value, tuple) else str(value)
         chips.append(f'<span class="filter-pill">{escape(key)}: {escape(display)}</span>')
     st.markdown('<div class="filter-pills" aria-label="Active filters" aria-live="polite">' + "".join(chips) + "</div>", unsafe_allow_html=True)
+
+
+def render_build_marker(release: str) -> None:
+    """Expose a subtle, machine-verifiable production release marker."""
+    safe_release = escape(release)
+    st.markdown(
+        f'<footer class="build-marker" data-app-version="{safe_release}" aria-label="Application build {safe_release}">Build {safe_release} · Public analytics workspace</footer>',
+        unsafe_allow_html=True,
+    )
 
 
 def render_section_intro(kicker: str, title: str, description: str) -> None:

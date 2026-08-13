@@ -20,31 +20,31 @@ def render(frame: pd.DataFrame, filters: dict) -> None:
     st.caption("Switch views instantly; hover, zoom, drill, animate, switch analytical modes, and download from each chart toolbar.")
     tabs = st.tabs(["⌁ Trend", "◎ Geography", "▦ Correlation", "◇ Distribution", "◫ Hierarchy", "▥ Grouped Bar", "↗ Relationship", "◈ 3D Space", "▶ Animation"])
     with tabs[0]:
-        if {"Order Date", "Sales"}.issubset(frame): st.plotly_chart(time_series_chart(frame, context), use_container_width=True)
+        if {"Order Date", "Sales"}.issubset(frame): st.plotly_chart(time_series_chart(frame, context), width="stretch")
         else: render_empty("Order Date and Sales are required for this chart.")
     with tabs[1]:
-        if ("Country" in frame or "Region" in frame) and ("Sales" in frame or "Profit" in frame): st.plotly_chart(geographic_chart(frame, context), use_container_width=True)
+        if ("Country" in frame or "Region" in frame) and ("Sales" in frame or "Profit" in frame): st.plotly_chart(geographic_chart(frame, context), width="stretch")
         else: render_empty("A geographic field and numeric measure are required.")
     with tabs[2]:
-        if len(frame.select_dtypes(include="number").columns) >= 2: st.plotly_chart(correlation_chart(frame, context), use_container_width=True)
+        if len(frame.select_dtypes(include="number").columns) >= 2: st.plotly_chart(correlation_chart(frame, context), width="stretch")
         else: render_empty("At least two numeric columns are required.")
     with tabs[3]:
         metrics = [column for column in ("Sales", "Profit", "Quantity", "Discount") if column in frame]
         if metrics:
             metric = st.selectbox("Distribution metric", metrics)
-            st.plotly_chart(distribution_chart(frame, metric, context), use_container_width=True)
+            st.plotly_chart(distribution_chart(frame, metric, context), width="stretch")
         else: render_empty("No supported numeric measure is available.")
     with tabs[4]:
         if "Sales" in frame and any(column in frame for column in ("Region", "Product Category", "Sub-Category")):
             hierarchy_mode = st.radio("Hierarchy mode", ["Sunburst", "Treemap"], horizontal=True)
             st.caption("Click a segment to drill into the hierarchy; click the center or breadcrumb to move back up.")
-            st.plotly_chart(hierarchy_chart(frame, context, hierarchy_mode.lower()), use_container_width=True)
+            st.plotly_chart(hierarchy_chart(frame, context, hierarchy_mode.lower()), width="stretch")
         else: render_empty("Hierarchy fields are unavailable.")
     with tabs[5]:
         dimensions = [column for column in ("Product Category", "Customer Segment", "Region") if column in frame]
         if dimensions:
             dimension = st.selectbox("Bar dimension", dimensions)
-            st.plotly_chart(grouped_bar_chart(frame, dimension, context), use_container_width=True)
+            st.plotly_chart(grouped_bar_chart(frame, dimension, context), width="stretch")
         else: render_empty("No comparison dimension is available.")
     with tabs[6]:
         numeric = [column for column in ("Sales", "Profit", "Discount", "Quantity") if column in frame]
@@ -58,7 +58,7 @@ def render(frame: pd.DataFrame, filters: dict) -> None:
                 render_empty("Choose two different measures to reveal a relationship.")
             else:
                 st.caption("Point size represents Sales when available; color represents a business dimension. Zoom or box-select to inspect clusters.")
-                st.plotly_chart(scatter_chart(frame, x_metric, y_metric, context), use_container_width=True)
+                st.plotly_chart(scatter_chart(frame, x_metric, y_metric, context), width="stretch")
         else: render_empty("At least two numeric measures are required.")
     with tabs[7]:
         supported_3d = [column for column in ("Sales", "Profit", "Discount", "Quantity") if column in frame]
@@ -71,7 +71,7 @@ def render(frame: pd.DataFrame, filters: dict) -> None:
             )
             st.caption("Drag to rotate · scroll to zoom · double-click to reset the camera")
             if mode == "Profit terrain" and {"Sales", "Profit", "Discount"}.issubset(frame.columns):
-                st.plotly_chart(profit_terrain_chart(frame, context), use_container_width=True)
+                st.plotly_chart(profit_terrain_chart(frame, context), width="stretch")
                 st.caption("Height represents verified mean Profit within each Sales and Discount band; no model prediction is used.")
             else:
                 axis_controls = st.columns(4)
@@ -90,7 +90,7 @@ def render(frame: pd.DataFrame, filters: dict) -> None:
                             (x_axis, y_axis, z_axis),
                             None if color_axis == "Automatic" else color_axis,
                         ),
-                        use_container_width=True,
+                        width="stretch",
                     )
         else: render_empty("Three numeric measures are required for the 3D insight space.")
     with tabs[8]:
@@ -98,5 +98,5 @@ def render(frame: pd.DataFrame, filters: dict) -> None:
         if "Order Date" in frame and animation_metrics and any(column in frame for column in ("Product Category", "Region")):
             animation_metric = st.selectbox("Animated measure", animation_metrics)
             st.caption("Press Play or drag the year slider. Axis ranges stay fixed to prevent misleading visual jumps.")
-            st.plotly_chart(animated_chart(frame, context, animation_metric), use_container_width=True)
+            st.plotly_chart(animated_chart(frame, context, animation_metric), width="stretch")
         else: render_empty("Order Date, a supported numeric measure, and a category are required.")

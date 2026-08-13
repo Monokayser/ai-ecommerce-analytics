@@ -9,6 +9,7 @@ The project is ready for a public GitHub-backed deployment. Streamlit Community 
 3. Select the repository, branch `main`, and entry point `app.py`.
 4. Open Advanced settings, choose Python 3.11, and add secrets as shown below.
 5. Deploy, wait for the health check, and test dataset loading, one AI question, filters, and one chart export.
+6. Reboot the app after changing secrets, then verify the footer shows the expected release and the AI mode reports Gemini.
 
 ### Secrets
 
@@ -22,6 +23,8 @@ GEMINI_MAX_OUTPUT_TOKENS = "4096"
 LLM_QUERY_REASONING_EFFORT = "medium"
 LLM_NARRATIVE_REASONING_EFFORT = "low"
 LLM_RESPONSE_VERBOSITY = "low"
+LLM_TIMEOUT_SECONDS = "45"
+LLM_MAX_RETRIES = "1"
 ```
 
 The app also works without these entries using the deterministic local planner. `packages.txt` installs Chromium for Kaleido; `runtime.txt` selects Python 3.11.
@@ -34,6 +37,9 @@ The app also works without these entries using the deterministic local planner. 
 - A question returns a validated query and evidence table.
 - Upload rejection, filter reset, and empty states are clear.
 - PNG/SVG export capability is reported; if Chromium is unavailable, the UI gives an actionable message.
+- The footer contains `data-app-version="v1.12.0"` and no major browser-console errors occur.
+
+The production app is intentionally public and has no viewer sign-in. Authentication testing is therefore not applicable to this approved release; do not upload private business data during public QA.
 
 ## Docker
 
@@ -49,10 +55,20 @@ For Ollama, use `docker compose up --build`, pull the configured model into the 
 1. Run compilation, the full test suite, dependency validation, and the secret scan.
 2. Confirm `.env`, `.streamlit/secrets.toml`, private datasets, generated reports, caches, and the virtual environment are ignored.
 3. Review `git diff --cached` and repository file sizes.
-4. Push `main` and confirm GitHub Actions succeeds.
-5. Record measured benchmark results only after configuring a real provider key and approved dataset.
+4. Open a pull request and wait for the required `quality`, browser, and `container` checks.
+5. Merge to `main`; Streamlit Community Cloud rebuilds automatically.
+6. Confirm `production-smoke` finds the expected version in the live DOM.
+7. Record measured benchmark results only after configuring a real provider key and approved dataset.
 
-The reproducible GitHub Actions definition is stored at `docs/github-actions-ci.yml`. Copy it to `.github/workflows/ci.yml` after authorizing GitHub's `workflow` OAuth scope; GitHub blocks workflow uploads from tokens that have only repository scope.
+The active workflow is `.github/workflows/ci.yml`. It runs compile/tests/coverage, dependency and security checks, exports, measured performance, seven browser/device projects, a non-root Docker health test, and the post-deploy smoke check. A scheduled run repeats production smoke verification every six hours.
+
+### Recovery and rollback
+
+1. Inspect the failed GitHub job artifact and Streamlit Community Cloud logs; do not copy secrets or full prompts into an issue.
+2. Reboot the Streamlit app once to rule out a transient runtime failure.
+3. If the release is faulty, create a revert commit for the responsible change and merge it through the required checks. Do not force-push `main`.
+4. Wait for Streamlit to redeploy, then rerun `production-smoke` with the last verified version.
+5. Rotate the Gemini key immediately if logs or a commit ever exposed it.
 
 ## Troubleshooting
 

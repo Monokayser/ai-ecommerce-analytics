@@ -38,7 +38,7 @@ def render_filters(frame: pd.DataFrame) -> dict[str, Any]:
                     if chosen != (minimum, maximum):
                         active[column] = chosen
     st.sidebar.caption(f"{len(active)} filter groups active" if active else "All data is currently in scope")
-    if st.sidebar.button("Reset filters", use_container_width=True):
+    if st.sidebar.button("Reset filters", width="stretch"):
         for key in list(st.session_state):
             if key.startswith("filter_"):
                 del st.session_state[key]

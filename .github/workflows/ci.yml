@@ -1,0 +1,203 @@
+name: Production CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'schedule' }}
+
+env:
+  PYTHON_VERSION: "3.11"
+  E2E_EXPECTED_VERSION: "v1.12.0"
+
+jobs:
+  quality:
+    name: quality
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Install pinned dependencies
+        run: python -m pip install --requirement requirements-dev.txt
+      - name: Compile application
+        run: python -m compileall -q app.py config src tests benchmarks scripts
+      - name: Test with coverage floor
+        run: python -m pytest -q --cov=src --cov=config --cov-report=term-missing --cov-report=xml:artifacts/coverage/coverage.xml --cov-fail-under=85
+      - name: Validate dependencies
+        run: |
+          python -m pip check
+          python -m pip_audit --requirement requirements.txt
+      - name: Static security analysis
+        run: python -m bandit -q -r app.py config src benchmarks scripts
+      - name: Repository and link checks
+        run: python scripts/qa_repository.py
+      - name: Export smoke test
+        run: python scripts/qa_exports.py
+      - name: Measured performance evidence
+        run: python scripts/run_performance_baseline.py --runs 15 --output artifacts/performance/ci-baseline.json
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload quality evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: quality-evidence
+          path: |
+            artifacts/
+            tmp/qa/
+          if-no-files-found: warn
+          retention-days: 14
+
+  browser-e2e:
+    name: browser-e2e (${{ matrix.project }})
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: chromium
+            browser: chromium
+          - project: chrome
+            browser: chrome
+          - project: edge
+            browser: msedge
+          - project: firefox
+            browser: firefox
+          - project: webkit
+            browser: webkit
+          - project: mobile-chrome
+            browser: chromium
+          - project: mobile-safari
+            browser: webkit
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install application and QA dependencies
+        run: |
+          python -m pip install --requirement requirements.txt
+          npm ci --ignore-scripts
+          npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Start Streamlit
+        run: |
+          mkdir -p artifacts/e2e
+          nohup python -m streamlit run app.py --server.headless=true --server.address=127.0.0.1 --server.port=8501 > artifacts/e2e/streamlit.log 2>&1 &
+          for attempt in {1..30}; do
+            curl --fail --silent http://127.0.0.1:8501/_stcore/health && exit 0
+            sleep 2
+          done
+          cat artifacts/e2e/streamlit.log
+          exit 1
+      - name: Run browser and accessibility QA
+        env:
+          E2E_BASE_URL: http://127.0.0.1:8501
+        run: npx playwright test tests/e2e/app.spec.ts --project=${{ matrix.project }}
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: browser-evidence-${{ matrix.project }}
+          path: |
+            artifacts/e2e/
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 14
+
+  container:
+    name: container
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build hardened image
+        run: docker build --tag ai-ecommerce-analytics:${{ github.sha }} .
+      - name: Verify non-root runtime and health
+        run: |
+          test "$(docker run --rm --entrypoint id ai-ecommerce-analytics:${{ github.sha }} -u)" != "0"
+          docker run --detach --name analytics-app --publish 8501:8501 --read-only --tmpfs /tmp:rw,noexec,nosuid,size=256m ai-ecommerce-analytics:${{ github.sha }}
+          for attempt in {1..30}; do
+            curl --fail --silent http://127.0.0.1:8501/_stcore/health && exit 0
+            sleep 3
+          done
+          docker logs analytics-app
+          exit 1
+      - name: Collect container logs
+        if: always()
+        run: |
+          mkdir -p artifacts/container
+          docker logs analytics-app > artifacts/container/container.log 2>&1 || true
+          docker inspect analytics-app > artifacts/container/inspect.json 2>&1 || true
+          docker rm --force analytics-app >/dev/null 2>&1 || true
+      - name: Upload container evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: container-evidence
+          path: artifacts/container/
+          if-no-files-found: warn
+          retention-days: 14
+
+  production-smoke:
+    name: production-smoke
+    if: >-
+      ${{ always() &&
+          (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')) &&
+          (github.event_name == 'schedule' || (needs.quality.result == 'success' && needs.browser-e2e.result == 'success' && needs.container.result == 'success')) }}
+    needs: [quality, browser-e2e, container]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install production-smoke browser
+        run: |
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium
+      - name: Poll deployed DOM for expected release
+        env:
+          E2E_BASE_URL: https://beah4wbufhqjqgzanubteb.streamlit.app
+        run: |
+          mkdir -p artifacts/production
+          for attempt in {1..10}; do
+            if npx playwright test tests/e2e/production.spec.ts --project=chromium; then
+              echo "Production ${E2E_EXPECTED_VERSION} verified." | tee artifacts/production/result.txt
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "Production did not expose ${E2E_EXPECTED_VERSION} within the polling window." | tee artifacts/production/result.txt
+          exit 1
+      - name: Upload production evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: production-smoke-evidence
+          path: |
+            artifacts/production/
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 14

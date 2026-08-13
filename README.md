@@ -6,9 +6,13 @@
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.61-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-0F766E.svg)](LICENSE)
 [![GitHub repository](https://img.shields.io/badge/GitHub-Public-22C55E?logo=github)](https://github.com/Monokayser/ai-ecommerce-analytics)
+[![Production CI](https://github.com/Monokayser/ai-ecommerce-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/Monokayser/ai-ecommerce-analytics/actions/workflows/ci.yml)
+[![Release v1.12.0](https://img.shields.io/badge/release-v1.12.0-39E6BD)](https://github.com/Monokayser/ai-ecommerce-analytics/releases/tag/v1.12.0)
 [![Live application](https://img.shields.io/badge/Live%20App-Open-39E6BD?logo=streamlit&logoColor=white)](https://beah4wbufhqjqgzanubteb.streamlit.app/)
 
 A production-style Streamlit capstone that turns e-commerce files into secure, filter-aware dashboards, natural-language analytics, advanced analysis, and downloadable reports. It works immediately without an API key and upgrades to real-time Gemini planning when a free Gemini API key is configured.
+
+Current verification: 88 Python tests passing, 86.30% measured coverage, dependency audits clear, local Chromium E2E passing, and CI enforcing the complete browser/container/production matrix.
 
 ![AI-Powered E-Commerce Analytics dashboard using the responsive aurora-terrain executive theme](docs/assets/dashboard-overview-aurora.png)
 
@@ -94,12 +98,12 @@ ai_ecommerce_analytics/
 |   |-- visualization/        # Chart selection and constructors
 |   |-- reporting/            # Word, PDF, PNG, and SVG export
 |   `-- ui/                   # Six Streamlit sections and shared theme
-|-- tests/                    # Unit, security, export, and app tests
+|-- tests/                    # Unit, AppTest, Playwright, axe, security, and export tests
 |-- benchmarks/               # Ten-question measured benchmark runner
 |-- docs/                     # Architecture, security, production hardening
 |-- reports/                  # Academic report and presentation assets
-|-- .github/                  # Issue and pull-request templates
-|-- docs/github-actions-ci.yml # CI workflow template (activation-ready)
+|-- .github/workflows/ci.yml  # Quality, browser, container, and production-smoke CI
+|-- playwright.config.ts      # Chrome/Edge/Firefox/WebKit/mobile QA matrix
 |-- Dockerfile
 `-- docker-compose.yml
 ```
@@ -109,7 +113,13 @@ ai_ecommerce_analytics/
 ```powershell
 python -m pip install -r requirements-dev.txt
 python -m pytest -q
-python -m pytest --cov=src --cov=config --cov-report=term-missing
+python -m pytest --cov=src --cov=config --cov-report=term-missing --cov-fail-under=85
+python scripts/qa_repository.py
+python scripts/run_performance_baseline.py --runs 15
+npm ci
+npx playwright install chromium
+$env:E2E_BASE_URL="http://127.0.0.1:8501"
+npm run test:e2e:local -- --project=chromium
 python benchmarks/benchmark_runner.py
 ```
 
@@ -138,6 +148,8 @@ Python: 3.11
 Because the repository is public, Streamlit Community Cloud makes the deployed app public by default. For account security, GitHub requires the repository owner to approve the one-time OAuth sign-in.
 
 Cross-browser behavior, responsive breakpoints, accessibility controls, performance budgets, container hardening, and scaling guidance are documented in [docs/production_hardening.md](docs/production_hardening.md).
+
+Production uses release `v1.12.0`. The footer exposes a machine-verifiable `data-app-version` marker used by the six-hour scheduled smoke check. See [production readiness](docs/production_readiness.md), [deployment and rollback](docs/deployment.md), and the [release notes](docs/release-v1.12.0.md).
 
 ```powershell
 docker build -t ai-ecommerce-analytics .

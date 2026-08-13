@@ -10,6 +10,7 @@ from typing import TypeVar
 
 from google import genai
 from google.genai import errors as genai_errors
+import httpx
 from openai import APITimeoutError, APIConnectionError, APIError, AuthenticationError, BadRequestError, NotFoundError, OpenAI, RateLimitError
 from pydantic import BaseModel, ValidationError
 
@@ -108,7 +109,7 @@ class GeminiClient(LLMClient):
                 raise LLMResponseError("Gemini is temporarily unavailable. The local analytics fallback will be used.") from exc
             except genai_errors.ClientError as exc:
                 status = int(getattr(exc, "code", 0) or 0)
-                if status == 429 and attempt < self.settings.llm_max_retries:
+                if status in {408, 429} and attempt < self.settings.llm_max_retries:
                     time.sleep(0.5 * (attempt + 1))
                     continue
                 if status in {401, 403}:
@@ -117,7 +118,19 @@ class GeminiClient(LLMClient):
                     raise LLMResponseError(f"The configured Gemini model '{self.model}' is unavailable.") from exc
                 if status == 429:
                     raise LLMResponseError("Gemini's free-tier rate limit was reached. The local analytics fallback will be used.") from exc
+                if status == 408:
+                    raise LLMResponseError("The Gemini request timed out. The local analytics fallback will be used.") from exc
                 raise LLMResponseError("Gemini rejected the structured request. Check the model configuration.") from exc
+            except (TimeoutError, httpx.TimeoutException) as exc:
+                if attempt < self.settings.llm_max_retries:
+                    time.sleep(0.5 * (attempt + 1))
+                    continue
+                raise LLMResponseError("The Gemini request timed out. The local analytics fallback will be used.") from exc
+            except httpx.RequestError as exc:
+                if attempt < self.settings.llm_max_retries:
+                    time.sleep(0.5 * (attempt + 1))
+                    continue
+                raise LLMResponseError("Gemini is unreachable. The local analytics fallback will be used.") from exc
             except LLMResponseError:
                 raise
             except (ValidationError, json.JSONDecodeError, genai_errors.APIError) as exc:

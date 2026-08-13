@@ -1,0 +1,17 @@
+{
+  "name": "ai-ecommerce-analytics-qa",
+  "version": "1.12.0",
+  "private": true,
+  "description": "Development-only cross-browser and accessibility QA for the Streamlit application",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:production": "playwright test tests/e2e/production.spec.ts",
+    "test:e2e:local": "playwright test tests/e2e/app.spec.ts"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.62.1",
+    "@types/node": "26.2.0",
+    "typescript": "7.0.2"
+  }
+}

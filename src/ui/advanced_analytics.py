@@ -36,9 +36,9 @@ def render(frame: pd.DataFrame) -> None:
             right.metric("Anomaly rate", f"{result.anomaly_percent:.2f}%")
             plot = result.data.reset_index(names="Observation")
             figure = px.scatter(plot, x="Observation", y=target, color="is_anomaly", color_discrete_map={False: "#0F766E", True: "#DC2626"}, title=f"{target}: Normal versus Anomalous Observations")
-            st.plotly_chart(apply_theme(figure), use_container_width=True)
+            st.plotly_chart(apply_theme(figure), width="stretch")
             st.write(anomaly_explanation(result))
-            st.dataframe(result.data.loc[result.data["is_anomaly"]], use_container_width=True)
+            st.dataframe(result.data.loc[result.data["is_anomaly"]], width="stretch")
             st.download_button("Export anomalies CSV", result.data.loc[result.data["is_anomaly"]].to_csv(index=False), "anomalies.csv", "text/csv")
     with comparison_tab:
         dimensions = [column for column in ("Region", "Product Category", "Customer Segment", "Country") if column in frame]
@@ -60,13 +60,13 @@ def render(frame: pd.DataFrame) -> None:
                 result = compare_subsets(subset_a, subset_b, value_a, value_b)
                 st.write(comparison_narrative(result))
                 for warning in result.warnings: st.warning(warning)
-                st.dataframe(result.metrics, use_container_width=True)
+                st.dataframe(result.metrics, width="stretch")
                 chart_data = result.metrics.loc[result.metrics["Metric"].isin(["Sales", "Profit", "Order count", "Quantity"])].melt(id_vars=["Metric"], value_vars=[value_a, value_b], var_name="Subset", value_name="Value")
-                st.plotly_chart(apply_theme(px.bar(chart_data, x="Metric", y="Value", color="Subset", barmode="group", title="Side-by-Side KPI Comparison")), use_container_width=True)
+                st.plotly_chart(apply_theme(px.bar(chart_data, x="Metric", y="Value", color="Subset", barmode="group", title="Side-by-Side KPI Comparison")), width="stretch")
                 if "Order Date" in result.detail and "Sales" in result.detail:
                     trend = result.detail.copy()
                     trend["Month"] = pd.to_datetime(trend["Order Date"]).dt.to_period("M").dt.to_timestamp()
                     trend = trend.groupby(["Month", "_comparison_group"], as_index=False)["Sales"].sum()
-                    st.plotly_chart(apply_theme(px.line(trend, x="Month", y="Sales", color="_comparison_group", title="Sales Trend Comparison")), use_container_width=True)
+                    st.plotly_chart(apply_theme(px.line(trend, x="Month", y="Sales", color="_comparison_group", title="Sales Trend Comparison")), width="stretch")
                 if "Sales" in result.detail:
-                    st.plotly_chart(apply_theme(px.box(result.detail, x="_comparison_group", y="Sales", color="_comparison_group", title="Sales Distribution Comparison")), use_container_width=True)
+                    st.plotly_chart(apply_theme(px.box(result.detail, x="_comparison_group", y="Sales", color="_comparison_group", title="Sales Distribution Comparison")), width="stretch")

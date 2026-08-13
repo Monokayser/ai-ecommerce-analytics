@@ -33,9 +33,9 @@ def render(frame: pd.DataFrame, filters: dict) -> None:
     context = active_filter_text(filters)
     left, right = st.columns([1.35, 1])
     if {"Order Date", "Sales"}.issubset(frame.columns):
-        left.plotly_chart(time_series_chart(frame, context), use_container_width=True)
+        left.plotly_chart(time_series_chart(frame, context), width="stretch")
     if ("Country" in frame or "Region" in frame) and ("Sales" in frame or "Profit" in frame):
-        right.plotly_chart(geographic_chart(frame, context), use_container_width=True)
+        right.plotly_chart(geographic_chart(frame, context), width="stretch")
     dimension = next((column for column in ("Product Category", "Region", "Customer Segment") if column in frame), None)
     if dimension and ("Sales" in frame or "Profit" in frame):
-        st.plotly_chart(grouped_bar_chart(frame, dimension, context), use_container_width=True)
+        st.plotly_chart(grouped_bar_chart(frame, dimension, context), width="stretch")

@@ -144,7 +144,7 @@ def _render_history(memory: ConversationMemory) -> None:
         with st.expander(f"{item['question'][:56]}{'…' if len(item['question']) > 56 else ''}", expanded=index == 1):
             st.caption(item["result_summary"])
             st.write(item["answer"])
-            if st.button("Ask again", key=f"history_again_{index}", use_container_width=True):
+            if st.button("Ask again", key=f"history_again_{index}", width="stretch"):
                 st.session_state["pending_ai_question"] = item["question"]
                 st.rerun()
 
@@ -171,7 +171,7 @@ def _render_saved_responses() -> None:
         st.markdown(f"**{escape(record['question'])}**")
         st.caption(f"{record['saved_at']} · {record['result_summary']}")
         st.write(record["answer"])
-        if st.button("Run this task again", key=f"saved_again_{index}", use_container_width=True):
+        if st.button("Run this task again", key=f"saved_again_{index}", width="stretch"):
             st.session_state["pending_ai_question"] = record["question"]
             st.rerun()
         st.divider()
@@ -199,11 +199,11 @@ def _render_response_toolbar(bundle: DatasetBundle, last: dict[str, Any] | None)
     st.markdown("### 🤖 Verified response")
     save_column, word_column, pdf_column = st.columns(3)
     if not last:
-        save_column.button("Save response", disabled=True, use_container_width=True, help="Save this response in the current session")
-        word_column.button("Download Word", disabled=True, use_container_width=True, help="Download a Word report")
-        pdf_column.button("Download PDF", disabled=True, use_container_width=True, help="Download a PDF report")
+        save_column.button("Save response", disabled=True, width="stretch", help="Save this response in the current session")
+        word_column.button("Download Word", disabled=True, width="stretch", help="Download a Word report")
+        pdf_column.button("Download PDF", disabled=True, width="stretch", help="Download a PDF report")
         return
-    if save_column.button("Save response", use_container_width=True, key="save_ai_response", help="Save this response in the current session"):
+    if save_column.button("Save response", width="stretch", key="save_ai_response", help="Save this response in the current session"):
         _save_last_response(last)
         st.toast("Verified response saved in this session", icon="✅")
     try:
@@ -220,7 +220,7 @@ def _render_response_toolbar(bundle: DatasetBundle, last: dict[str, Any] | None)
             word,
             "ai_verified_response.docx",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            use_container_width=True,
+            width="stretch",
             help="Download a Word report",
         )
         pdf_column.download_button(
@@ -228,12 +228,12 @@ def _render_response_toolbar(bundle: DatasetBundle, last: dict[str, Any] | None)
             pdf,
             "ai_verified_response.pdf",
             "application/pdf",
-            use_container_width=True,
+            width="stretch",
             help="Download a PDF report",
         )
     except Exception as exc:
-        word_column.button("Download Word", disabled=True, use_container_width=True, help="Word export is temporarily unavailable")
-        pdf_column.button("Download PDF", disabled=True, use_container_width=True, help="PDF export is temporarily unavailable")
+        word_column.button("Download Word", disabled=True, width="stretch", help="Word export is temporarily unavailable")
+        pdf_column.button("Download PDF", disabled=True, width="stretch", help="PDF export is temporarily unavailable")
         st.caption(f"Report downloads are temporarily unavailable. {type(exc).__name__}.")
 
 
@@ -261,11 +261,11 @@ def _render_last_result(last: dict[str, Any], pipeline: NLQueryPipeline) -> None
             st.caption(f"Recommended view: {spec.chart_type} · {spec.rationale or generated.reason}")
             figure = result_chart(result.data, spec)
             if figure is None:
-                st.dataframe(result.data, use_container_width=True, hide_index=True)
+                st.dataframe(result.data, width="stretch", hide_index=True)
             else:
-                st.plotly_chart(figure, use_container_width=True)
+                st.plotly_chart(figure, width="stretch")
                 st.caption(narrative.chart_caption)
-                if st.button("Prepare chart downloads", use_container_width=True, key="prepare_ai_chart_exports"):
+                if st.button("Prepare chart downloads", width="stretch", key="prepare_ai_chart_exports"):
                     try:
                         with st.spinner("Preparing high-quality PNG and SVG files…"):
                             png = export_chart(figure, "png")
@@ -279,19 +279,19 @@ def _render_last_result(last: dict[str, Any], pipeline: NLQueryPipeline) -> None
                 svg = st.session_state.get("ai_chart_svg")
                 if png and svg:
                     first, second = st.columns(2)
-                    first.download_button("Download PNG", png, "ai_query_chart.png", "image/png", use_container_width=True)
-                    second.download_button("Download SVG", svg, "ai_query_chart.svg", "image/svg+xml", use_container_width=True)
+                    first.download_button("Download PNG", png, "ai_query_chart.png", "image/png", width="stretch")
+                    second.download_button("Download SVG", svg, "ai_query_chart.svg", "image/svg+xml", width="stretch")
     with data_tab:
         if result.data.empty:
             render_empty("The verified analysis returned no matching rows.")
         else:
-            st.dataframe(result.data, use_container_width=True, hide_index=True)
+            st.dataframe(result.data, width="stretch", hide_index=True)
             st.download_button(
                 "Download result as CSV",
                 result.data.to_csv(index=False).encode("utf-8"),
                 "ai_query_result.csv",
                 "text/csv",
-                use_container_width=True,
+                width="stretch",
             )
     with evidence_tab:
         metrics = last.get("pipeline_metrics", pipeline.last_run_metrics)
@@ -387,7 +387,7 @@ def _render_followups(last: dict[str, Any]) -> None:
     columns = st.columns(4)
     for column, (label, configured_question) in zip(columns, FOLLOW_UPS, strict=False):
         question = str(last.get("question", "")) if configured_question is None else configured_question
-        if column.button(label, help=question, use_container_width=True, key=f"followup_{label}"):
+        if column.button(label, help=question, width="stretch", key=f"followup_{label}"):
             st.session_state["pending_ai_question"] = question
             st.rerun()
 
@@ -435,7 +435,7 @@ def render(
             key="ai_analysis_mode",
             help="Fast gives a short answer. Balanced includes context. Deep provides the most detailed interpretation.",
         )
-        if reset_control.button("Reset agent", use_container_width=True, key="reset_ai_agent"):
+        if reset_control.button("Reset agent", width="stretch", key="reset_ai_agent"):
             for key in (
                 "conversation",
                 "last_ai",
@@ -463,7 +463,7 @@ def render(
             st.markdown("### 🤖 AI Capabilities")
             st.caption("Choose a ready-made investigation. It runs immediately using the current filters.")
             for label, help_text, question in CAPABILITIES:
-                if st.button(label, help=help_text, use_container_width=True, key=f"capability_{label}"):
+                if st.button(label, help=help_text, width="stretch", key=f"capability_{label}"):
                     requested_question = question
                 st.markdown(
                     f'<div class="capability-note">{escape(help_text)}</div>',
@@ -482,7 +482,7 @@ def render(
                     placeholder="Example: Compare sales and profit by region and rank the results.",
                     help="Ask about sales, profit, customers, products, countries, regions, discounts, or trends.",
                 )
-                if st.form_submit_button("Analyze my question", type="primary", use_container_width=True):
+                if st.form_submit_button("Analyze my question", type="primary", width="stretch"):
                     requested_question = draft
             st.divider()
             with st.expander("💾 Saved Responses", expanded=False):

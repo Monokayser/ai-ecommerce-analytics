@@ -19,3 +19,8 @@ data/raw/*
 data/processed/*
 !data/processed/.gitkeep
 .streamlit/secrets.toml
+artifacts/
+playwright-report/
+test-results/
+blob-report/
+node_modules/

@@ -10,6 +10,10 @@ __pycache__
 htmlcov
 logs
 tmp
+artifacts
+node_modules
+playwright-report
+test-results
 data/raw/*
 data/processed/*
 reports/generated/*

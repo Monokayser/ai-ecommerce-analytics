@@ -5,6 +5,7 @@ from __future__ import annotations
 import streamlit as st
 
 from config.settings import Settings
+from config.version import APP_RELEASE
 from src.data.cleaner import clean_dataset
 from src.data.loader import load_dataset
 from src.data.schema import inspect_schema, load_aliases
@@ -14,7 +15,7 @@ from src.llm.prompts import PromptRepository
 from src.ui import advanced_analytics, ai_assistant, exploration, overview, quality_performance, report_export
 from src.ui.brand import BRAND_ICON_PATH
 from src.ui.sidebar import apply_filters, render_filters
-from src.ui.theme import inject_theme, render_app_header, render_filter_pills, render_sidebar_brand, render_top_navigation
+from src.ui.theme import inject_theme, render_app_header, render_build_marker, render_filter_pills, render_sidebar_brand, render_top_navigation
 from src.utils.logging_config import configure_logging
 
 
@@ -101,6 +102,7 @@ def main() -> None:
         quality_performance.render(bundle, filtered, settings)
     else:
         report_export.render(bundle)
+    render_build_marker(APP_RELEASE)
 
 
 if __name__ == "__main__":

@@ -11,7 +11,9 @@ The interface uses standards-based HTML, CSS, Streamlit widgets, Plotly, and Web
 - Both standard and `-webkit-` backdrop filters are provided. Browsers without glass-filter support receive opaque high-contrast panel fallbacks.
 - The 3D relationship cloud and aggregated profit terrain use Plotly WebGL. The 2D Relationship and Distribution views remain available when WebGL is disabled or constrained.
 
-Automated application and responsive checks run in Chromium. Firefox and Safari compatibility is supported through standards/fallback review; final deployment acceptance should include a short manual smoke test in the actual institutional browser versions.
+Playwright executes functional checks in branded Chrome and Edge, Firefox, WebKit, Chromium, mobile Chrome emulation, and mobile Safari emulation. WebKit is the closest automated Safari engine and is not described as branded Safari. Final acceptance still requires a short manual smoke test on actual macOS Safari and iOS Safari.
+
+The responsive matrix covers 320×568, 375×812, 430×932, 768×1024, 1024×768, 1280×800, 1440×900, and 1920×1080. Tests assert no horizontal overflow, balanced navigation rows, and 44 px minimum navigation targets.
 
 ## Accessibility
 
@@ -71,4 +73,13 @@ Streamlit session state is process-local. A multi-instance production deployment
 7. Build the Docker image and confirm it runs as `appuser` when Docker is available.
 8. Smoke-test the deployed URL in Chrome/Edge, Firefox, Safari, iOS Safari, and Android Chrome.
 
-The current verified build passed 74 automated tests with 85% measured coverage. Its dependency audit reported no known vulnerabilities, Bandit reported no unsuppressed findings, and the tracked-file secret signature scan was clean. Browser QA verified the reference-inspired assistant layout, capability task execution, the five-stage safety trace, grounded evidence, session saving, responsive export controls, and the live health endpoint. Docker definitions were statically reviewed and exercised by repository tests; a runtime image build still requires Docker on the workstation or CI runner.
+Release v1.12.0 passed 88 Python tests with 86.30% measured coverage and enforces an 85% floor. It runs pip-audit, Bandit, Gitleaks, repository/link checks, export smoke tests, cross-browser Playwright/axe tests, and builds and health-tests the non-root Docker image in GitHub Actions. Local Chromium QA found no unexpected console errors and no unwaived serious/critical axe findings. One narrowly scoped third-party waiver covers Streamlit 1.61's own `aria-expanded` attribute on its sidebar `<section>`; any additional affected node still fails CI.
+
+### Manual Safari/iOS Safari smoke check
+
+1. Open the HTTPS production URL on current macOS Safari and iOS Safari.
+2. Verify the six navigation options, sidebar disclosure, upload control, filters, charts, and report downloads.
+3. Confirm portrait/landscape layout has no horizontal scrolling and text remains usable at 200% zoom.
+4. Enable Reduce Motion and verify decorative motion stops.
+5. Use VoiceOver to confirm the product mark, navigation, filters, AI question, status messages, and export controls have meaningful names.
+6. Record the OS/browser versions and any issue; do not substitute WebKit automation for this branded-browser evidence.
