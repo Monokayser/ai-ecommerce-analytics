@@ -303,7 +303,7 @@ def animated_chart(frame: pd.DataFrame, context: str = "", metric: str = "Sales"
     if metric not in data:
         raise ValueError(f"{metric} is unavailable for animation.")
     grouped = data.groupby(["Year", dimension], as_index=False)[metric].sum()
-    upper = max(float(grouped[metric].max()) * 1.12, 1.0)
+    upper = max(float(grouped[metric].max()) * 1.22, 1.0)
     figure = px.bar(
         grouped,
         x=dimension,
@@ -313,10 +313,34 @@ def animated_chart(frame: pd.DataFrame, context: str = "", metric: str = "Sales"
         animation_group=dimension,
         range_y=[min(0.0, float(grouped[metric].min()) * 1.12), upper],
         title=f"Animated {metric} by {dimension}",
+        text=metric,
     )
     figure = apply_theme(figure, source_context=context)
+    figure.update_layout(
+        height=650,
+        autosize=True,
+        margin={"l": 64, "r": 28, "t": 92, "b": 118},
+        bargap=0.2,
+        title={"x": 0.01, "xanchor": "left", "font": {"size": 23}},
+        legend={"orientation": "h", "x": 0.01, "xanchor": "left", "y": 1.04, "yanchor": "bottom"},
+        transition={"duration": 420, "easing": "cubic-in-out"},
+        uniformtext={"minsize": 12, "mode": "hide"},
+    )
+    figure.update_traces(
+        texttemplate="%{y:,.3s}",
+        textposition="outside",
+        cliponaxis=False,
+        marker_line={"color": "rgba(225,255,245,.35)", "width": 1},
+        hovertemplate=f"{dimension}: %{{x}}<br>{metric}: %{{y:,.2f}}<extra></extra>",
+    )
+    figure.update_xaxes(tickfont={"size": 13}, title=None)
+    figure.update_yaxes(tickfont={"size": 12}, title={"text": metric, "font": {"size": 14}})
     for slider in figure.layout.sliders or []:
         slider.transition = {"duration": 350, "easing": "cubic-in-out"}
+        slider.pad = {"t": 36, "b": 4}
+        slider.currentvalue = {"prefix": "Year  ", "font": {"color": "#DFFFF3", "size": 14}}
+    for menu in figure.layout.updatemenus or []:
+        menu.pad = {"r": 12, "t": 62}
     return figure
 
 

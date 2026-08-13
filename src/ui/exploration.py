@@ -12,6 +12,12 @@ from src.visualization.charts import animated_chart, correlation_chart, distribu
 
 def render(frame: pd.DataFrame, filters: dict) -> None:
     """Render the complete visualization suite with feature gates."""
+    with st.container(key="exploration_workspace"):
+        _render_workspace(frame, filters)
+
+
+def _render_workspace(frame: pd.DataFrame, filters: dict) -> None:
+    """Render the exploration workspace inside its responsive layout scope."""
     render_section_intro("Explore patterns", "Data Exploration", "Nine linked visualization workspaces—including relationship-cloud and aggregated profit-terrain 3D modes—respond to the same global filters.")
     if frame.empty:
         render_empty("No rows are available for exploration.")
@@ -96,7 +102,16 @@ def render(frame: pd.DataFrame, filters: dict) -> None:
     with tabs[8]:
         animation_metrics = [column for column in ("Sales", "Profit", "Quantity") if column in frame]
         if "Order Date" in frame and animation_metrics and any(column in frame for column in ("Product Category", "Region")):
-            animation_metric = st.selectbox("Animated measure", animation_metrics)
-            st.caption("Press Play or drag the year slider. Axis ranges stay fixed to prevent misleading visual jumps.")
-            st.plotly_chart(animated_chart(frame, context, animation_metric), width="stretch")
+            with st.container(key="animation_workspace"):
+                guidance, control = st.columns([4.2, 1.2], gap="medium", vertical_alignment="bottom")
+                guidance.markdown(
+                    """<div class="animation-header"><span>Time playback</span><strong>See category performance change year by year</strong><small>Press Play or drag the timeline. The scale stays fixed for an honest comparison.</small></div>""",
+                    unsafe_allow_html=True,
+                )
+                animation_metric = control.selectbox("Animated measure", animation_metrics)
+                st.plotly_chart(
+                    animated_chart(frame, context, animation_metric),
+                    width="stretch",
+                    config={"displaylogo": False, "responsive": True, "scrollZoom": True},
+                )
         else: render_empty("Order Date, a supported numeric measure, and a category are required.")

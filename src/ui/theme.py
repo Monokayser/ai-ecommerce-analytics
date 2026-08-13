@@ -314,6 +314,45 @@ APP_CSS = r"""
     [data-testid="stPlotlyChart"] .plot-container { width: 100% !important; min-width: 0 !important; }
     [data-testid="stDataFrame"] { padding: .2rem; }
 
+    /* Exploration workspace: compact controls with a larger analytical canvas */
+    .st-key-exploration_workspace { margin-top:-.12rem; gap:.72rem !important; }
+    .st-key-exploration_workspace > [data-testid="stLayoutWrapper"]:has(h2#data-exploration) {
+        border-radius:18px !important;
+    }
+    .st-key-exploration_workspace > [data-testid="stLayoutWrapper"]:has(h2#data-exploration) > [data-testid="stVerticalBlock"] {
+        gap:.34rem !important;
+        padding:.78rem .95rem !important;
+    }
+    .st-key-exploration_workspace > [data-testid="stLayoutWrapper"]:has(h2#data-exploration) h2 {
+        margin:.05rem 0 .12rem !important;
+        padding:.18rem 0 !important;
+        font-size:clamp(1.65rem,2.8vw,2.3rem) !important;
+    }
+    .st-key-exploration_workspace > [data-testid="stLayoutWrapper"]:has(h2#data-exploration) [data-testid="stCaptionContainer"] {
+        margin:0 !important;
+    }
+    .st-key-animation_workspace {
+        margin-top:.15rem;
+        padding:.72rem;
+        border:1px solid rgba(127,255,213,.22);
+        border-radius:22px;
+        background:linear-gradient(145deg,rgba(4,28,20,.82),rgba(2,15,11,.94));
+        box-shadow:0 22px 58px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.045);
+    }
+    .st-key-animation_workspace > [data-testid="stVerticalBlock"] { gap:.55rem !important; }
+    .animation-header { display:flex; flex-direction:column; gap:.16rem; padding:.08rem .25rem .12rem; }
+    .animation-header span { color:#7fffe1; font-size:.64rem; font-weight:850; letter-spacing:.14em; text-transform:uppercase; }
+    .animation-header strong { color:#f5fffb; font-size:1rem; line-height:1.25; }
+    .animation-header small { color:#a8c2b8; font-size:.73rem; line-height:1.42; }
+    .st-key-animation_workspace [data-testid="stSelectbox"] { margin:0 !important; }
+    .st-key-animation_workspace [data-testid="stSelectbox"] label { color:#cfe5dd !important; font-size:.73rem !important; font-weight:760 !important; }
+    .st-key-animation_workspace [data-testid="stPlotlyChart"] {
+        min-height:650px;
+        border-color:rgba(127,255,213,.3);
+        border-radius:20px;
+        background:radial-gradient(circle at 50% 0,rgba(28,104,77,.12),transparent 42%),rgba(1,13,9,.72);
+    }
+
     /* Tabs, expanders, status, alerts */
     [data-testid="stTabs"] [role="tablist"] {
         gap: .35rem;
@@ -1127,6 +1166,8 @@ APP_CSS = r"""
         .ai-response-empty { min-height: 300px; }
         .capability-note { margin-left:.2rem; margin-right:.2rem; }
         .viz-ribbon { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .st-key-animation_workspace { padding:.58rem; border-radius:18px; }
+        .st-key-animation_workspace [data-testid="stPlotlyChart"] { min-height:600px; }
     }
     @media (max-width: 640px) {
         .block-container { padding-left: .55rem; padding-right: .55rem; }
@@ -1148,6 +1189,11 @@ APP_CSS = r"""
         [data-testid="stDataFrame"], [data-testid="stPlotlyChart"] { border-radius: 18px; }
         .stButton > button, .stDownloadButton > button { width: 100%; min-height: 46px; }
         .viz-ribbon { grid-template-columns: 1fr; }
+        .st-key-exploration_workspace > [data-testid="stLayoutWrapper"]:has(h2#data-exploration) > [data-testid="stVerticalBlock"] { padding:.68rem .75rem !important; }
+        .st-key-animation_workspace [data-testid="stHorizontalBlock"] { gap:.35rem !important; }
+        .animation-header strong { font-size:.92rem; }
+        .animation-header small { font-size:.7rem; }
+        .st-key-animation_workspace [data-testid="stPlotlyChart"] { min-height:570px; }
         .kpi-card { min-height:116px; padding:.9rem; }
         .kpi-value { font-size:clamp(1.55rem,8vw,2rem); }
     }

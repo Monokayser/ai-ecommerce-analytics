@@ -68,6 +68,27 @@ test.describe("local production interface", () => {
     await expectNoHorizontalOverflow(app);
   });
 
+  test("animation workspace prioritizes a large chart in a compact layout", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "The visual sizing regression runs once; all engines retain navigation coverage.");
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const app = await openApplication(page);
+    await selectSection(app, /Explore data/);
+    await app.getByRole("tab", { name: /Animation/ }).click();
+    const workspace = app.locator(".st-key-animation_workspace");
+    const chart = workspace.locator('[data-testid="stPlotlyChart"]');
+    await expect(workspace).toBeVisible();
+    await expect(chart).toBeVisible();
+    const chartBox = await chart.boundingBox();
+    const introBox = await app.getByRole("heading", { name: "Data Exploration" }).locator("xpath=ancestor::div[@data-testid='stLayoutWrapper'][1]").boundingBox();
+    expect(chartBox).not.toBeNull();
+    expect(chartBox!.height).toBeGreaterThanOrEqual(640);
+    expect(chartBox!.width).toBeGreaterThan(900);
+    expect(introBox).not.toBeNull();
+    expect(introBox!.height).toBeLessThan(160);
+    await expect(app.getByText("See category performance change year by year")).toBeVisible();
+    await expectNoHorizontalOverflow(app);
+  });
+
   test("six sections, release marker, responsive navigation, and no browser errors", async ({ page }) => {
     const browserErrors: string[] = [];
     page.on("console", (message) => message.type() === "error" && browserErrors.push(message.text()));

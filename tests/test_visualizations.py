@@ -45,5 +45,8 @@ def test_interactive_chart_controls(ecommerce_frame):
     assert len(grouped.layout.updatemenus[0].buttons) == 2
     assert treemap.data[0].type == "treemap"
     assert animated.frames
+    assert animated.layout.height == 650
+    assert animated.layout.sliders[0].currentvalue.prefix == "Year  "
+    assert animated.data[0].textposition == "outside"
     assert custom_3d.data[0].type == "scatter3d"
     assert custom_3d.layout.scene.xaxis.title.text == "Quantity"
