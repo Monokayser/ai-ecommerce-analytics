@@ -8,13 +8,14 @@ from config.settings import Settings
 from config.version import APP_RELEASE
 from src.data.cleaner import clean_dataset
 from src.data.loader import load_dataset
+from src.data.profiler import profile_quality
 from src.data.schema import inspect_schema, load_aliases
 from src.llm.client import create_llm_client
 from src.llm.nl_query import NLQueryPipeline
 from src.llm.prompts import PromptRepository
 from src.ui import advanced_analytics, ai_assistant, exploration, overview, quality_performance, report_export
 from src.ui.brand import BRAND_ICON_PATH
-from src.ui.sidebar import apply_filters, render_filters
+from src.ui.sidebar import apply_filters, build_filter_profile, render_filters
 from src.ui.theme import inject_theme, render_agent_launcher, render_app_header, render_build_marker, render_filter_pills, render_sidebar_brand, render_top_navigation
 from src.utils.logging_config import configure_logging
 
@@ -34,6 +35,8 @@ def prepare_dataset(source_bytes: bytes | None, filename: str | None, settings: 
     bundle.cleaning_log = log
     bundle.warnings = warnings
     bundle.schema_profile = inspect_schema(cleaned)
+    bundle.filter_profile = build_filter_profile(cleaned)
+    bundle.quality_profile = profile_quality(cleaned)
     return bundle
 
 
@@ -65,7 +68,7 @@ def main() -> None:
 
     for warning in bundle.warnings:
         st.sidebar.warning(warning)
-    filters = render_filters(bundle.cleaned)
+    filters = render_filters(bundle.cleaned, bundle.filter_profile)
     filtered = apply_filters(bundle.cleaned, filters)
     st.sidebar.caption(f"Active scope: {len(filtered):,} of {len(bundle.cleaned):,} rows")
     aliases = load_aliases(settings.aliases_path)

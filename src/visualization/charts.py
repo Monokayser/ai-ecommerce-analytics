@@ -36,16 +36,16 @@ COUNTRY_ISO3 = {
 def _bounded_sample(frame: pd.DataFrame, limit: int, *, seed: int = 42) -> pd.DataFrame:
     """Return a deterministic sample so browser chart payloads remain bounded."""
     if len(frame) <= limit:
-        return frame.copy()
-    return frame.sample(n=limit, random_state=seed).copy()
+        return frame.copy(deep=False)
+    return frame.sample(n=limit, random_state=seed).copy(deep=False)
 
 
 def time_series_chart(frame: pd.DataFrame, context: str = "") -> go.Figure:
     """Monthly Sales and Profit trend with dual y axes."""
-    data = frame.dropna(subset=["Order Date"]).copy()
+    metrics = [column for column in ("Sales", "Profit") if column in frame]
+    data = frame.loc[frame["Order Date"].notna(), ["Order Date", *metrics]].copy(deep=False)
     data["Month"] = pd.to_datetime(data["Order Date"]).dt.to_period("M").dt.to_timestamp()
-    metrics = [column for column in ("Sales", "Profit") if column in data]
-    grouped = data.groupby("Month", as_index=False)[metrics].sum()
+    grouped = data.groupby("Month", as_index=False, observed=True)[metrics].sum()
     figure = make_subplots(specs=[[{"secondary_y": len(metrics) > 1}]])
     if "Sales" in grouped:
         figure.add_trace(
@@ -99,7 +99,7 @@ def geographic_chart(frame: pd.DataFrame, context: str = "") -> go.Figure:
     """Country choropleth or region/country bar fallback."""
     metric = "Sales" if "Sales" in frame else "Profit"
     if "Country" in frame and metric in frame:
-        grouped = frame.groupby("Country", as_index=False)[metric].sum()
+        grouped = frame[["Country", metric]].groupby("Country", as_index=False, observed=True)[metric].sum()
         grouped["ISO3"] = grouped["Country"].map(COUNTRY_ISO3)
         if grouped["ISO3"].notna().all() and grouped["Country"].nunique() > 1:
             figure = px.choropleth(
@@ -120,7 +120,7 @@ def geographic_chart(frame: pd.DataFrame, context: str = "") -> go.Figure:
             )
             return apply_theme(figure, source_context=context)
     dimension = "Region" if "Region" in frame else "Country"
-    grouped = frame.groupby(dimension, as_index=False)[metric].sum().sort_values(metric)
+    grouped = frame[[dimension, metric]].groupby(dimension, as_index=False, observed=True)[metric].sum().sort_values(metric)
     return apply_theme(px.bar(grouped, x=metric, y=dimension, orientation="h", title=f"{metric} by {dimension} (Map Fallback)"), source_context=context)
 
 
@@ -136,7 +136,8 @@ def correlation_chart(frame: pd.DataFrame, context: str = "") -> go.Figure:
 def distribution_chart(frame: pd.DataFrame, metric: str = "Sales", context: str = "") -> go.Figure:
     """Box-and-histogram distribution view."""
     color = "Region" if "Region" in frame else None
-    data = _bounded_sample(frame, 50_000)
+    columns = [metric] + ([color] if color else [])
+    data = _bounded_sample(frame[columns], 50_000)
     figure = px.histogram(data, x=metric, color=color, marginal="box", nbins=40, title=f"Distribution of {metric}")
     return apply_theme(figure, source_context=context)
 
@@ -145,7 +146,7 @@ def hierarchy_chart(frame: pd.DataFrame, context: str = "", mode: str = "sunburs
     """Region to category to sub-category drill-down view."""
     path = [column for column in ("Region", "Product Category", "Sub-Category") if column in frame]
     value = "Sales" if "Sales" in frame else "Quantity"
-    data = frame.groupby(path, as_index=False, dropna=False)[value].sum()
+    data = frame[[*path, value]].groupby(path, as_index=False, dropna=False, observed=True)[value].sum()
     if mode == "treemap":
         figure = px.treemap(data, path=path, values=value, color=value, color_continuous_scale=["#09231B", "#27A77D", "#8AFFD9"], title=f"{value} Treemap: {' > '.join(path)}")
     else:
@@ -157,7 +158,7 @@ def hierarchy_chart(frame: pd.DataFrame, context: str = "", mode: str = "sunburs
 def grouped_bar_chart(frame: pd.DataFrame, dimension: str = "Product Category", context: str = "") -> go.Figure:
     """Grouped Sales and Profit comparison."""
     measures = [column for column in ("Sales", "Profit") if column in frame]
-    grouped = frame.groupby(dimension, as_index=False)[measures].sum().melt(id_vars=dimension, var_name="Metric", value_name="Value")
+    grouped = frame[[dimension, *measures]].groupby(dimension, as_index=False, observed=True)[measures].sum().melt(id_vars=dimension, var_name="Metric", value_name="Value")
     figure = px.bar(grouped, x=dimension, y="Value", color="Metric", barmode="group", title=f"Sales and Profit by {dimension}")
     figure.update_layout(
         updatemenus=[{
@@ -297,12 +298,12 @@ def profit_terrain_chart(frame: pd.DataFrame, context: str = "") -> go.Figure:
 
 def animated_chart(frame: pd.DataFrame, context: str = "", metric: str = "Sales") -> go.Figure:
     """Animated category performance by year."""
-    data = frame.dropna(subset=["Order Date"]).copy()
-    data["Year"] = pd.to_datetime(data["Order Date"]).dt.year.astype(str)
-    dimension = "Product Category" if "Product Category" in data else "Region"
-    if metric not in data:
+    if metric not in frame:
         raise ValueError(f"{metric} is unavailable for animation.")
-    grouped = data.groupby(["Year", dimension], as_index=False)[metric].sum()
+    dimension = "Product Category" if "Product Category" in frame else "Region"
+    data = frame.loc[frame["Order Date"].notna(), ["Order Date", dimension, metric]].copy(deep=False)
+    data["Year"] = pd.to_datetime(data["Order Date"]).dt.year.astype(str)
+    grouped = data.groupby(["Year", dimension], as_index=False, observed=True)[metric].sum()
     upper = max(float(grouped[metric].max()) * 1.22, 1.0)
     figure = px.bar(
         grouped,

@@ -16,7 +16,7 @@ from src.ui.theme import render_section_intro
 def render(bundle: DatasetBundle, frame: pd.DataFrame, settings: Settings) -> None:
     """Render auditable quality and performance evidence."""
     render_section_intro("Trust the evidence", "Data Quality and Performance", "Inspect schema, cleaning actions, validation checks, and measured runtime performance.")
-    quality = profile_quality(bundle.cleaned)
+    quality = bundle.quality_profile or profile_quality(bundle.cleaned)
     metrics = st.columns(4)
     metrics[0].metric("Rows", f"{quality['rows']:,}")
     metrics[1].metric("Missing cells", f"{sum(item['missing_count'] for item in quality['missing']):,}")
@@ -27,10 +27,19 @@ def render(bundle: DatasetBundle, frame: pd.DataFrame, settings: Settings) -> No
         st.success("Official-demo ready: real dataset has at least 5,000 rows.")
     else:
         st.warning("Development mode: upload a non-demo dataset with at least 5,000 rows for official-demo readiness.")
-    tabs = st.tabs(["◇ Missing Data", "✓ Cleaning Log", "▦ Schema", "◉ Validation", "⌁ Performance"])
-    with tabs[0]: st.dataframe(pd.DataFrame(quality["missing"]), width="stretch")
-    with tabs[1]: st.dataframe(pd.DataFrame([item.model_dump() for item in bundle.cleaning_log]), width="stretch")
-    with tabs[2]:
+    view = st.segmented_control(
+        "Quality workspace",
+        ["Missing Data", "Cleaning Log", "Schema", "Validation", "Performance"],
+        default="Missing Data",
+        required=True,
+        key="quality_workspace",
+        width="stretch",
+    )
+    if view == "Missing Data":
+        st.dataframe(pd.DataFrame(quality["missing"]), width="stretch")
+    elif view == "Cleaning Log":
+        st.dataframe(pd.DataFrame([item.model_dump() for item in bundle.cleaning_log]), width="stretch")
+    elif view == "Schema":
         schema_rows = []
         for item in bundle.schema_profile.columns:
             row = item.model_dump()
@@ -39,8 +48,9 @@ def render(bundle: DatasetBundle, frame: pd.DataFrame, settings: Settings) -> No
             row["maximum"] = "" if row["maximum"] is None else str(row["maximum"])
             schema_rows.append(row)
         st.dataframe(pd.DataFrame(schema_rows), width="stretch")
-    with tabs[3]: st.json({key: value for key, value in quality.items() if key not in {"missing", "numeric_statistics", "categorical_frequencies"}})
-    with tabs[4]:
+    elif view == "Validation":
+        st.json({key: value for key, value in quality.items() if key not in {"missing", "numeric_statistics", "categorical_frequencies"}})
+    else:
         st.write({"load_time_ms": bundle.metadata.load_time_ms, "schema_time_ms": bundle.schema_profile.generation_time_ms, "memory_mb": bundle.metadata.memory_bytes / 1024**2})
         dimension = next((column for column in ("Region", "Product Category", "Customer Segment") if column in frame), None)
         metric = next((column for column in ("Sales", "Profit", "Quantity") if column in frame), None)

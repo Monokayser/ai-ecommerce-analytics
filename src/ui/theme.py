@@ -37,7 +37,7 @@ APP_CSS = r"""
         --glass-shadow: 0 26px 72px rgba(0, 0, 0, .42), inset 0 1px 0 rgba(255, 255, 255, .08);
     }
 
-    html { color-scheme: dark; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    html { color-scheme: dark; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-behavior:smooth; }
     html, body, .stApp, button, input, textarea, select {
         font-family: var(--font-sans) !important;
         font-synthesis: none;
@@ -80,6 +80,7 @@ APP_CSS = r"""
         background:
             linear-gradient(102deg, transparent 20%, rgba(75, 255, 193, .03) 38%, rgba(84, 255, 202, .21) 48%, rgba(96, 246, 203, .05) 58%, transparent 69%);
         filter: blur(22px);
+        will-change: transform;
         animation: auroraDrift 14s ease-in-out infinite alternate;
     }
     .stApp::after {
@@ -330,6 +331,7 @@ APP_CSS = r"""
         background: linear-gradient(145deg, rgba(4, 23, 17, .88), rgba(2, 12, 10, .94));
         box-shadow: var(--glass-shadow);
     }
+    [data-testid="stPlotlyChart"], .kpi-card, .viz-feature, .answer-card { contain:layout paint; }
     [data-testid="stPlotlyChart"] > div,
     [data-testid="stPlotlyChart"] .js-plotly-plot,
     [data-testid="stPlotlyChart"] .plot-container { width: 100% !important; min-width: 0 !important; }
@@ -375,6 +377,40 @@ APP_CSS = r"""
     }
 
     /* Tabs, expanders, status, alerts */
+    [data-testid="stButtonGroup"] { width:100%; }
+    [data-testid="stButtonGroup"] [role="radiogroup"] {
+        display:grid !important;
+        grid-template-columns:repeat(auto-fit,minmax(104px,1fr));
+        gap:.42rem;
+        width:100%;
+        padding:.36rem;
+        border:1px solid rgba(127,255,213,.17);
+        border-radius:18px;
+        background:rgba(4,25,19,.8);
+    }
+    [data-testid="stButtonGroup"] button[role="radio"] {
+        width:100%;
+        min-width:0;
+        min-height:44px;
+        padding:.5rem .65rem;
+        border:1px solid rgba(127,255,213,.1);
+        border-radius:13px;
+        color:#b9d7cc;
+        background:rgba(5,37,28,.38);
+        font-weight:700;
+        transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease;
+    }
+    [data-testid="stButtonGroup"] button[role="radio"]:hover {
+        transform:translateY(-1px);
+        border-color:rgba(127,255,213,.3);
+        background:rgba(37,139,105,.16);
+    }
+    [data-testid="stButtonGroup"] button[role="radio"][aria-checked="true"] {
+        color:#f5fffb;
+        border-color:rgba(127,255,213,.46);
+        background:linear-gradient(120deg,rgba(45,189,143,.34),rgba(17,103,78,.4));
+        box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 7px 18px rgba(0,0,0,.2);
+    }
     [data-testid="stTabs"] [role="tablist"] {
         gap: .35rem;
         padding: .34rem;
@@ -1209,17 +1245,12 @@ APP_CSS = r"""
         50% { filter:brightness(1.35) drop-shadow(0 0 7px rgba(127,255,225,.42)); }
     }
     @keyframes softFloat { 0%,100% { transform:translate3d(0,0,0) rotateX(0); } 50% { transform:translate3d(0,-3px,8px) rotateX(4deg); } }
-    .mode-orb, .sidebar-mark { animation: softFloat 4s ease-in-out infinite; }
     [data-testid="stMetric"], [data-testid="stVerticalBlockBorderWrapper"] { animation: revealUp .48s ease both; }
     @media (prefers-reduced-motion: no-preference) {
+        .mode-orb, .sidebar-mark { animation: softFloat 6s ease-in-out infinite; }
         .telemetry-rail i { animation:railGrow .95s .28s cubic-bezier(.2,.8,.2,1) both; }
         .kpi-meter i { animation:railGrow .9s calc(var(--delay, 0ms) + .28s) cubic-bezier(.2,.8,.2,1) both; }
-        .viz-feature::before { animation:scanSweep 7s ease-in-out infinite; }
-        .viz-feature:nth-child(2)::before { animation-delay:.8s; }
-        .viz-feature:nth-child(3)::before { animation-delay:1.6s; }
-        .viz-feature:nth-child(4)::before { animation-delay:2.4s; }
-        .kpi-scan { animation:scanSweep 7.5s calc(var(--delay, 0ms) + .5s) ease-in-out infinite; }
-        .kpi-card::before { animation:edgePulse 3.6s calc(var(--delay, 0ms) + .4s) ease-in-out infinite; }
+        .viz-feature::before, .kpi-scan, .kpi-card::before { animation:none; opacity:0; }
     }
     @media (hover: hover) and (pointer: fine) {
         [data-testid="stMetric"]:hover,
@@ -1294,6 +1325,9 @@ APP_CSS = r"""
         .st-key-top_navigation [role="radiogroup"] { grid-template-columns:repeat(3,minmax(0,1fr)); }
     }
     @media (max-width: 900px) {
+        .stApp { background-attachment:scroll; }
+        .stApp::before, .app-hero::before { animation:none !important; filter:blur(12px); }
+        [data-testid="stHeader"], .st-key-top_navigation, .agent-launcher { -webkit-backdrop-filter:none; backdrop-filter:none; }
         .block-container { padding: .85rem .75rem 3rem; }
         .st-key-top_navigation { position:relative; top:auto; border-radius:15px; padding:.48rem; }
         .st-key-top_navigation > div { gap:.15rem; }
@@ -1308,6 +1342,7 @@ APP_CSS = r"""
         .section-shell { padding: 1rem; }
         [data-testid="stTabs"] [role="tablist"] { border-radius: 16px; }
         [data-testid="stTabs"] button[role="tab"] { min-width: max-content; }
+        [data-testid="stButtonGroup"] [role="radiogroup"] { grid-template-columns:repeat(3,minmax(0,1fr)); }
         .ai-guide { grid-template-columns: 1fr; }
         .ai-pipeline { grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); }
         .ai-response-empty { min-height: 300px; }
@@ -1322,6 +1357,8 @@ APP_CSS = r"""
         .st-key-top_navigation [role="radiogroup"] { grid-template-columns:repeat(2,minmax(0,1fr)); }
         .st-key-top_navigation [role="radiogroup"] label { min-height:52px; padding:.58rem .45rem; }
         .st-key-top_navigation [role="radiogroup"] label p { font-size:.82rem; }
+        [data-testid="stButtonGroup"] [role="radiogroup"] { grid-template-columns:repeat(2,minmax(0,1fr)); }
+        [data-testid="stButtonGroup"] button[role="radio"] { padding:.45rem .35rem; font-size:.8rem; }
         .app-hero { padding: 1.15rem; border-radius: 20px; }
         .app-title { font-size: clamp(1.85rem, 10vw, 2.55rem); line-height: 1.05; overflow-wrap: anywhere; }
         .app-subtitle { font-size: .9rem; }

@@ -72,6 +72,8 @@ class DatasetBundle(StrictModel):
     schema_profile: SchemaProfile | None = None
     cleaning_log: list[CleaningAction] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
+    filter_profile: dict[str, Any] = Field(default_factory=dict)
+    quality_profile: dict[str, Any] = Field(default_factory=dict)
 
 
 class FilterSpec(StrictModel):

@@ -37,11 +37,23 @@ def render(bundle: DatasetBundle) -> None:
         limitations=last["narrative"].limitations,
         chart_image=st.session_state.get("last_chart_png"),
     )
-    try:
-        pdf = generate_pdf_report(payload)
-        word = generate_word_report(payload)
-    except Exception as exc:
-        st.error(str(exc))
+    signature = (last["question"], last["generated"].query, len(last["result"].data))
+    if st.session_state.get("report_package_signature") != signature:
+        st.session_state.pop("report_pdf", None)
+        st.session_state.pop("report_word", None)
+    if st.button("Prepare report package", type="primary", width="stretch"):
+        try:
+            with st.spinner("Building the verified PDF and Word package..."):
+                st.session_state["report_pdf"] = generate_pdf_report(payload)
+                st.session_state["report_word"] = generate_word_report(payload)
+                st.session_state["report_package_signature"] = signature
+        except Exception as exc:
+            st.error(str(exc))
+            return
+    pdf = st.session_state.get("report_pdf")
+    word = st.session_state.get("report_word")
+    if not pdf or not word:
+        st.info("Reports are generated only when requested, keeping navigation and reruns fast.")
         return
     st.success("Report package ready · validated query, filters, findings, evidence table, timing, and limitations included")
     first, second = st.columns(2)

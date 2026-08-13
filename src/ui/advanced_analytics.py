@@ -17,8 +17,16 @@ def render(frame: pd.DataFrame) -> None:
     """Render both fully integrated advanced features."""
     render_section_intro("Detect and compare", "Advanced Analytics", "Investigate unusual observations and compare two business subsets with transparent methods.")
     st.info("Advanced models run on the active filtered dataset. Calculations remain deterministic; AI explains verified outputs only.")
-    anomaly_tab, comparison_tab = st.tabs(["◇ Anomaly Detection", "⇄ Comparative Analysis"])
-    with anomaly_tab:
+    workspace = st.segmented_control(
+        "Advanced workspace",
+        ["Anomaly Detection", "Comparative Analysis"],
+        default="Anomaly Detection",
+        required=True,
+        key="advanced_workspace",
+        width="stretch",
+        help="Only the selected model is evaluated, avoiding unnecessary work during every interaction.",
+    )
+    if workspace == "Anomaly Detection":
         numeric = [column for column in frame.select_dtypes(include="number").columns if not column.startswith("_outlier_")]
         if not numeric:
             render_empty("No numeric anomaly target is available.")
@@ -40,7 +48,7 @@ def render(frame: pd.DataFrame) -> None:
             st.write(anomaly_explanation(result))
             st.dataframe(result.data.loc[result.data["is_anomaly"]], width="stretch")
             st.download_button("Export anomalies CSV", result.data.loc[result.data["is_anomaly"]].to_csv(index=False), "anomalies.csv", "text/csv")
-    with comparison_tab:
+    else:
         dimensions = [column for column in ("Region", "Product Category", "Customer Segment", "Country") if column in frame]
         if not dimensions:
             render_empty("No supported comparison dimension is available.")

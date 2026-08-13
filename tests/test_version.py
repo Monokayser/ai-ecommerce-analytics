@@ -12,8 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_release_version_is_consistent():
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-    assert APP_VERSION == "1.12.3"
-    assert APP_RELEASE == "v1.12.3"
+    assert APP_VERSION == "1.12.4"
+    assert APP_RELEASE == "v1.12.4"
     assert project["project"]["version"] == APP_VERSION
     assert f"version: {APP_VERSION}" in (ROOT / "CITATION.cff").read_text(encoding="utf-8")
 

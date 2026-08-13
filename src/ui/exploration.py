@@ -1,4 +1,4 @@
-"""Eight-chart data exploration section."""
+"""Lazy-rendered nine-chart data exploration section."""
 
 from __future__ import annotations
 
@@ -24,35 +24,44 @@ def _render_workspace(frame: pd.DataFrame, filters: dict) -> None:
         return
     context = active_filter_text(filters)
     st.caption("Switch views instantly; hover, zoom, drill, animate, switch analytical modes, and download from each chart toolbar.")
-    tabs = st.tabs(["⌁ Trend", "◎ Geography", "▦ Correlation", "◇ Distribution", "◫ Hierarchy", "▥ Grouped Bar", "↗ Relationship", "◈ 3D Space", "▶ Animation"])
-    with tabs[0]:
+    views = ["Trend", "Geography", "Correlation", "Distribution", "Hierarchy", "Grouped Bar", "Relationship", "3D Space", "Animation"]
+    view = st.segmented_control(
+        "Visualization view",
+        views,
+        default="Trend",
+        required=True,
+        key="exploration_view",
+        width="stretch",
+        help="Only the selected visualization is rendered, keeping interactions fast on large datasets.",
+    )
+    if view == "Trend":
         if {"Order Date", "Sales"}.issubset(frame): st.plotly_chart(time_series_chart(frame, context), width="stretch")
         else: render_empty("Order Date and Sales are required for this chart.")
-    with tabs[1]:
+    elif view == "Geography":
         if ("Country" in frame or "Region" in frame) and ("Sales" in frame or "Profit" in frame): st.plotly_chart(geographic_chart(frame, context), width="stretch")
         else: render_empty("A geographic field and numeric measure are required.")
-    with tabs[2]:
+    elif view == "Correlation":
         if len(frame.select_dtypes(include="number").columns) >= 2: st.plotly_chart(correlation_chart(frame, context), width="stretch")
         else: render_empty("At least two numeric columns are required.")
-    with tabs[3]:
+    elif view == "Distribution":
         metrics = [column for column in ("Sales", "Profit", "Quantity", "Discount") if column in frame]
         if metrics:
             metric = st.selectbox("Distribution metric", metrics)
             st.plotly_chart(distribution_chart(frame, metric, context), width="stretch")
         else: render_empty("No supported numeric measure is available.")
-    with tabs[4]:
+    elif view == "Hierarchy":
         if "Sales" in frame and any(column in frame for column in ("Region", "Product Category", "Sub-Category")):
             hierarchy_mode = st.radio("Hierarchy mode", ["Sunburst", "Treemap"], horizontal=True)
             st.caption("Click a segment to drill into the hierarchy; click the center or breadcrumb to move back up.")
             st.plotly_chart(hierarchy_chart(frame, context, hierarchy_mode.lower()), width="stretch")
         else: render_empty("Hierarchy fields are unavailable.")
-    with tabs[5]:
+    elif view == "Grouped Bar":
         dimensions = [column for column in ("Product Category", "Customer Segment", "Region") if column in frame]
         if dimensions:
             dimension = st.selectbox("Bar dimension", dimensions)
             st.plotly_chart(grouped_bar_chart(frame, dimension, context), width="stretch")
         else: render_empty("No comparison dimension is available.")
-    with tabs[6]:
+    elif view == "Relationship":
         numeric = [column for column in ("Sales", "Profit", "Discount", "Quantity") if column in frame]
         if len(numeric) >= 2:
             relationship_controls = st.columns(2)
@@ -66,7 +75,7 @@ def _render_workspace(frame: pd.DataFrame, filters: dict) -> None:
                 st.caption("Point size represents Sales when available; color represents a business dimension. Zoom or box-select to inspect clusters.")
                 st.plotly_chart(scatter_chart(frame, x_metric, y_metric, context), width="stretch")
         else: render_empty("At least two numeric measures are required.")
-    with tabs[7]:
+    elif view == "3D Space":
         supported_3d = [column for column in ("Sales", "Profit", "Discount", "Quantity") if column in frame]
         if len(supported_3d) >= 3:
             mode = st.radio(
@@ -99,7 +108,7 @@ def _render_workspace(frame: pd.DataFrame, filters: dict) -> None:
                         width="stretch",
                     )
         else: render_empty("Three numeric measures are required for the 3D insight space.")
-    with tabs[8]:
+    elif view == "Animation":
         animation_metrics = [column for column in ("Sales", "Profit", "Quantity") if column in frame]
         if "Order Date" in frame and animation_metrics and any(column in frame for column in ("Product Category", "Region")):
             with st.container(key="animation_workspace"):

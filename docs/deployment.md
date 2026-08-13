@@ -37,7 +37,7 @@ The app also works without these entries using the deterministic local planner. 
 - A question returns a validated query and evidence table.
 - Upload rejection, filter reset, and empty states are clear.
 - PNG/SVG export capability is reported; if Chromium is unavailable, the UI gives an actionable message.
-- The footer contains `data-app-version="v1.12.3"` and no major browser-console errors occur.
+- The footer contains `data-app-version="v1.12.4"` and no major browser-console errors occur.
 
 The production app is intentionally public and has no viewer sign-in. Authentication testing is therefore not applicable to this approved release; do not upload private business data during public QA.
 

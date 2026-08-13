@@ -92,7 +92,7 @@ test.describe("local production interface", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     const app = await openApplication(page);
     await selectSection(app, /Explore data/);
-    await app.getByRole("tab", { name: /Animation/ }).click();
+    await app.getByRole("radio", { name: "Animation", exact: true }).click();
     const workspace = app.locator(".st-key-animation_workspace");
     const chart = workspace.locator('[data-testid="stPlotlyChart"]');
     await expect(workspace).toBeVisible();
@@ -108,12 +108,23 @@ test.describe("local production interface", () => {
     await expectNoHorizontalOverflow(app);
   });
 
+  test("renders only the selected exploration chart", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "The lazy-render regression runs once; browser engines retain section coverage.");
+    const app = await openApplication(page);
+    await selectSection(app, /Explore data/);
+    await expect(app.getByRole("radiogroup", { name: "Visualization view" })).toBeVisible();
+    await expect(app.locator('[data-testid="stPlotlyChart"]')).toHaveCount(1);
+    await app.getByRole("radio", { name: "Correlation", exact: true }).click();
+    await expect(app.getByText("Correlation Matrix", { exact: false })).toBeVisible();
+    await expect(app.locator('[data-testid="stPlotlyChart"]')).toHaveCount(1);
+  });
+
   test("six sections, release marker, responsive navigation, and no browser errors", async ({ page }) => {
     const browserErrors: string[] = [];
     page.on("console", (message) => message.type() === "error" && browserErrors.push(message.text()));
     page.on("pageerror", (error) => browserErrors.push(error.message));
     const app = await openApplication(page);
-    await expect(app.locator('[data-app-version="v1.12.3"]')).toBeVisible();
+    await expect(app.locator('[data-app-version="v1.12.4"]')).toBeVisible();
     await expectBalancedNavigation(app);
     await expectNoHorizontalOverflow(app);
     for (const [name, heading] of [
