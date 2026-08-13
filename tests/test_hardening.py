@@ -69,6 +69,8 @@ def test_accessibility_and_cross_browser_css_guards_present():
     assert "[data-tag]" in APP_CSS
     assert "grid-template-columns: repeat(6, minmax(0, 1fr))" in APP_CSS
     assert "min-height: 58px" in APP_CSS
+    assert '[data-testid="stPlotlyChart"] {' in APP_CSS
+    assert "transform: none !important" in APP_CSS
 
 
 def test_streamlit_and_container_security_defaults():

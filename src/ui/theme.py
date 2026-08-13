@@ -293,11 +293,16 @@ APP_CSS = r"""
     [data-testid="stMetricDelta"] svg { filter: drop-shadow(0 0 5px currentColor); }
     [data-testid="stPlotlyChart"], [data-testid="stDataFrame"], [data-testid="stJson"] {
         overflow: hidden;
+        width: 100%;
+        min-width: 0;
         border: 1px solid var(--line);
         border-radius: 24px;
         background: linear-gradient(145deg, rgba(4, 23, 17, .88), rgba(2, 12, 10, .94));
         box-shadow: var(--glass-shadow);
     }
+    [data-testid="stPlotlyChart"] > div,
+    [data-testid="stPlotlyChart"] .js-plotly-plot,
+    [data-testid="stPlotlyChart"] .plot-container { width: 100% !important; min-width: 0 !important; }
     [data-testid="stDataFrame"] { padding: .2rem; }
 
     /* Tabs, expanders, status, alerts */
@@ -923,7 +928,7 @@ APP_CSS = r"""
     }
     @keyframes softFloat { 0%,100% { transform:translate3d(0,0,0) rotateX(0); } 50% { transform:translate3d(0,-3px,8px) rotateX(4deg); } }
     .mode-orb, .sidebar-mark { animation: softFloat 4s ease-in-out infinite; }
-    [data-testid="stMetric"], [data-testid="stPlotlyChart"], [data-testid="stVerticalBlockBorderWrapper"] { animation: revealUp .48s ease both; }
+    [data-testid="stMetric"], [data-testid="stVerticalBlockBorderWrapper"] { animation: revealUp .48s ease both; }
     @media (prefers-reduced-motion: no-preference) {
         .telemetry-rail i { animation:railGrow .95s .28s cubic-bezier(.2,.8,.2,1) both; }
         .kpi-meter i { animation:railGrow .9s calc(var(--delay, 0ms) + .28s) cubic-bezier(.2,.8,.2,1) both; }
@@ -935,24 +940,34 @@ APP_CSS = r"""
         .kpi-card::before { animation:edgePulse 3.6s calc(var(--delay, 0ms) + .4s) ease-in-out infinite; }
     }
     @media (hover: hover) and (pointer: fine) {
-        [data-testid="stMetric"]:hover, [data-testid="stPlotlyChart"]:hover,
+        [data-testid="stMetric"]:hover,
         [data-testid="stVerticalBlockBorderWrapper"]:hover, .viz-feature:hover, .kpi-card:hover {
             animation: none !important;
         }
-        [data-testid="stMetric"], .mode-card, .answer-card, [data-testid="stPlotlyChart"], [data-testid="stDataFrame"],
+        [data-testid="stMetric"], .mode-card, .answer-card, [data-testid="stDataFrame"],
         [data-testid="stExpander"], [data-testid="stAlert"], .viz-feature, .kpi-card, .ai-guide > div, .ai-stage,
         .ai-response-empty, .demo-strip, .hero-pill, .filter-pill, .trust-pill {
             transform: perspective(900px) translateZ(0);
             transition: transform .24s cubic-bezier(.2,.8,.2,1), border-color .24s ease, box-shadow .24s ease, filter .24s ease, background .24s ease;
+        }
+        [data-testid="stPlotlyChart"] {
+            transform: none !important;
+            transition: border-color .24s ease, box-shadow .24s ease, filter .24s ease;
         }
         [data-testid="stMetric"]:hover, .mode-card:hover, .answer-card:hover, .ai-response-empty:hover {
             transform: perspective(900px) translateY(-3px) translateZ(6px) rotateX(1deg);
             border-color: rgba(137, 223, 255, .42);
             box-shadow: 0 30px 80px rgba(0,0,0,.46), 0 0 34px rgba(42,170,235,.09), inset 0 1px 0 rgba(255,255,255,.1);
         }
-        [data-testid="stPlotlyChart"]:hover, [data-testid="stDataFrame"]:hover {
+        [data-testid="stDataFrame"]:hover {
             transform:perspective(1000px) translateY(-4px) translateZ(8px);
             border-color:rgba(127,255,225,.42);
+            box-shadow:0 30px 78px rgba(0,0,0,.45),0 0 34px rgba(61,231,177,.1),inset 0 1px 0 rgba(255,255,255,.08);
+        }
+        [data-testid="stPlotlyChart"]:hover {
+            transform:none !important;
+            border-color:rgba(127,255,225,.42);
+            filter:brightness(1.025);
             box-shadow:0 30px 78px rgba(0,0,0,.45),0 0 34px rgba(61,231,177,.1),inset 0 1px 0 rgba(255,255,255,.08);
         }
         [data-testid="stExpander"]:hover, [data-testid="stAlert"]:hover, .ai-guide > div:hover, .ai-stage:hover, .demo-strip:hover {

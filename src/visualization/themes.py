@@ -18,7 +18,6 @@ def apply_theme(figure: go.Figure, *, source_context: str = "") -> go.Figure:
         margin={"l": 50, "r": 35, "t": 75, "b": 55},
         legend={"orientation": "h", "y": 1.06, "x": 0, "font": {"color": "#B9D9CD"}},
         hoverlabel={"bgcolor": "#071C15", "bordercolor": "#39A982", "font_color": "#F7FFFC", "font_size": 12},
-        transition={"duration": 420, "easing": "cubic-in-out"},
         hovermode="closest",
         modebar={"bgcolor": "rgba(3,18,13,.65)", "color": "#7FB5A3", "activecolor": "#7FFFE1"},
     )

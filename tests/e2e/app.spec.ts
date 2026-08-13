@@ -32,6 +32,42 @@ test.describe("local production interface", () => {
     }
   });
 
+  test("chart canvas resizes with the Streamlit sidebar", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "The layout regression runs once; engines retain functional chart coverage.");
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const app = await openApplication(page);
+    await selectSection(app, /Explore data/);
+    const chart = app.locator('[data-testid="stPlotlyChart"]').first();
+    const svg = chart.locator("svg.main-svg").first();
+    await expect(chart).toBeVisible();
+    await expect(svg).toBeVisible();
+    const expandSidebar = app.getByTestId("stExpandSidebarButton");
+    if (await expandSidebar.isVisible()) {
+      await expandSidebar.click();
+      await expect(app.getByTestId("stSidebarCollapseButton")).toBeVisible();
+    }
+    const before = await chart.boundingBox();
+    const collapseSidebar = app.locator('button[data-testid="stSidebarCollapseButton"], [data-testid="stSidebarCollapseButton"] button');
+    await app.getByTestId("stSidebarHeader").hover();
+    await expect(collapseSidebar).toBeVisible();
+    await collapseSidebar.click();
+    await expect(expandSidebar).toBeVisible();
+    await expect.poll(async () => (await chart.boundingBox())?.width || 0).toBeGreaterThan(before!.width + 200);
+    await expect.poll(async () => {
+      const chartBox = await chart.boundingBox();
+      const svgBox = await svg.boundingBox();
+      return chartBox && svgBox ? Math.abs(chartBox.width - svgBox.width) : Number.POSITIVE_INFINITY;
+    }).toBeLessThanOrEqual(2);
+    const after = await chart.boundingBox();
+    const svgAfter = await svg.boundingBox();
+    expect(before).not.toBeNull();
+    expect(after).not.toBeNull();
+    expect(svgAfter).not.toBeNull();
+    expect(after!.width).toBeGreaterThan(before!.width + 200);
+    expect(Math.abs(after!.width - svgAfter!.width)).toBeLessThanOrEqual(2);
+    await expectNoHorizontalOverflow(app);
+  });
+
   test("six sections, release marker, responsive navigation, and no browser errors", async ({ page }) => {
     const browserErrors: string[] = [];
     page.on("console", (message) => message.type() === "error" && browserErrors.push(message.text()));
