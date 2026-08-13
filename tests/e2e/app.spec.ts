@@ -110,6 +110,48 @@ test.describe("local production interface", () => {
     await expect(app.getByRole("button", { name: /Reset agent/i })).toBeEnabled();
   });
 
+  test("AI composer is readable and completes a verified chat workflow", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "chromium", "The complete assistant workflow runs once; provider contracts are covered in Python tests.");
+    test.setTimeout(90_000);
+    const app = await openApplication(page);
+    await selectSection(app, /Ask AI/);
+
+    const question = app.getByRole("textbox", { name: "Your question" });
+    const submit = app.getByRole("button", { name: "Analyze my question" });
+    const buttonPresentation = await submit.evaluate((element) => {
+      const button = element as HTMLElement;
+      const label = button.querySelector("p") || button;
+      const bounds = button.getBoundingClientRect();
+      return {
+        height: bounds.height,
+        background: getComputedStyle(button).backgroundImage,
+        text: getComputedStyle(label).color,
+        weight: getComputedStyle(label).fontWeight,
+      };
+    });
+    const placeholder = await question.evaluate((element) => getComputedStyle(element, "::placeholder").color);
+    expect(buttonPresentation.height).toBeGreaterThanOrEqual(44);
+    expect(buttonPresentation.background).toContain("linear-gradient");
+    expect(buttonPresentation.text).toBe("rgb(3, 32, 25)");
+    expect(Number(buttonPresentation.weight)).toBeGreaterThanOrEqual(700);
+    expect(placeholder).toBe("rgb(170, 195, 186)");
+
+    const prompt = "Compare total sales by region from highest to lowest.";
+    await question.fill(prompt);
+    await submit.click();
+    await expect(app.locator('article[aria-label="Your question"]')).toContainText(prompt, { timeout: 45_000 });
+    await expect(app.locator('article[aria-label="Verified assistant answer"]')).toBeVisible();
+    await expect(app.getByText("Query validated", { exact: false })).toBeVisible();
+    await expect(app.getByRole("button", { name: "Download Word" })).toBeVisible();
+    await expect(app.getByRole("button", { name: "Download PDF" })).toBeVisible();
+
+    await app.getByRole("button", { name: "Save response" }).click();
+    await expect(app.getByText(/Verified response saved/i)).toBeVisible();
+    await app.getByText(/Agent settings and privacy/i).click();
+    await app.getByRole("button", { name: /Reset agent/i }).click();
+    await expect(app.getByText(/What would you like to understand/i)).toBeVisible();
+  });
+
   test("has no serious or critical automated accessibility violations", async ({ page }) => {
     const app = await openApplication(page);
     expect(app).toBe(page);

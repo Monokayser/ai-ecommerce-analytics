@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 from datetime import datetime, timezone
 from html import escape
 from typing import Any
@@ -19,9 +20,13 @@ from src.reporting.pdf_report import generate_pdf_report
 from src.reporting.word_report import generate_word_report
 from src.ui.brand import inline_brand_icon
 from src.ui.components import render_empty
+from src.utils.exceptions import AppError
 from src.visualization.chart_selector import select_chart
 from src.visualization.charts import result_chart
 from src.visualization.export import export_chart
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 CAPABILITIES = [
@@ -196,7 +201,10 @@ def _report_payload(bundle: DatasetBundle, last: dict[str, Any]) -> ReportPayloa
 
 
 def _render_response_toolbar(bundle: DatasetBundle, last: dict[str, Any] | None) -> None:
-    st.markdown("### 🤖 Verified response")
+    st.markdown(
+        '<div class="response-heading"><div><div class="section-kicker">Evidence workspace</div><h3>🤖 Verified response</h3></div><span class="trust-pill safe">✓ Read-only</span></div>',
+        unsafe_allow_html=True,
+    )
     save_column, word_column, pdf_column = st.columns(3)
     if not last:
         save_column.button("Save response", disabled=True, width="stretch", help="Save this response in the current session")
@@ -239,9 +247,13 @@ def _render_response_toolbar(bundle: DatasetBundle, last: dict[str, Any] | None)
 
 def _render_last_result(last: dict[str, Any], pipeline: NLQueryPipeline) -> None:
     generated, result, narrative = last["generated"], last["result"], last["narrative"]
+    st.markdown(
+        f'<div class="ai-chat-thread" role="log" aria-live="polite" aria-label="AI conversation"><article class="ai-chat-turn user" aria-label="Your question"><div class="ai-chat-bubble"><span class="ai-chat-label">You asked</span><p>{escape(str(last.get("question", "")))}</p></div><div class="ai-chat-avatar" aria-hidden="true">YOU</div></article></div>',
+        unsafe_allow_html=True,
+    )
     _render_pipeline_trace(last, pipeline)
     st.markdown(
-        f'<div class="answer-card"><div class="answer-eyebrow">Verified AI answer</div><h3>{escape(narrative.direct_answer)}</h3><p>{escape(narrative.analysis)}</p><div class="trust-row"><span class="trust-pill safe">✓ Query validated</span><span class="trust-pill">{escape(str(last.get("pipeline_metrics", {}).get("analysis_mode", "Balanced")))} mode</span><span class="trust-pill">Read-only dataset access</span><span class="trust-pill">Evidence grounded</span><span class="trust-pill">{len(result.data):,} result rows</span></div></div>',
+        f'<article class="answer-card ai-chat-assistant" aria-label="Verified assistant answer"><div class="ai-chat-avatar" aria-hidden="true">✦</div><div class="ai-chat-assistant-content"><div class="answer-eyebrow">Verified assistant answer</div><h3>{escape(narrative.direct_answer)}</h3><p>{escape(narrative.analysis)}</p><div class="trust-row"><span class="trust-pill safe">✓ Query validated</span><span class="trust-pill">{escape(str(last.get("pipeline_metrics", {}).get("analysis_mode", "Balanced")))} mode</span><span class="trust-pill">Read-only dataset access</span><span class="trust-pill">Evidence grounded</span><span class="trust-pill">{len(result.data):,} result rows</span></div></div></article>',
         unsafe_allow_html=True,
     )
     answer_tab, chart_tab, data_tab, evidence_tab = st.tabs(["✦ Answer", "⌁ Chart", "▦ Data", "✓ How it was verified"])
@@ -355,9 +367,14 @@ def _run_question(
                 progress=report_progress,
             )
             status.update(label="Verified response ready", state="complete", expanded=False)
-        except Exception as exc:
+        except AppError as exc:
             status.update(label="Analysis stopped safely", state="error")
             st.error(str(exc))
+            return
+        except Exception:
+            LOGGER.exception("unexpected_ai_assistant_failure", extra={"event": "ai_assistant", "status": "failed"})
+            status.update(label="Analysis stopped safely", state="error")
+            st.error("The analysis could not be completed safely. Reset the agent and try a shorter question.")
             return
     memory.append(
         Interaction(
@@ -472,16 +489,20 @@ def render(
             st.divider()
             st.markdown("#### 💬 Ask your own question")
             scope_text = f"Using {len(frame):,} rows" + (f" with {len(filters)} active filter(s)." if filters else " with no filters.")
-            st.caption(scope_text + " Current filters always take priority over earlier conversation.")
+            st.markdown(
+                f'<div class="ai-scope-note" role="status"><span>●</span><div>{escape(scope_text)} Current filters always take priority over earlier conversation.</div></div>',
+                unsafe_allow_html=True,
+            )
             with st.form("ai_task_form", border=False):
                 draft = st.text_area(
                     "Your question",
                     key="ai_query_draft",
-                    height=132,
+                    height=118,
                     max_chars=settings.question_max_chars,
                     placeholder="Example: Compare sales and profit by region and rank the results.",
                     help="Ask about sales, profit, customers, products, countries, regions, discounts, or trends.",
                 )
+                st.markdown('<div class="composer-guidance">For the clearest answer, include a measure, dimension, comparison, or time period.</div>', unsafe_allow_html=True)
                 if st.form_submit_button("Analyze my question", type="primary", width="stretch"):
                     requested_question = draft
             st.divider()

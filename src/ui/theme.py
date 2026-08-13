@@ -167,7 +167,7 @@ APP_CSS = r"""
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05);
     }
     input, textarea { color: var(--text) !important; caret-color: var(--cyan) !important; }
-    input::placeholder, textarea::placeholder { color: #7790a8 !important; }
+    input::placeholder, textarea::placeholder { color: #aac3ba !important; opacity: 1 !important; }
     [data-baseweb="popover"], [data-baseweb="menu"] { background: #0c2033 !important; color: var(--text) !important; }
     [role="option"] { color: #e9f6ff !important; }
     [role="option"]:hover { background: rgba(73, 171, 229, .16) !important; }
@@ -241,17 +241,26 @@ APP_CSS = r"""
         transform: translateY(-2px);
         box-shadow: 0 12px 30px rgba(31, 217, 160, .18), inset 0 1px 0 rgba(255, 255, 255, .13);
     }
-    [data-testid="stBaseButton-primary"] {
+    [data-testid^="stBaseButton-primary"] {
+        min-height: 46px !important;
         border-color: rgba(88, 239, 220, .72) !important;
-        color: #03171d !important;
+        color: #032019 !important;
         background: linear-gradient(120deg, #62efc3, #8affdf) !important;
         box-shadow: 0 12px 30px rgba(31, 212, 156, .2), inset 0 1px 0 rgba(255,255,255,.42) !important;
     }
-    [data-testid="stBaseButton-primary"]:hover {
-        color: #03171d !important;
+    [data-testid^="stBaseButton-primary"] p,
+    [data-testid^="stBaseButton-primary"] span,
+    [data-testid^="stBaseButton-primary"] svg { color: #032019 !important; fill: currentColor; font-weight: 800 !important; }
+    [data-testid^="stBaseButton-primary"]:hover {
+        color: #021812 !important;
         border-color: #9ff8ed !important;
+        background: linear-gradient(120deg, #78f7d1, #a1ffe7) !important;
         box-shadow: 0 16px 36px rgba(31, 195, 202, .3), inset 0 1px 0 rgba(255,255,255,.55) !important;
     }
+    [data-testid^="stBaseButton-primary"]:hover p,
+    [data-testid^="stBaseButton-primary"]:hover span,
+    [data-testid^="stBaseButton-primary"]:hover svg { color:#021812 !important; }
+    [data-testid^="stBaseButton-primary"]:active { transform:translateY(0) scale(.992) !important; }
     .stButton > button:focus-visible, .stDownloadButton > button:focus-visible { outline: 3px solid rgba(98, 220, 255, .48) !important; outline-offset: 2px; }
     .stButton > button:disabled, .stDownloadButton > button:disabled,
     [data-testid^="stBaseButton"]:disabled {
@@ -347,6 +356,54 @@ APP_CSS = r"""
         background: rgba(8, 29, 48, .88) !important;
         box-shadow: 0 18px 55px rgba(0, 0, 0, .32), 0 0 28px rgba(47, 164, 225, .11);
     }
+
+    /* AI question composer: strong contrast, clear boundary, and touch-safe action */
+    .st-key-ai_task_form,
+    [data-testid="stForm"]:has(textarea[aria-label="Your question"]) {
+        padding: .78rem !important;
+        border: 1px solid rgba(127,255,213,.2) !important;
+        border-radius: 18px !important;
+        background: linear-gradient(145deg, rgba(3,24,17,.94), rgba(4,35,25,.82)) !important;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.045), 0 16px 34px rgba(0,0,0,.18);
+    }
+    .st-key-ai_task_form [data-testid="stTextAreaRootElement"],
+    [data-testid="stForm"]:has(textarea[aria-label="Your question"]) [data-testid="stTextAreaRootElement"] {
+        overflow: hidden;
+        border: 1px solid rgba(127,255,213,.25) !important;
+        border-radius: 14px !important;
+        background: #03150f !important;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+        transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .st-key-ai_task_form [data-testid="stTextAreaRootElement"]:focus-within,
+    [data-testid="stForm"]:has(textarea[aria-label="Your question"]) [data-testid="stTextAreaRootElement"]:focus-within {
+        border-color: rgba(127,255,225,.72) !important;
+        background:#041b14 !important;
+        box-shadow: 0 0 0 3px rgba(57,230,189,.11), 0 0 24px rgba(57,230,189,.09);
+    }
+    textarea[aria-label="Your question"] {
+        min-height: 106px !important;
+        padding: .9rem !important;
+        color:#f2fff9 !important;
+        background:transparent !important;
+        font-size:.92rem !important;
+        line-height:1.55 !important;
+    }
+    .ai-scope-note {
+        display:flex;
+        align-items:flex-start;
+        gap:.55rem;
+        margin:.15rem 0 .65rem;
+        padding:.62rem .7rem;
+        border:1px solid rgba(127,255,213,.14);
+        border-radius:13px;
+        color:#b8d2c8;
+        background:rgba(26,92,70,.11);
+        font-size:.76rem;
+        line-height:1.5;
+    }
+    .ai-scope-note span { color:var(--teal); font-size:.82rem; filter:drop-shadow(0 0 6px rgba(57,230,189,.42)); }
+    .composer-guidance { margin:.5rem .15rem .15rem; color:#a6bfb6; font-size:.72rem; line-height:1.45; }
 
     /* Aurora command hero inspired by the supplied Aether reference */
     .app-hero {
@@ -777,31 +834,70 @@ APP_CSS = r"""
         align-items: center;
         margin: .4rem 0 1.15rem;
         padding: 1rem 1.1rem;
-        border: 1px solid rgba(113, 218, 255, .27);
+        border: 1px solid rgba(127, 255, 213, .24);
         border-radius: 22px;
-        background: radial-gradient(circle at 96% 110%, rgba(89, 213, 255, .25), transparent 23%), linear-gradient(135deg, rgba(9, 32, 53, .92), rgba(10, 45, 72, .72));
+        background: radial-gradient(circle at 96% 110%, rgba(57,230,189,.2), transparent 23%), linear-gradient(135deg, rgba(4,29,21,.94), rgba(7,48,35,.8));
         box-shadow: var(--glass-shadow);
     }
     .mode-orb { position:relative; width:46px; height:46px; display:grid; place-items:center; border-radius:16px; background:transparent; color:#02111c; font-size:1.25rem; box-shadow:0 0 30px rgba(77,202,255,.28); transform-style:preserve-3d; }
     .mode-orb svg { width: 100%; height: 100%; display: block; }
     .mode-orb::after { content:""; position:absolute; inset:5px; border:1px solid rgba(255,255,255,.22); border-radius:12px; transform:translateZ(8px); pointer-events:none; }
     .mode-card strong { color: #f5fbff; font-size: .95rem; }
-    .mode-card span { color: #9eb4c7; font-size: .82rem; line-height: 1.45; }
+    .mode-card span { color: #b3cbc2; font-size: .82rem; line-height: 1.5; }
     .mode-meta { display:flex; flex-wrap:wrap; gap:.45rem; margin-top:.55rem; }
-    .mode-meta b { padding:.28rem .55rem; border:1px solid rgba(136,215,255,.17); border-radius:999px; color:#bfeeff; background:rgba(80,173,222,.09); font-size:.7rem; font-weight:700; }
+    .mode-meta b { padding:.28rem .55rem; border:1px solid rgba(127,255,213,.18); border-radius:999px; color:#caffed; background:rgba(57,230,189,.08); font-size:.7rem; font-weight:700; }
     .answer-card {
         position: relative;
         overflow: hidden;
         margin: .65rem 0 1rem;
         padding: 1.25rem 1.35rem;
-        border: 1px solid rgba(125, 220, 255, .32);
+        border: 1px solid rgba(127, 255, 213, .3);
         border-radius: 24px;
-        background: radial-gradient(circle at 96% 120%, rgba(93, 219, 255, .25), transparent 25%), linear-gradient(145deg, rgba(10, 35, 57, .93), rgba(9, 26, 43, .9));
-        box-shadow: var(--glass-shadow), 0 0 38px rgba(40, 162, 224, .08);
+        background: radial-gradient(circle at 96% 120%, rgba(57,230,189,.2), transparent 25%), linear-gradient(145deg, rgba(5,35,25,.95), rgba(3,22,16,.94));
+        box-shadow: var(--glass-shadow), 0 0 38px rgba(57,230,189,.07);
     }
     .answer-card h3 { margin: .15rem 0 .45rem; color: #f7fcff; font-size: 1.3rem; line-height: 1.25; }
-    .answer-card p { margin: 0 0 .85rem; max-width: 950px; color: #b6cadb; line-height: 1.58; }
-    .answer-eyebrow { color:#6fe1ff; font-size:.69rem; font-weight:800; letter-spacing:.15em; text-transform:uppercase; }
+    .answer-card p { margin: 0 0 .85rem; max-width: 950px; color: #c0d5cd; line-height: 1.62; }
+    .answer-eyebrow { color:#7fffe1; font-size:.69rem; font-weight:800; letter-spacing:.15em; text-transform:uppercase; }
+    .response-heading {
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:1rem;
+        margin:.15rem 0 .65rem;
+    }
+    .response-heading h3 { margin:.12rem 0 0; color:#f5fffB; font-size:1.22rem; }
+    .ai-chat-thread { display:flex; flex-direction:column; gap:.7rem; margin:.2rem 0 .9rem; }
+    .ai-chat-turn { display:flex; align-items:flex-start; gap:.65rem; }
+    .ai-chat-turn.user { justify-content:flex-end; }
+    .ai-chat-avatar {
+        display:grid;
+        place-items:center;
+        flex:0 0 auto;
+        width:2rem;
+        height:2rem;
+        border:1px solid rgba(127,255,213,.27);
+        border-radius:11px;
+        color:#032019;
+        background:linear-gradient(135deg,#62efc3,#8affdf);
+        font-size:.72rem;
+        font-weight:900;
+        box-shadow:0 7px 18px rgba(21,165,121,.16);
+    }
+    .ai-chat-bubble {
+        max-width:min(88%,760px);
+        padding:.72rem .85rem;
+        border:1px solid rgba(127,255,213,.2);
+        border-radius:17px 17px 5px 17px;
+        color:#eafff7;
+        background:linear-gradient(135deg,rgba(23,105,80,.38),rgba(8,58,43,.42));
+        box-shadow:0 10px 26px rgba(0,0,0,.2);
+    }
+    .ai-chat-label { display:block; margin-bottom:.25rem; color:#97bdb0; font-size:.65rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+    .ai-chat-bubble p { margin:0; color:#effff9; font-size:.88rem; line-height:1.55; }
+    .ai-chat-assistant { display:grid; grid-template-columns:2.2rem minmax(0,1fr); gap:.85rem; align-items:start; }
+    .ai-chat-assistant .ai-chat-avatar { color:#032019; border-radius:12px; }
+    .ai-chat-assistant-content { min-width:0; }
     .trust-pill { padding:.3rem .58rem; color:#b6d7e8; font-size:.69rem; }
     .trust-pill.safe { color:#a7f5d2; border-color:rgba(85,230,165,.24); background:rgba(32,171,117,.09); }
     .ai-guide {
@@ -816,9 +912,9 @@ APP_CSS = r"""
         gap: .15rem .65rem;
         align-items: center;
         padding: .78rem .85rem;
-        border: 1px solid rgba(125, 220, 255, .17);
+        border: 1px solid rgba(127,255,213,.16);
         border-radius: 16px;
-        background: rgba(8, 29, 48, .65);
+        background: rgba(5,35,25,.66);
     }
     .ai-guide span {
         grid-row: 1 / span 2;
@@ -832,12 +928,12 @@ APP_CSS = r"""
         font-weight: 900;
     }
     .ai-guide strong { color:#eefaff; font-size:.78rem; }
-    .ai-guide small { color:#8fa9bc; font-size:.67rem; line-height:1.35; }
+    .ai-guide small { color:#a9c1b8; font-size:.67rem; line-height:1.4; }
     .capability-note {
         margin: -.48rem .55rem .7rem;
         padding: .1rem .35rem .48rem;
         border-bottom: 1px solid rgba(125, 220, 255, .08);
-        color: #8fa9bc;
+        color: #a9c1b8;
         font-size: .69rem;
         line-height: 1.42;
     }
@@ -847,9 +943,9 @@ APP_CSS = r"""
         gap: .55rem;
         margin: .25rem 0 1rem;
         padding: .72rem;
-        border: 1px solid rgba(125, 220, 255, .18);
+        border: 1px solid rgba(127,255,213,.17);
         border-radius: 18px;
-        background: rgba(5, 20, 34, .72);
+        background: rgba(4,27,20,.78);
     }
     .ai-stage {
         position: relative;
@@ -875,7 +971,7 @@ APP_CSS = r"""
         font-weight: 900;
     }
     .ai-stage strong { color:#effaff; font-size:.73rem; line-height:1.25; }
-    .ai-stage small { color:#91adbf; font-size:.62rem; line-height:1.25; }
+    .ai-stage small { color:#a6c0b7; font-size:.62rem; line-height:1.3; }
     .ai-response-empty {
         display: grid;
         place-items: center;
@@ -1044,6 +1140,10 @@ APP_CSS = r"""
         .mode-card { grid-template-columns: 1fr; }
         .mode-orb { width: 42px; height: 42px; }
         .answer-card { padding: 1rem; border-radius: 20px; }
+        .response-heading { align-items:flex-start; }
+        .ai-chat-bubble { max-width:calc(100% - 2.65rem); }
+        .ai-chat-assistant { grid-template-columns:1.9rem minmax(0,1fr); gap:.65rem; }
+        .ai-chat-avatar { width:1.9rem; height:1.9rem; border-radius:10px; }
         .ai-pipeline { grid-template-columns: 1fr; }
         [data-testid="stDataFrame"], [data-testid="stPlotlyChart"] { border-radius: 18px; }
         .stButton > button, .stDownloadButton > button { width: 100%; min-height: 46px; }

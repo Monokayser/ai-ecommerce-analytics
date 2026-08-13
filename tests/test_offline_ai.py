@@ -14,6 +14,8 @@ from src.llm.nl_query import NLQueryPipeline
 from src.llm.offline_planner import OfflineQueryPlanner
 from src.llm.prompts import PromptRepository
 from src.models import GeneratedQuery, NarrativeResponse
+from src.ui.ai_assistant import CAPABILITIES, FOLLOW_UPS
+from src.utils.exceptions import LLMResponseError
 
 
 def test_offline_planner_ranks_region(ecommerce_frame):
@@ -127,6 +129,110 @@ def test_deep_mode_uses_high_effort_for_plan_and_narrative(ecommerce_frame):
     assert pipeline.last_run_metrics["model_calls"] == 2
 
 
+def test_balanced_mode_uses_two_grounded_model_passes(ecommerce_frame):
+    settings = Settings(openai_api_key="test-key")
+    client = RecordingClient()
+    pipeline = NLQueryPipeline(settings, client, PromptRepository(settings.prompts_path), {})
+
+    pipeline.run(
+        "Show total sales by region.",
+        QueryEngine(ecommerce_frame),
+        inspect_schema(ecommerce_frame),
+        analysis_mode="balanced",
+    )
+
+    assert len(client.calls) == 2
+    assert pipeline.last_run_metrics["analysis_mode"] == "Balanced"
+    assert pipeline.last_run_metrics["model_calls"] == 2
+
+
+class CorrectionClient:
+    provider_name = "Test AI"
+    model = "correction-model"
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def complete(self, *, response_model, **_kwargs):
+        self.calls += 1
+        if response_model is GeneratedQuery and self.calls == 1:
+            return GeneratedQuery(
+                interpreted_question="Use a missing field.",
+                query='SELECT "Missing" FROM dataset',
+                columns_used=["Missing"],
+                reason="Deliberately invalid first plan.",
+            )
+        if response_model is GeneratedQuery:
+            return GeneratedQuery(
+                interpreted_question="Compare sales by region.",
+                query='SELECT "Region", SUM("Sales") AS "Total Sales" FROM dataset GROUP BY "Region" ORDER BY "Total Sales" DESC',
+                columns_used=["Region", "Sales"],
+                aggregation="SUM",
+                recommended_chart="bar",
+                reason="Corrected regional ranking.",
+            )
+        return NarrativeResponse(
+            direct_answer="The corrected query completed.",
+            analysis="The response uses only the validated replacement plan.",
+            key_findings=["A single correction was sufficient."],
+            limitations="Synthetic fixture.",
+            chart_caption="Validated regional sales result.",
+        )
+
+
+def test_pipeline_corrects_an_invalid_plan_exactly_once(ecommerce_frame):
+    settings = Settings(openai_api_key="test-key")
+    client = CorrectionClient()
+    pipeline = NLQueryPipeline(settings, client, PromptRepository(settings.prompts_path), {})
+
+    generated, result, _, corrected = pipeline.run(
+        "Show total sales by region.",
+        QueryEngine(ecommerce_frame),
+        inspect_schema(ecommerce_frame),
+    )
+
+    assert corrected is True
+    assert client.calls == 3
+    assert generated.columns_used == ["Region", "Sales"]
+    assert len(result.data) == 4
+    assert pipeline.last_run_metrics["corrected"] is True
+
+
+class NarrativeFailureClient(RecordingClient):
+    def complete(self, *, response_model, **kwargs):
+        if response_model is NarrativeResponse:
+            self.calls.append((kwargs.get("reasoning_effort"), kwargs.get("verbosity")))
+            raise LLMResponseError("Narrative service unavailable")
+        return super().complete(response_model=response_model, **kwargs)
+
+
+def test_pipeline_keeps_verified_results_when_narrative_provider_fails(ecommerce_frame):
+    settings = Settings(openai_api_key="test-key")
+    client = NarrativeFailureClient()
+    pipeline = NLQueryPipeline(settings, client, PromptRepository(settings.prompts_path), {})
+
+    _, result, narrative, corrected = pipeline.run(
+        "Show total sales by region.",
+        QueryEngine(ecommerce_frame),
+        inspect_schema(ecommerce_frame),
+    )
+
+    assert corrected is False
+    assert len(result.data) == 4
+    assert narrative.direct_answer
+    assert pipeline.last_run_metrics["provider_fallback"] is True
+    assert pipeline.last_run_metrics["fallback_reason"] == "Narrative service unavailable"
+
+
+@pytest.mark.parametrize("question", ["", "   ", "x" * 2001])
+def test_pipeline_rejects_empty_or_oversized_questions(ecommerce_frame, question):
+    settings = Settings(openai_api_key="")
+    pipeline = NLQueryPipeline(settings, None, PromptRepository(settings.prompts_path), {})
+
+    with pytest.raises(LLMResponseError, match="Question must contain"):
+        pipeline.run(question, QueryEngine(ecommerce_frame), inspect_schema(ecommerce_frame))
+
+
 def test_offline_planner_filters_named_subsets(ecommerce_frame):
     generated = OfflineQueryPlanner(ecommerce_frame).plan("Compare sales in the East and West regions.")
     assert "East" in generated.query and "West" in generated.query
@@ -145,4 +251,19 @@ def test_local_mode_executes_benchmark_question(ecommerce_frame, question):
     generated = OfflineQueryPlanner(ecommerce_frame).plan(question)
     result = QueryEngine(ecommerce_frame).execute(generated.query)
     assert result.data is not None
+    assert generated.columns_used
+
+
+@pytest.mark.parametrize(
+    "question",
+    [item[2] for item in CAPABILITIES]
+    + [question for _label, question in FOLLOW_UPS if question is not None],
+)
+def test_every_assistant_action_has_a_safe_local_execution_path(ecommerce_frame, question):
+    """Every visible preset and follow-up remains useful without a hosted API key."""
+    generated = OfflineQueryPlanner(ecommerce_frame).plan(question)
+    result = QueryEngine(ecommerce_frame).execute(generated.query)
+
+    assert result.data is not None
+    assert generated.query_language in {"duckdb_sql", "pandas"}
     assert generated.columns_used
