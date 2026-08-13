@@ -68,21 +68,13 @@ def main() -> None:
     filters = render_filters(bundle.cleaned)
     filtered = apply_filters(bundle.cleaned, filters)
     st.sidebar.caption(f"Active scope: {len(filtered):,} of {len(bundle.cleaned):,} rows")
-    page_icons = {
-        "Overview": "◫",
-        "Data Exploration": "⌁",
-        "AI Assistant": "✦",
-        "Advanced Analytics": "◇",
-        "Data Quality & Performance": "✓",
-        "Report Export": "↗",
-    }
     aliases = load_aliases(settings.aliases_path)
     client = create_llm_client(settings)
     pipeline = NLQueryPipeline(settings, client, PromptRepository(settings.prompts_path), aliases)
     st.sidebar.divider()
     st.sidebar.caption(f"AI MODE\n\n{pipeline.mode_label} · {pipeline.model_label}")
 
-    page = render_top_navigation(pages, page_icons)
+    page = render_top_navigation(pages)
     render_agent_launcher(active=page == "AI Assistant")
     render_app_header(bundle, len(filtered), settings, pipeline, compact=page == "AI Assistant")
     if bundle.metadata.is_demo:

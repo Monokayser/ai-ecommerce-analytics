@@ -16,6 +16,8 @@ from src.ui.brand import inline_brand_icon
 APP_CSS = r"""
 <style>
     :root {
+        --font-sans: "Segoe UI Variable Text", "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
+        --font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
         --canvas: #020806;
         --canvas-soft: #06120e;
         --panel: rgba(5, 20, 16, .82);
@@ -37,8 +39,13 @@ APP_CSS = r"""
 
     html { color-scheme: dark; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
     html, body, .stApp, button, input, textarea, select {
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, Helvetica, sans-serif !important;
+        font-family: var(--font-sans) !important;
         font-synthesis: none;
+        font-optical-sizing: auto;
+        font-kerning: normal;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
     body { margin: 0; overflow-x: hidden; }
     ::selection { color: #031019; background: #7de5ff; }
@@ -88,7 +95,11 @@ APP_CSS = r"""
     .block-container { position: relative; z-index: 1; max-width: 1480px; padding-top: 1.35rem; padding-bottom: 5rem; }
 
     h1, h2, h3, h4, h5, h6, p, li, label, .stMarkdown { color: var(--text); }
-    h1, h2, h3 { letter-spacing: -.035em; }
+    h1, h2, h3, .app-title, .section-title, .kpi-value {
+        font-family: var(--font-display) !important;
+        font-variation-settings: "wght" 700;
+    }
+    h1, h2, h3 { letter-spacing: -.025em; line-height: 1.15; }
     h2 { margin-top: .3rem; }
     small, .stCaption, [data-testid="stCaptionContainer"] p { color: var(--muted) !important; }
     a { color: var(--cyan); text-underline-offset: .18em; }
@@ -586,7 +597,7 @@ APP_CSS = r"""
         letter-spacing: .17em;
         text-transform: uppercase;
     }
-    .app-title { margin: 0; max-width: 980px; color: white; font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 820; letter-spacing: -.055em; line-height: 1.02; }
+    .app-title { margin: 0; max-width: 980px; color: white; font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 800; letter-spacing: -.045em; line-height: 1.04; }
     .app-subtitle { max-width: 800px; margin: .8rem 0 1.25rem; color: #bfd1e1; font-size: .98rem; line-height: 1.65; }
     .hero-pills, .filter-pills, .trust-row { display: flex; flex-wrap: wrap; gap: .5rem; }
     .hero-pill, .trust-pill {
@@ -650,11 +661,11 @@ APP_CSS = r"""
         border-radius: 16px;
         background: transparent;
         color: white;
-        font-weight: 850;
+        font-weight: 800;
         box-shadow: 0 10px 30px rgba(34, 164, 222, .22);
     }
     .sidebar-mark svg { width: 100%; height: 100%; display: block; }
-    .sidebar-title { color: white; font-size: 1.08rem; font-weight: 780; line-height: 1.2; }
+    .sidebar-title { color: white; font-size: 1.08rem; font-weight: 700; line-height: 1.2; }
     .sidebar-subtitle { margin-top: .3rem; color: #88a2b9; font-size: .78rem; }
     .sidebar-live { display:flex; align-items:center; gap:.5rem; margin:.8rem 0 .2rem; color:#a8bfd2; font-size:.72rem; }
 
@@ -685,7 +696,7 @@ APP_CSS = r"""
         padding: 0 .55rem;
         color: #7fffdc;
         font-size: .7rem;
-        font-weight: 850;
+        font-weight: 800;
         letter-spacing: .16em;
         text-transform: uppercase;
         white-space: nowrap;
@@ -726,17 +737,61 @@ APP_CSS = r"""
         box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 9px 24px rgba(0,0,0,.24), 0 0 20px rgba(57,230,189,.07);
     }
     .st-key-top_navigation [role="radiogroup"] label p {
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:.52rem;
         width:100%;
         margin:0;
         color:#cbe3da;
         font-size:.92rem;
-        font-weight:790;
-        letter-spacing:-.015em;
+        font-weight:700;
+        letter-spacing:-.01em;
         line-height:1.2;
         text-align:center;
         white-space:normal;
         text-wrap:balance;
     }
+    .st-key-top_navigation [role="radiogroup"] label p::before {
+        content:"";
+        width:1.18rem;
+        height:1.18rem;
+        flex:0 0 1.18rem;
+        background:currentColor;
+        -webkit-mask-position:center;
+        mask-position:center;
+        -webkit-mask-repeat:no-repeat;
+        mask-repeat:no-repeat;
+        -webkit-mask-size:contain;
+        mask-size:contain;
+        transition:transform .2s ease, filter .2s ease;
+    }
+    .st-key-top_navigation [role="radiogroup"] label:nth-of-type(1) p::before {
+        -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7Z'/%3E%3C/svg%3E");
+        mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7Z'/%3E%3C/svg%3E");
+    }
+    .st-key-top_navigation [role="radiogroup"] label:nth-of-type(2) p::before {
+        -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' d='M4 18 9 12l4 3 7-9M4 20h16'/%3E%3C/svg%3E");
+        mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' d='M4 18 9 12l4 3 7-9M4 20h16'/%3E%3C/svg%3E");
+    }
+    .st-key-top_navigation [role="radiogroup"] label:nth-of-type(3) p::before {
+        -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='m12 2 1.45 4.05L17.5 7.5l-4.05 1.45L12 13l-1.45-4.05L6.5 7.5l4.05-1.45L12 2Zm6 10 1.05 2.95L22 16l-2.95 1.05L18 20l-1.05-2.95L14 16l2.95-1.05L18 12ZM6 13l1.05 2.95L10 17l-2.95 1.05L6 21l-1.05-2.95L2 17l2.95-1.05L6 13Z'/%3E%3C/svg%3E");
+        mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='m12 2 1.45 4.05L17.5 7.5l-4.05 1.45L12 13l-1.45-4.05L6.5 7.5l4.05-1.45L12 2Zm6 10 1.05 2.95L22 16l-2.95 1.05L18 20l-1.05-2.95L14 16l2.95-1.05L18 12ZM6 13l1.05 2.95L10 17l-2.95 1.05L6 21l-1.05-2.95L2 17l2.95-1.05L6 13Z'/%3E%3C/svg%3E");
+    }
+    .st-key-top_navigation [role="radiogroup"] label:nth-of-type(4) p::before {
+        -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round' d='m12 3 8 6-8 6-8-6 8-6Zm-8 11 8 6 8-6'/%3E%3C/svg%3E");
+        mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round' d='m12 3 8 6-8 6-8-6 8-6Zm-8 11 8 6 8-6'/%3E%3C/svg%3E");
+    }
+    .st-key-top_navigation [role="radiogroup"] label:nth-of-type(5) p::before {
+        -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' d='M12 3 5 6v5c0 4.6 2.9 8.2 7 10 4.1-1.8 7-5.4 7-10V6l-7-3Zm-3 9 2 2 4-5'/%3E%3C/svg%3E");
+        mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' d='M12 3 5 6v5c0 4.6 2.9 8.2 7 10 4.1-1.8 7-5.4 7-10V6l-7-3Zm-3 9 2 2 4-5'/%3E%3C/svg%3E");
+    }
+    .st-key-top_navigation [role="radiogroup"] label:nth-of-type(6) p::before {
+        -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round' d='M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8m-6-8v6h6M12 15l7-7m-4 0h4v4'/%3E%3C/svg%3E");
+        mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round' d='M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8m-6-8v6h6M12 15l7-7m-4 0h4v4'/%3E%3C/svg%3E");
+    }
+    .st-key-top_navigation [role="radiogroup"] label:hover p::before { transform:translateY(-1px) scale(1.08); }
+    .st-key-top_navigation [role="radiogroup"] label[data-selected="true"] p::before { filter:drop-shadow(0 0 7px rgba(127,255,225,.38)); }
     .st-key-top_navigation [role="radiogroup"] label[data-selected="true"] p { color:#f5fffb; }
     .st-key-top_navigation [role="radiogroup"] label:focus-within { border-color:rgba(127,255,225,.5); box-shadow:0 0 0 3px rgba(127,255,225,.12); }
     .st-key-top_navigation [data-testid="stRadioOption"] > div > div > div:first-child { display:none !important; }
@@ -749,7 +804,7 @@ APP_CSS = r"""
         background: linear-gradient(135deg, rgba(13, 39, 62, .65), rgba(8, 26, 43, .55));
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05);
     }
-    .section-title { margin: 0; color: #f6fbff; font-size: clamp(1.55rem, 2.5vw, 2.15rem); font-weight: 790; line-height: 1.08; }
+    .section-title { margin: 0; color: #f6fbff; font-size: clamp(1.55rem, 2.5vw, 2.15rem); font-weight: 700; line-height: 1.1; }
     .section-description { margin: .5rem 0 0; max-width: 850px; color: #9eb3c7; font-size: .9rem; line-height: 1.55; }
     .viz-ribbon {
         display: grid;
@@ -887,7 +942,7 @@ APP_CSS = r"""
         margin:.55rem 0 .34rem;
         color:#f8fffc;
         font-size:clamp(1.65rem,2.6vw,2.25rem);
-        font-weight:820;
+        font-weight:800;
         letter-spacing:-.055em;
         line-height:1;
         text-shadow:0 0 24px rgba(127,255,225,.06);
@@ -1319,7 +1374,7 @@ def render_sidebar_brand() -> None:
     )
 
 
-def render_top_navigation(pages: list[str], page_icons: dict[str, str]) -> str:
+def render_top_navigation(pages: list[str]) -> str:
     """Render the primary workspace navigation above the analytical canvas."""
     friendly_labels = {
         "Overview": "Overview",
@@ -1336,7 +1391,7 @@ def render_top_navigation(pages: list[str], page_icons: dict[str, str]) -> str:
             pages,
             key="current_section",
             horizontal=True,
-            format_func=lambda item: f"{page_icons[item]}  {friendly_labels.get(item, item)}",
+            format_func=lambda item: friendly_labels.get(item, item),
             label_visibility="collapsed",
         )
 

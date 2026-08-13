@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-0F766E.svg)](LICENSE)
 [![GitHub repository](https://img.shields.io/badge/GitHub-Public-22C55E?logo=github)](https://github.com/Monokayser/ai-ecommerce-analytics)
 [![Production CI](https://github.com/Monokayser/ai-ecommerce-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/Monokayser/ai-ecommerce-analytics/actions/workflows/ci.yml)
-[![Build v1.12.2](https://img.shields.io/badge/build-v1.12.2-39E6BD)](https://beah4wbufhqjqgzanubteb.streamlit.app/)
+[![Build v1.12.3](https://img.shields.io/badge/build-v1.12.3-39E6BD)](https://beah4wbufhqjqgzanubteb.streamlit.app/)
 [![Live application](https://img.shields.io/badge/Live%20App-Open-39E6BD?logo=streamlit&logoColor=white)](https://beah4wbufhqjqgzanubteb.streamlit.app/)
 
 A production-style Streamlit capstone that turns e-commerce files into secure, filter-aware dashboards, natural-language analytics, advanced analysis, and downloadable reports. It works immediately without an API key and upgrades to real-time Gemini planning when a free Gemini API key is configured.
@@ -150,7 +150,7 @@ Because the repository is public, Streamlit Community Cloud makes the deployed a
 
 Cross-browser behavior, responsive breakpoints, accessibility controls, performance budgets, container hardening, and scaling guidance are documented in [docs/production_hardening.md](docs/production_hardening.md).
 
-Production uses build `v1.12.2`. The footer exposes a machine-verifiable `data-app-version` marker used by the six-hour scheduled smoke check. See [production readiness](docs/production_readiness.md), [deployment and rollback](docs/deployment.md), and the [v1.12.2 notes](docs/release-v1.12.2.md).
+Production uses build `v1.12.3`. The footer exposes a machine-verifiable `data-app-version` marker used by the six-hour scheduled smoke check. See [production readiness](docs/production_readiness.md), [deployment and rollback](docs/deployment.md), and the [v1.12.3 notes](docs/release-v1.12.3.md).
 
 ```powershell
 docker build -t ai-ecommerce-analytics .

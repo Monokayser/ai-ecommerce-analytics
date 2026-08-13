@@ -37,3 +37,14 @@ def test_brand_mark_links_to_overview_home():
 
     assert 'href="?home=1"' in theme_source
     assert 'aria-label="Go to Overview home"' in theme_source
+
+
+def test_navigation_uses_vector_icons_and_portable_typography():
+    theme_source = (ROOT / "src" / "ui" / "theme.py").read_text(encoding="utf-8")
+    app_source = (ROOT / "app.py").read_text(encoding="utf-8")
+
+    assert "--font-sans:" in theme_source
+    assert "Segoe UI Variable Text" in theme_source
+    assert 'label:nth-of-type(6) p::before' in theme_source
+    assert "mask-image:url" in theme_source
+    assert "page_icons" not in app_source

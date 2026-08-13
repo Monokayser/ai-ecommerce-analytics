@@ -11,7 +11,7 @@ def apply_theme(figure: go.Figure, *, source_context: str = "") -> go.Figure:
     """Apply consistent typography, spacing, grid, and filter context."""
     figure.update_layout(
         colorway=COLORS,
-        font={"family": "system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Arial, Helvetica, sans-serif", "color": "#DFFFF3", "size": 13},
+        font={"family": "Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif", "color": "#DFFFF3", "size": 13},
         title_font={"color": "#F7FFFC", "size": 19},
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(2,14,10,0.48)",
