@@ -5,7 +5,13 @@ export type AppContext = Page | Frame;
 export async function openApplication(page: Page): Promise<AppContext> {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(1_000);
-  const cloudFrame = page.frames().find((frame) => frame !== page.mainFrame() && frame.url().includes("streamlit"));
+  if (page.url().includes("streamlit.app")) {
+    await expect.poll(
+      () => page.frames().some((frame) => frame !== page.mainFrame() && frame.url().includes("/~/+/")),
+      { timeout: 45_000 },
+    ).toBe(true);
+  }
+  const cloudFrame = page.frames().find((frame) => frame !== page.mainFrame() && frame.url().includes("/~/+/"));
   const app = cloudFrame || page;
   await expect(app.locator('[data-app-version]')).toBeVisible({ timeout: 45_000 });
   return app;
