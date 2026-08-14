@@ -14,8 +14,8 @@ from reportlab.platypus import Image, KeepTogether, LongTable, PageBreak, Paragr
 from src.models import ReportPayload
 from src.utils.exceptions import ExportError
 
-NAVY = colors.HexColor("#0B2545")
-TEAL = colors.HexColor("#0F766E")
+NAVY = colors.HexColor("#081923")
+TEAL = colors.HexColor("#258CAF")
 MUTED = colors.HexColor("#64748B")
 
 
@@ -62,7 +62,7 @@ def generate_pdf_report(payload: ReportPayload) -> bytes:
             rows.extend([[Paragraph(_safe(value)[:140], body) for value in row] for row in data.astype(object).where(data.notna(), "").itertuples(index=False, name=None)])
             widths = [6.5 * inch / len(data.columns)] * len(data.columns)
             result_table = LongTable(rows, colWidths=widths, repeatRows=1, hAlign="LEFT")
-            result_table.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#DDECEB")), ("GRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#CBD5E1")), ("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("LEFTPADDING", (0, 0), (-1, -1), 5), ("RIGHTPADDING", (0, 0), (-1, -1), 5), ("TOPPADDING", (0, 0), (-1, -1), 4), ("BOTTOMPADDING", (0, 0), (-1, -1), 4)]))
+            result_table.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#DDF3FA")), ("GRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#CBD5E1")), ("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("LEFTPADDING", (0, 0), (-1, -1), 5), ("RIGHTPADDING", (0, 0), (-1, -1), 5), ("TOPPADDING", (0, 0), (-1, -1), 4), ("BOTTOMPADDING", (0, 0), (-1, -1), 4)]))
             story.append(result_table)
         else:
             story.append(Paragraph("No rows matched the query.", body))

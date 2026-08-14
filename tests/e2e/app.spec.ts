@@ -124,7 +124,7 @@ test.describe("local production interface", () => {
     page.on("console", (message) => message.type() === "error" && browserErrors.push(message.text()));
     page.on("pageerror", (error) => browserErrors.push(error.message));
     const app = await openApplication(page);
-    await expect(app.locator('[data-app-version="v1.14.0"]')).toBeVisible();
+    await expect(app.locator('[data-app-version="v1.14.1"]')).toBeVisible();
     await expectBalancedNavigation(app);
     await expectNoHorizontalOverflow(app);
     for (const [name, heading] of [

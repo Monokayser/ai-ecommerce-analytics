@@ -526,7 +526,7 @@ def render(
     memory = ConversationMemory(st.session_state.get("conversation", []))
     pending = st.session_state.pop("pending_ai_question", None)
 
-    capability_panel, response_panel = st.columns([0.38, 0.62], gap="large", vertical_alignment="top")
+    capability_panel, response_panel = st.columns([0.42, 0.58], gap="medium", vertical_alignment="top")
     requested_question: str | None = pending
 
     with capability_panel:

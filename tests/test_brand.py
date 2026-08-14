@@ -17,6 +17,10 @@ def test_minimal_brand_icon_is_accessible_svg():
     assert 'viewBox="0 0 64 64"' in svg
     assert "<title" in svg and "<desc" in svg
     assert len(svg.encode("utf-8")) < 4_000
+    assert "#70DDFF" in svg
+    assert "#39A9D2" in svg
+    assert "#7FFFE1" not in svg
+    assert "#24B884" not in svg
 
 
 def test_inline_brand_icon_escapes_css_class():

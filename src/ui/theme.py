@@ -1686,6 +1686,77 @@ APP_CSS = r"""
     .agent-launcher-copy small { color:#94aab6; }
     .agent-launcher-status { border-color:#071018; background:#70ddff; }
 
+    /* Final theme normalization for forms, feedback, tables, and utility surfaces. */
+    [data-testid="stChatMessage"] {
+        border-color:rgba(112,221,255,.16);
+        background:linear-gradient(145deg,#0b161e,#081119);
+    }
+    [data-testid="stChatInput"] {
+        border-color:rgba(112,221,255,.34) !important;
+        background:#08131b !important;
+        box-shadow:0 16px 42px rgba(0,0,0,.32),0 0 20px rgba(112,221,255,.065);
+    }
+    .st-key-ai_task_form,
+    [data-testid="stForm"]:has(textarea[aria-label="Describe the task or outcome"]) {
+        border-color:rgba(112,221,255,.18) !important;
+        background:linear-gradient(145deg,#0b161e,#071018) !important;
+        box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 16px 34px rgba(0,0,0,.20);
+    }
+    .st-key-ai_task_form [data-testid="stTextAreaRootElement"],
+    [data-testid="stForm"]:has(textarea[aria-label="Describe the task or outcome"]) [data-testid="stTextAreaRootElement"] {
+        border-color:rgba(112,221,255,.22) !important;
+        background:#071018 !important;
+    }
+    .st-key-ai_task_form [data-testid="stTextAreaRootElement"]:focus-within,
+    [data-testid="stForm"]:has(textarea[aria-label="Describe the task or outcome"]) [data-testid="stTextAreaRootElement"]:focus-within {
+        border-color:rgba(112,221,255,.68) !important;
+        background:#0a1720 !important;
+        box-shadow:0 0 0 3px rgba(112,221,255,.11),0 0 22px rgba(112,221,255,.07);
+    }
+    textarea[aria-label="Describe the task or outcome"] { color:#eef8fb !important; }
+    .ai-scope-note {
+        border-color:rgba(112,221,255,.14);
+        color:#a8bac4;
+        background:rgba(55,139,169,.08);
+    }
+    .ai-scope-note span { color:#70ddff; filter:drop-shadow(0 0 6px rgba(112,221,255,.34)); }
+    .composer-guidance { color:#91a7b3; }
+    .agent-launcher::before { border-color:rgba(112,221,255,.16); }
+    .agent-launcher:focus-visible { outline-color:#8be5ff; }
+    .agent-launcher.active { border-color:rgba(112,221,255,.72); }
+    .agent-task-receipt {
+        border-color:rgba(112,221,255,.16);
+        background:#08131a;
+    }
+    .agent-task-receipt span { color:#aebfc8; }
+    .build-marker { color:#748e9b; }
+    .build-marker::before { background:#70ddff; box-shadow:0 0 10px rgba(112,221,255,.40); }
+    [data-testid="stToast"], [data-testid="stTooltipContent"], [role="tooltip"] {
+        color:#edf8fb !important;
+        border-color:rgba(112,221,255,.20) !important;
+        background:#0a151d !important;
+        box-shadow:0 14px 34px rgba(0,0,0,.42) !important;
+    }
+    [data-testid="stCodeBlock"], pre, code {
+        border-color:rgba(112,221,255,.14) !important;
+        color:#dcecf2 !important;
+        background:#071018 !important;
+    }
+    [data-testid="stTable"] {
+        border:1px solid rgba(112,221,255,.16);
+        border-radius:16px;
+        background:#081119;
+    }
+    [data-testid="stDataFrame"] [role="columnheader"] { background:#0e1d26 !important; color:#eaf5f8 !important; }
+    [data-testid="stDataFrame"] [role="gridcell"] { border-color:rgba(112,221,255,.08) !important; }
+    [data-baseweb="modal"], [data-testid="stDialog"] > div {
+        color:#eef8fb !important;
+        border-color:rgba(112,221,255,.20) !important;
+        background:#081219 !important;
+    }
+    [data-testid="stProgress"] [role="progressbar"] { background:#101c23 !important; }
+    [data-testid="stProgress"] [role="progressbar"] > div { background:linear-gradient(90deg,#2c94b6,#70ddff) !important; }
+
     /* Repaint-safe hover depth: no blur, filter, parallax, or perpetual motion. */
     @media (hover:hover) and (pointer:fine) {
         [data-testid="stMetric"]:hover,.mode-card:hover,.answer-card:hover,.ai-response-empty:hover,
@@ -1695,6 +1766,9 @@ APP_CSS = r"""
         }
         [data-testid="stPlotlyChart"]:hover { border-color:rgba(112,221,255,.36); box-shadow:0 20px 48px rgba(0,0,0,.36),0 0 18px rgba(112,221,255,.05); }
         .hero-pill:hover,.filter-pill:hover,.trust-pill:hover { border-color:rgba(112,221,255,.36); background:#10212a; }
+    }
+    @media (max-width:1400px) {
+        .block-container { max-width:100%; padding-left:1rem; padding-right:1rem; }
     }
     @media (max-width:900px) {
         .stApp::after { background-size:24px 24px; }

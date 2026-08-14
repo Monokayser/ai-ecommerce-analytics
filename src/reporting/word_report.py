@@ -181,7 +181,7 @@ def generate_word_report(payload: ReportPayload) -> bytes:
         else:
             result_table.rows[0].cells[0].text = "No result columns"
         for cell in result_table.rows[0].cells:
-            _set_cell_shading(cell, "DDECEB")
+            _set_cell_shading(cell, "DDF3FA")
             for run in cell.paragraphs[0].runs:
                 run.bold = True
         column_count = max(len(data.columns), 1)

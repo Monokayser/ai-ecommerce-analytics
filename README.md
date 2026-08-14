@@ -4,11 +4,11 @@
 
 [![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.61-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-0F766E.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-258CAF.svg)](LICENSE)
 [![GitHub repository](https://img.shields.io/badge/GitHub-Public-22C55E?logo=github)](https://github.com/Monokayser/ai-ecommerce-analytics)
 [![Production CI](https://github.com/Monokayser/ai-ecommerce-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/Monokayser/ai-ecommerce-analytics/actions/workflows/ci.yml)
-[![Build v1.14.0](https://img.shields.io/badge/build-v1.14.0-70DDFF)](https://beah4wbufhqjqgzanubteb.streamlit.app/)
-[![Live application](https://img.shields.io/badge/Live%20App-Open-39E6BD?logo=streamlit&logoColor=white)](https://beah4wbufhqjqgzanubteb.streamlit.app/)
+[![Build v1.14.1](https://img.shields.io/badge/build-v1.14.1-70DDFF)](https://beah4wbufhqjqgzanubteb.streamlit.app/)
+[![Live application](https://img.shields.io/badge/Live%20App-Open-70DDFF?logo=streamlit&logoColor=081119)](https://beah4wbufhqjqgzanubteb.streamlit.app/)
 
 A production-style Streamlit capstone that turns e-commerce files into secure, filter-aware dashboards, natural-language analytics, advanced analysis, and downloadable reports. It works immediately without an API key and upgrades to real-time Gemini planning when a free Gemini API key is configured.
 
@@ -16,7 +16,7 @@ Current verification: 119 Python tests passing with 87.21% measured coverage, de
 
 ![AI-Powered E-Commerce Analytics dashboard with the responsive Midnight Analytics interface](docs/assets/midnight-analytics-dashboard.png)
 
-![Interactive 3D profit terrain showing mean profitability across sales and discount bands](docs/assets/aurora-3d-profit-terrain.png)
+![Interactive data exploration workspace using the matched Midnight Analytics chart theme](docs/assets/midnight-exploration.png)
 
 ![AI Assistant agent console showing capability presets, natural-language analytics, the validated five-stage pipeline, and verified response exports](docs/assets/ai-assistant-agent-console.png)
 
@@ -151,7 +151,7 @@ Because the repository is public, Streamlit Community Cloud makes the deployed a
 
 Cross-browser behavior, responsive breakpoints, accessibility controls, performance budgets, container hardening, and scaling guidance are documented in [docs/production_hardening.md](docs/production_hardening.md).
 
-Production uses build `v1.14.0`. The footer exposes a machine-verifiable `data-app-version` marker used by the six-hour scheduled smoke check. See [production readiness](docs/production_readiness.md), [deployment and rollback](docs/deployment.md), the [Midnight Analytics design system](docs/ui-design-system.md), and the [v1.14.0 notes](docs/release-v1.14.0.md).
+Production uses build `v1.14.1`. The footer exposes a machine-verifiable `data-app-version` marker used by the six-hour scheduled smoke check. See [production readiness](docs/production_readiness.md), [deployment and rollback](docs/deployment.md), the [Midnight Analytics design system](docs/ui-design-system.md), and the [v1.14.1 notes](docs/release-v1.14.1.md).
 
 ```powershell
 docker build -t ai-ecommerce-analytics .

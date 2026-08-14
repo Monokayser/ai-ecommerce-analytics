@@ -87,6 +87,10 @@ def test_midnight_analytics_theme_is_complete_and_native_widgets_match():
     assert config["theme"]["primaryColor"] == "#70DDFF"
     assert config["theme"]["backgroundColor"] == "#03070B"
     assert config["theme"]["secondaryBackgroundColor"] == "#081119"
+    assert "finalthemenormalization" in compact
+    assert '.st-key-ai_task_form' in APP_CSS
+    assert '[data-testid="stTooltipContent"]' in APP_CSS
+    assert '[data-testid="stProgress"]' in APP_CSS
 
 
 def test_streamlit_and_container_security_defaults():
