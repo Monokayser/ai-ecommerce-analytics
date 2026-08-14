@@ -51,9 +51,9 @@ def time_series_chart(frame: pd.DataFrame, context: str = "") -> go.Figure:
         figure.add_trace(
             go.Scatter(
                 x=grouped["Month"], y=grouped["Sales"], name="Sales", mode="lines+markers",
-                line={"color": "#7FFFE1", "width": 3, "shape": "spline"},
-                marker={"size": 7, "color": "#071C15", "line": {"color": "#7FFFE1", "width": 2}},
-                fill="tozeroy", fillcolor="rgba(57,230,189,.08)",
+                line={"color": "#70DDFF", "width": 3, "shape": "spline"},
+                marker={"size": 7, "color": "#08141C", "line": {"color": "#70DDFF", "width": 2}},
+                fill="tozeroy", fillcolor="rgba(112,221,255,.08)",
             ),
             secondary_y=False,
         )
@@ -61,8 +61,8 @@ def time_series_chart(frame: pd.DataFrame, context: str = "") -> go.Figure:
         figure.add_trace(
             go.Scatter(
                 x=grouped["Month"], y=grouped["Profit"], name="Profit", mode="lines+markers",
-                line={"color": "#B7F06D", "width": 2.4, "shape": "spline"},
-                marker={"size": 6, "color": "#071C15", "line": {"color": "#B7F06D", "width": 2}},
+                line={"color": "#72E3BD", "width": 2.4, "shape": "spline"},
+                marker={"size": 6, "color": "#08141C", "line": {"color": "#72E3BD", "width": 2}},
             ),
             secondary_y=True,
         )
@@ -77,15 +77,15 @@ def time_series_chart(frame: pd.DataFrame, context: str = "") -> go.Figure:
                 {"count": 1, "label": "1Y", "step": "year", "stepmode": "backward"},
                 {"step": "all", "label": "All"},
             ],
-            "bgcolor": "rgba(5,31,23,.86)",
-            "activecolor": "rgba(57,230,189,.38)",
-            "bordercolor": "rgba(127,255,225,.22)",
+            "bgcolor": "rgba(8,20,28,.92)",
+            "activecolor": "rgba(112,221,255,.34)",
+            "bordercolor": "rgba(112,221,255,.22)",
         },
         rangeslider={
             "visible": True,
             "thickness": 0.06,
-            "bgcolor": "rgba(3,24,17,.68)",
-            "bordercolor": "rgba(127,255,225,.14)",
+            "bgcolor": "rgba(6,15,21,.78)",
+            "bordercolor": "rgba(112,221,255,.14)",
             "borderwidth": 1,
         },
     )
@@ -108,15 +108,15 @@ def geographic_chart(frame: pd.DataFrame, context: str = "") -> go.Figure:
                 locationmode="ISO-3",
                 hover_name="Country",
                 color=metric,
-                color_continuous_scale=["#09231B", "#1F7D5F", "#7FFFE1"],
+                color_continuous_scale=["#08151D", "#176683", "#70DDFF"],
                 title=f"{metric} by Country",
             )
             figure.update_geos(
                 projection_type="natural earth",
                 showframe=False,
                 showcoastlines=True,
-                coastlinecolor="rgba(156,233,207,.25)",
-                bgcolor="rgba(2,14,10,.15)",
+                coastlinecolor="rgba(159,217,237,.25)",
+                bgcolor="rgba(3,10,15,.18)",
             )
             return apply_theme(figure, source_context=context)
     dimension = "Region" if "Region" in frame else "Country"
@@ -148,9 +148,9 @@ def hierarchy_chart(frame: pd.DataFrame, context: str = "", mode: str = "sunburs
     value = "Sales" if "Sales" in frame else "Quantity"
     data = frame[[*path, value]].groupby(path, as_index=False, dropna=False, observed=True)[value].sum()
     if mode == "treemap":
-        figure = px.treemap(data, path=path, values=value, color=value, color_continuous_scale=["#09231B", "#27A77D", "#8AFFD9"], title=f"{value} Treemap: {' > '.join(path)}")
+        figure = px.treemap(data, path=path, values=value, color=value, color_continuous_scale=["#08151D", "#258CAF", "#9CEAFF"], title=f"{value} Treemap: {' > '.join(path)}")
     else:
-        figure = px.sunburst(data, path=path, values=value, color=value, color_continuous_scale=["#09231B", "#27A77D", "#8AFFD9"], title=f"{value} Sunburst: {' > '.join(path)}")
+        figure = px.sunburst(data, path=path, values=value, color=value, color_continuous_scale=["#08151D", "#258CAF", "#9CEAFF"], title=f"{value} Sunburst: {' > '.join(path)}")
     figure.update_traces(hovertemplate="%{label}<br>%{value:,.2f}<br>%{percentParent:.1%} of parent<extra></extra>")
     return apply_theme(figure, source_context=context)
 
@@ -171,8 +171,8 @@ def grouped_bar_chart(frame: pd.DataFrame, dimension: str = "Product Category", 
                 {"label": "Grouped", "method": "relayout", "args": [{"barmode": "group"}]},
                 {"label": "Stacked", "method": "relayout", "args": [{"barmode": "relative"}]},
             ],
-            "bgcolor": "rgba(5,31,23,.86)",
-            "bordercolor": "rgba(127,255,225,.2)",
+            "bgcolor": "rgba(8,20,28,.92)",
+            "bordercolor": "rgba(112,221,255,.2)",
         }]
     )
     return apply_theme(figure, source_context=context)
@@ -232,10 +232,10 @@ def three_dimensional_chart(
     figure.update_traces(marker={"size": 4, "line": {"width": 0}})
     figure = apply_theme(figure, source_context=context)
     figure.update_scenes(
-        bgcolor="rgba(2,12,9,0.22)",
-        xaxis={"backgroundcolor": "rgba(4,28,20,.45)", "gridcolor": "rgba(116,244,194,.18)", "showbackground": True},
-        yaxis={"backgroundcolor": "rgba(4,28,20,.45)", "gridcolor": "rgba(116,244,194,.18)", "showbackground": True},
-        zaxis={"backgroundcolor": "rgba(4,28,20,.45)", "gridcolor": "rgba(116,244,194,.18)", "showbackground": True},
+        bgcolor="rgba(3,10,15,0.24)",
+        xaxis={"backgroundcolor": "rgba(8,25,34,.48)", "gridcolor": "rgba(112,221,255,.17)", "showbackground": True},
+        yaxis={"backgroundcolor": "rgba(8,25,34,.48)", "gridcolor": "rgba(112,221,255,.17)", "showbackground": True},
+        zaxis={"backgroundcolor": "rgba(8,25,34,.48)", "gridcolor": "rgba(112,221,255,.17)", "showbackground": True},
         camera={"eye": {"x": 1.45, "y": 1.45, "z": 1.15}},
     )
     return figure
@@ -274,22 +274,22 @@ def profit_terrain_chart(frame: pd.DataFrame, context: str = "") -> go.Figure:
             colorscale=[
                 [0.0, "#5c1627"],
                 [0.32, "#a25735"],
-                [0.5, "#183c31"],
-                [0.72, "#27a77d"],
-                [1.0, "#8affd9"],
+                [0.5, "#17303b"],
+                [0.72, "#258caf"],
+                [1.0, "#9ceaff"],
             ],
             colorbar={"title": "Mean profit", "tickprefix": "$"},
-            contours={"z": {"show": True, "usecolormap": True, "highlightcolor": "#b9ffeb", "project_z": True}},
+            contours={"z": {"show": True, "usecolormap": True, "highlightcolor": "#c7f3ff", "project_z": True}},
             hovertemplate="Discount %{x:.1%}<br>Sales band midpoint $%{y:,.0f}<br>Mean profit $%{z:,.2f}<extra></extra>",
         )
     )
     figure.update_layout(title="3D Profit Terrain: Sales × Discount × Mean Profit")
     figure = apply_theme(figure, source_context=context)
     figure.update_scenes(
-        bgcolor="rgba(2,12,9,0.18)",
-        xaxis={"title": "Discount", "tickformat": ".0%", "gridcolor": "rgba(116,244,194,.18)", "showbackground": True, "backgroundcolor": "rgba(4,28,20,.48)"},
-        yaxis={"title": "Sales band midpoint", "tickprefix": "$", "gridcolor": "rgba(116,244,194,.18)", "showbackground": True, "backgroundcolor": "rgba(4,28,20,.48)"},
-        zaxis={"title": "Mean profit", "tickprefix": "$", "gridcolor": "rgba(116,244,194,.18)", "showbackground": True, "backgroundcolor": "rgba(4,28,20,.48)"},
+        bgcolor="rgba(3,10,15,0.20)",
+        xaxis={"title": "Discount", "tickformat": ".0%", "gridcolor": "rgba(112,221,255,.17)", "showbackground": True, "backgroundcolor": "rgba(8,25,34,.48)"},
+        yaxis={"title": "Sales band midpoint", "tickprefix": "$", "gridcolor": "rgba(112,221,255,.17)", "showbackground": True, "backgroundcolor": "rgba(8,25,34,.48)"},
+        zaxis={"title": "Mean profit", "tickprefix": "$", "gridcolor": "rgba(112,221,255,.17)", "showbackground": True, "backgroundcolor": "rgba(8,25,34,.48)"},
         camera={"eye": {"x": 1.55, "y": 1.45, "z": 1.15}},
         aspectmode="cube",
     )
@@ -339,7 +339,7 @@ def animated_chart(frame: pd.DataFrame, context: str = "", metric: str = "Sales"
     for slider in figure.layout.sliders or []:
         slider.transition = {"duration": 350, "easing": "cubic-in-out"}
         slider.pad = {"t": 36, "b": 4}
-        slider.currentvalue = {"prefix": "Year  ", "font": {"color": "#DFFFF3", "size": 14}}
+        slider.currentvalue = {"prefix": "Year  ", "font": {"color": "#E5F4F8", "size": 14}}
     for menu in figure.layout.updatemenus or []:
         menu.pad = {"r": 12, "t": 62}
     return figure

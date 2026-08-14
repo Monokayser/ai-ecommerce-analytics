@@ -124,7 +124,7 @@ test.describe("local production interface", () => {
     page.on("console", (message) => message.type() === "error" && browserErrors.push(message.text()));
     page.on("pageerror", (error) => browserErrors.push(error.message));
     const app = await openApplication(page);
-    await expect(app.locator('[data-app-version="v1.13.0"]')).toBeVisible();
+    await expect(app.locator('[data-app-version="v1.14.0"]')).toBeVisible();
     await expectBalancedNavigation(app);
     await expectNoHorizontalOverflow(app);
     for (const [name, heading] of [
@@ -182,9 +182,9 @@ test.describe("local production interface", () => {
     const placeholder = await question.evaluate((element) => getComputedStyle(element, "::placeholder").color);
     expect(buttonPresentation.height).toBeGreaterThanOrEqual(44);
     expect(buttonPresentation.background).toContain("linear-gradient");
-    expect(buttonPresentation.text).toBe("rgb(3, 32, 25)");
+    expect(buttonPresentation.text).toBe("rgb(3, 17, 24)");
     expect(Number(buttonPresentation.weight)).toBeGreaterThanOrEqual(700);
-    expect(placeholder).toBe("rgb(170, 195, 186)");
+    expect(placeholder).toBe("rgb(129, 150, 165)");
 
     const prompt = "Compare total sales by region from highest to lowest.";
     await question.fill(prompt);

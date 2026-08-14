@@ -1,8 +1,8 @@
-# Production Readiness — v1.12.0
+# Production Readiness — v1.14.0
 
 ## Release scope
 
-Version `v1.12.0` preserves the six-section emerald/aurora application and public Streamlit Community Cloud deployment. It adds a single release source, machine-verifiable build marker, stable Gemini 3.6 Flash configuration, deterministic fallback, responsive and accessibility automation, measurable performance evidence, active CI, non-root container verification, scheduled production smoke checks, and rollback guidance.
+Version `v1.14.0` preserves the six-section public Streamlit Community Cloud application while introducing the researched Midnight Analytics theme. The release maintains the single version source, machine-verifiable build marker, stable Gemini 3.6 Flash configuration, deterministic fallback, responsive and accessibility automation, measurable performance evidence, active CI, non-root container verification, and scheduled production smoke checks.
 
 ## Acceptance evidence
 

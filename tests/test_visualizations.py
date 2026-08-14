@@ -6,6 +6,7 @@ import pandas as pd
 
 from src.visualization.chart_selector import select_chart
 from src.visualization.charts import animated_chart, correlation_chart, distribution_chart, geographic_chart, grouped_bar_chart, hierarchy_chart, profit_terrain_chart, scatter_chart, three_dimensional_chart, time_series_chart
+from src.visualization.themes import COLORS
 
 
 def test_chart_selection_rules():
@@ -50,3 +51,13 @@ def test_interactive_chart_controls(ecommerce_frame):
     assert animated.data[0].textposition == "outside"
     assert custom_3d.data[0].type == "scatter3d"
     assert custom_3d.layout.scene.xaxis.title.text == "Quantity"
+
+
+def test_midnight_chart_theme_uses_accessible_cyan_palette(ecommerce_frame):
+    trend = time_series_chart(ecommerce_frame)
+
+    assert COLORS[0] == "#70DDFF"
+    assert trend.data[0].line.color == "#70DDFF"
+    assert trend.layout.hoverlabel.bgcolor == "#09141C"
+    assert trend.layout.modebar.activecolor == "#70DDFF"
+    assert trend.layout.plot_bgcolor == "rgba(5,11,16,0.64)"

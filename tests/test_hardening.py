@@ -73,6 +73,22 @@ def test_accessibility_and_cross_browser_css_guards_present():
     assert "transform: none !important" in APP_CSS
 
 
+def test_midnight_analytics_theme_is_complete_and_native_widgets_match():
+    compact = APP_CSS.replace(" ", "").lower()
+    config = tomllib.loads((ROOT / ".streamlit" / "config.toml").read_text(encoding="utf-8"))
+
+    assert "v1.14midnightanalyticstheme" in compact
+    assert "--canvas:#03070b" in compact
+    assert "--cyan:#70ddff" in compact
+    assert "background-attachment:fixed" not in compact
+    assert "backdrop-filter:none" in compact
+    assert "@media(forced-colors:active)" in compact
+    assert "@media(prefers-reduced-motion:reduce)" in compact
+    assert config["theme"]["primaryColor"] == "#70DDFF"
+    assert config["theme"]["backgroundColor"] == "#03070B"
+    assert config["theme"]["secondaryBackgroundColor"] == "#081119"
+
+
 def test_streamlit_and_container_security_defaults():
     config = tomllib.loads((ROOT / ".streamlit" / "config.toml").read_text(encoding="utf-8"))
     assert config["server"]["enableXsrfProtection"] is True

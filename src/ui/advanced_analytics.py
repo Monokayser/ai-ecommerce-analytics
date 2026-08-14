@@ -43,7 +43,7 @@ def render(frame: pd.DataFrame) -> None:
             left.metric("Anomalies", f"{result.total_anomalies:,}")
             right.metric("Anomaly rate", f"{result.anomaly_percent:.2f}%")
             plot = result.data.reset_index(names="Observation")
-            figure = px.scatter(plot, x="Observation", y=target, color="is_anomaly", color_discrete_map={False: "#0F766E", True: "#DC2626"}, title=f"{target}: Normal versus Anomalous Observations")
+            figure = px.scatter(plot, x="Observation", y=target, color="is_anomaly", color_discrete_map={False: "#39A9D2", True: "#FF5F78"}, title=f"{target}: Normal versus Anomalous Observations")
             st.plotly_chart(apply_theme(figure), width="stretch")
             st.write(anomaly_explanation(result))
             st.dataframe(result.data.loc[result.data["is_anomaly"]], width="stretch")
