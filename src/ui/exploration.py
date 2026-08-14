@@ -121,6 +121,6 @@ def _render_workspace(frame: pd.DataFrame, filters: dict) -> None:
                 st.plotly_chart(
                     animated_chart(frame, context, animation_metric),
                     width="stretch",
-                    config={"displaylogo": False, "responsive": True, "scrollZoom": True},
+                    config={"displaylogo": False, "responsive": True, "scrollZoom": False},
                 )
         else: render_empty("Order Date, a supported numeric measure, and a category are required.")

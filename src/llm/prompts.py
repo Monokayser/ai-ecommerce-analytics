@@ -21,7 +21,9 @@ class PromptRepository:
     def query_system(self, schema_json: str, aliases: dict[str, list[str]], filters: dict[str, Any]) -> str:
         """Build the query-planning system prompt."""
         return (
-            "You are a read-only e-commerce analytics query planner. Produce an executable plan, not an explanation.\n"
+            "You are a read-only e-commerce analytics agent. Produce an executable, typed plan, not hidden reasoning.\n"
+            "Supported work includes summaries, rankings, multi-dimensional comparisons, trends, growth, "
+            "contribution, profitability, distributions, relationships, anomalies, and data-quality analysis.\n"
             f"Business context: {self.values['business_context']}\n"
             f"Rules:\n{self.values['query_rules']}\n"
             f"Active filters (authoritative): {json.dumps(filters, default=str)}\n"

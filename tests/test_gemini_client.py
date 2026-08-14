@@ -138,6 +138,25 @@ def test_gemini_retries_one_transient_server_failure(monkeypatch):
     assert client.last_call["attempts"] == 2
 
 
+def test_gemini_retries_one_invalid_structured_response(monkeypatch):
+    attempts = 0
+
+    class FakeInteractions:
+        def create(self, **kwargs):
+            nonlocal attempts
+            attempts += 1
+            payload = "{invalid" if attempts == 1 else _valid_plan().model_dump_json()
+            return SimpleNamespace(output_text=payload, id="schema-retry")
+
+    monkeypatch.setattr(client_module.genai, "Client", lambda api_key: SimpleNamespace(interactions=FakeInteractions()))
+    monkeypatch.setattr(client_module.time, "sleep", lambda _: None)
+    client = GeminiClient(Settings(llm_provider="gemini", gemini_api_key="test", llm_max_retries=1))
+
+    assert client.complete(system="policy", user="question", response_model=GeneratedQuery).analysis_type == "summary"
+    assert attempts == 2
+    assert client.last_call["attempts"] == 2
+
+
 def test_gemini_timeout_is_retried_then_safely_reported(monkeypatch):
     class FakeInteractions:
         def create(self, **kwargs):

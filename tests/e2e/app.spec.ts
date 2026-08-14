@@ -124,7 +124,7 @@ test.describe("local production interface", () => {
     page.on("console", (message) => message.type() === "error" && browserErrors.push(message.text()));
     page.on("pageerror", (error) => browserErrors.push(error.message));
     const app = await openApplication(page);
-    await expect(app.locator('[data-app-version="v1.12.4"]')).toBeVisible();
+    await expect(app.locator('[data-app-version="v1.13.0"]')).toBeVisible();
     await expectBalancedNavigation(app);
     await expectNoHorizontalOverflow(app);
     for (const [name, heading] of [
@@ -193,6 +193,12 @@ test.describe("local production interface", () => {
     await expect(app.locator('article[aria-label="Verified assistant answer"]')).toBeVisible();
     await expect(app.locator('.agent-task-receipt')).toContainText("Delivered");
     await expect(app.getByText("Query validated", { exact: false })).toBeVisible();
+    await expect(app.locator('[data-testid="stPlotlyChart"]')).toHaveCount(0);
+    await app.getByRole("radio", { name: "Chart" }).click();
+    await expect(app.locator('[data-testid="stPlotlyChart"]')).toHaveCount(1);
+    const capturesWheel = await app.locator(".js-plotly-plot").evaluate((element) => Boolean((element as any)._context?.scrollZoom));
+    expect(capturesWheel).toBe(false);
+    await app.getByRole("button", { name: "Prepare Word + PDF" }).click();
     await expect(app.getByRole("button", { name: "Download Word" })).toBeVisible();
     await expect(app.getByRole("button", { name: "Download PDF" })).toBeVisible();
 
@@ -201,6 +207,26 @@ test.describe("local production interface", () => {
     await app.getByText(/Agent settings and privacy/i).click();
     await app.getByRole("button", { name: /Reset agent/i }).click();
     await expect(app.getByText(/What should the agent accomplish/i)).toBeVisible();
+  });
+
+  test("keeps wheel scrolling on a repaint-safe path", async ({ page }) => {
+    const app = await openApplication(page);
+    const main = app.locator('[data-testid="stMain"]');
+    const presentation = await app.evaluate(() => {
+      const root = document.documentElement;
+      const surface = document.querySelector(".stApp") as HTMLElement;
+      const header = document.querySelector('[data-testid="stHeader"]') as HTMLElement;
+      return {
+        scrollBehavior: getComputedStyle(root).scrollBehavior,
+        backgroundScrolls: getComputedStyle(surface).backgroundAttachment.split(",").every((value) => value.trim() === "scroll"),
+        headerBackdrop: getComputedStyle(header).backdropFilter,
+      };
+    });
+    expect(presentation).toEqual({ scrollBehavior: "auto", backgroundScrolls: true, headerBackdrop: "none" });
+
+    await main.hover();
+    await page.mouse.wheel(0, 480);
+    await expect.poll(() => main.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
   });
 
   test("has no serious or critical automated accessibility violations", async ({ page }) => {

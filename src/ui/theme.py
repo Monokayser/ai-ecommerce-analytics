@@ -37,7 +37,13 @@ APP_CSS = r"""
         --glass-shadow: 0 26px 72px rgba(0, 0, 0, .42), inset 0 1px 0 rgba(255, 255, 255, .08);
     }
 
-    html { color-scheme: dark; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-behavior:smooth; }
+    html {
+        color-scheme: dark;
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+        scroll-behavior: auto;
+        scrollbar-gutter: stable;
+    }
     html, body, .stApp, button, input, textarea, select {
         font-family: var(--font-sans) !important;
         font-synthesis: none;
@@ -67,11 +73,11 @@ APP_CSS = r"""
             radial-gradient(ellipse at 98% 32%, rgba(22, 141, 111, .13), transparent 34rem),
             radial-gradient(ellipse at 22% 102%, rgba(40, 123, 91, .16), transparent 38rem),
             linear-gradient(145deg, #010503 0%, #03100c 48%, #020806 100%);
-        background-attachment: fixed;
+        background-attachment: scroll;
     }
     .stApp::before {
         content: "";
-        position: fixed;
+        position: absolute;
         z-index: 0;
         inset: -18% -10% auto 32%;
         height: 72vh;
@@ -79,13 +85,13 @@ APP_CSS = r"""
         transform: rotate(8deg) skewX(-9deg);
         background:
             linear-gradient(102deg, transparent 20%, rgba(75, 255, 193, .03) 38%, rgba(84, 255, 202, .21) 48%, rgba(96, 246, 203, .05) 58%, transparent 69%);
-        filter: blur(22px);
-        will-change: transform;
-        animation: auroraDrift 14s ease-in-out infinite alternate;
+        opacity: .78;
+        filter: blur(12px);
+        transform: rotate(8deg) skewX(-9deg) translateZ(0);
     }
     .stApp::after {
         content: "";
-        position: fixed;
+        position: absolute;
         z-index: 0;
         left: 0;
         right: 0;
@@ -101,7 +107,11 @@ APP_CSS = r"""
         filter: drop-shadow(0 -12px 30px rgba(52, 255, 184, .09));
     }
     [data-testid="stAppViewContainer"], [data-testid="stMain"] { background: transparent; }
-    [data-testid="stHeader"] { background: rgba(5, 8, 14, .38); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+    [data-testid="stHeader"] {
+        background: rgba(3, 13, 10, .94);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
     [data-testid="stToolbar"] { color: var(--muted); }
     .block-container { position: relative; z-index: 1; max-width: 1480px; padding-top: 1.35rem; padding-bottom: 5rem; }
 
@@ -519,8 +529,9 @@ APP_CSS = r"""
         text-decoration:none !important;
         background:linear-gradient(135deg,rgba(5,52,38,.97),rgba(3,28,21,.98));
         box-shadow:0 20px 55px rgba(0,0,0,.48),0 0 30px rgba(57,230,189,.16),inset 0 1px 0 rgba(255,255,255,.11);
-        backdrop-filter:blur(16px);
-        -webkit-backdrop-filter:blur(16px);
+        backdrop-filter:none;
+        -webkit-backdrop-filter:none;
+        transform:translateZ(0);
         transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease,background .22s ease;
     }
     .agent-launcher::before {
@@ -530,8 +541,7 @@ APP_CSS = r"""
         z-index:-1;
         border:1px solid rgba(90,255,207,.18);
         border-radius:23px;
-        opacity:.7;
-        animation:agentBeacon 2.6s ease-out infinite;
+        opacity:.45;
     }
     .agent-launcher-icon {
         position:relative;
@@ -566,6 +576,7 @@ APP_CSS = r"""
         background:linear-gradient(135deg,rgba(8,72,52,.98),rgba(4,38,28,.99));
         box-shadow:0 25px 68px rgba(0,0,0,.55),0 0 40px rgba(57,230,189,.24),inset 0 1px 0 rgba(255,255,255,.15);
     }
+    .agent-launcher:hover::before { animation:agentBeacon .8s ease-out both; }
     .agent-launcher:focus-visible { outline:3px solid #9affdf; outline-offset:4px; }
     .agent-launcher.active { border-color:rgba(127,255,225,.78); }
     @keyframes agentBeacon { 0%{transform:scale(.96);opacity:.65} 72%,100%{transform:scale(1.12);opacity:0} }
@@ -599,8 +610,8 @@ APP_CSS = r"""
             radial-gradient(ellipse at 88% 112%, rgba(49, 190, 144, .22), transparent 32%),
             linear-gradient(135deg, rgba(2, 13, 10, .98), rgba(5, 32, 24, .94));
         box-shadow: 0 30px 90px rgba(0, 0, 0, .58), 0 0 55px rgba(50, 236, 176, .08), inset 0 1px 0 rgba(255, 255, 255, .08);
-        -webkit-backdrop-filter: blur(24px) saturate(130%);
-        backdrop-filter: blur(24px) saturate(130%);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
     }
     .app-hero::before {
         content: "";
@@ -613,7 +624,7 @@ APP_CSS = r"""
         transform: rotate(-9deg) skewX(-18deg);
         background: linear-gradient(90deg, transparent 12%, rgba(73, 255, 192, .06) 38%, rgba(105, 255, 210, .25) 49%, rgba(42, 177, 134, .05) 67%, transparent 83%);
         filter: blur(18px);
-        animation: heroAurora 10s ease-in-out infinite alternate;
+        opacity:.86;
     }
     .app-hero::after {
         content: "·  ·       ·    ·      ·";
@@ -724,10 +735,11 @@ APP_CSS = r"""
         padding: .7rem .78rem .78rem;
         border: 1px solid rgba(130,255,215,.18);
         border-radius: 18px;
-        background: linear-gradient(120deg, rgba(2,14,10,.91), rgba(6,35,26,.88));
+        background: linear-gradient(120deg, rgba(2,14,10,.985), rgba(6,35,26,.97));
         box-shadow: 0 16px 45px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.05);
-        -webkit-backdrop-filter: blur(20px) saturate(130%);
-        backdrop-filter: blur(20px) saturate(130%);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        transform:translateZ(0);
     }
     .st-key-top_navigation > div {
         display: flex;
@@ -1245,9 +1257,8 @@ APP_CSS = r"""
         50% { filter:brightness(1.35) drop-shadow(0 0 7px rgba(127,255,225,.42)); }
     }
     @keyframes softFloat { 0%,100% { transform:translate3d(0,0,0) rotateX(0); } 50% { transform:translate3d(0,-3px,8px) rotateX(4deg); } }
-    [data-testid="stMetric"], [data-testid="stVerticalBlockBorderWrapper"] { animation: revealUp .48s ease both; }
+    [data-testid="stMetric"], .kpi-card, .viz-feature { animation: revealUp .38s ease both; }
     @media (prefers-reduced-motion: no-preference) {
-        .mode-orb, .sidebar-mark { animation: softFloat 6s ease-in-out infinite; }
         .telemetry-rail i { animation:railGrow .95s .28s cubic-bezier(.2,.8,.2,1) both; }
         .kpi-meter i { animation:railGrow .9s calc(var(--delay, 0ms) + .28s) cubic-bezier(.2,.8,.2,1) both; }
         .viz-feature::before, .kpi-scan, .kpi-card::before { animation:none; opacity:0; }
@@ -1265,7 +1276,7 @@ APP_CSS = r"""
         }
         [data-testid="stPlotlyChart"] {
             transform: none !important;
-            transition: border-color .24s ease, box-shadow .24s ease, filter .24s ease;
+            transition: border-color .2s ease, box-shadow .2s ease;
         }
         [data-testid="stMetric"]:hover, .mode-card:hover, .answer-card:hover, .ai-response-empty:hover {
             transform: perspective(900px) translateY(-3px) translateZ(6px) rotateX(1deg);
@@ -1280,8 +1291,8 @@ APP_CSS = r"""
         [data-testid="stPlotlyChart"]:hover {
             transform:none !important;
             border-color:rgba(127,255,225,.42);
-            filter:brightness(1.025);
-            box-shadow:0 30px 78px rgba(0,0,0,.45),0 0 34px rgba(61,231,177,.1),inset 0 1px 0 rgba(255,255,255,.08);
+            filter:none;
+            box-shadow:0 20px 52px rgba(0,0,0,.38),0 0 22px rgba(61,231,177,.07),inset 0 1px 0 rgba(255,255,255,.08);
         }
         [data-testid="stExpander"]:hover, [data-testid="stAlert"]:hover, .ai-guide > div:hover, .ai-stage:hover, .demo-strip:hover {
             transform:perspective(700px) translateY(-2px) translateZ(5px);

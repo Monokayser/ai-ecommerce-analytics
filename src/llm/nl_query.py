@@ -84,7 +84,7 @@ class NLQueryPipeline:
         provider_fallback = False
         fallback_reason = ""
         if self.client is None:
-            generated = OfflineQueryPlanner(engine.frame, max_rows=self.settings.max_result_rows).plan(question)
+            generated = OfflineQueryPlanner(engine.frame, max_rows=self.settings.max_result_rows).plan(question, history=history)
         else:
             context_payload = {"recent_interactions": history[-4000:], "current_question": question}
             user = "<user_request>" + json.dumps(context_payload, default=str) + "</user_request>"
@@ -100,7 +100,7 @@ class NLQueryPipeline:
             except LLMResponseError as exc:
                 provider_fallback = True
                 fallback_reason = str(exc)[:300]
-                generated = OfflineQueryPlanner(engine.frame, max_rows=self.settings.max_result_rows).plan(question)
+                generated = OfflineQueryPlanner(engine.frame, max_rows=self.settings.max_result_rows).plan(question, history=history)
         plan_ms = (time.perf_counter() - plan_started) * 1000
         corrected = False
         emit("validation", "Validating the read-only query plan")
@@ -130,7 +130,7 @@ class NLQueryPipeline:
             except LLMResponseError as exc:
                 provider_fallback = True
                 fallback_reason = str(exc)[:300]
-                generated = OfflineQueryPlanner(engine.frame, max_rows=self.settings.max_result_rows).plan(question)
+                generated = OfflineQueryPlanner(engine.frame, max_rows=self.settings.max_result_rows).plan(question, history=history)
             plan_ms += (time.perf_counter() - correction_started) * 1000
             result = self._execute(generated, engine)
         emit("execution", "Query executed with timeout and row limits")
@@ -172,6 +172,8 @@ class NLQueryPipeline:
             "corrected": corrected,
             "provider_fallback": provider_fallback,
             "fallback_reason": fallback_reason,
+            "analysis_type": generated.analysis_type,
+            "plan_steps": len(generated.plan_steps),
         }
         return generated, result, narrative, corrected
 
@@ -196,6 +198,9 @@ def build_result_evidence(
     return {
         "original_question": question,
         "interpreted_question": generated.interpreted_question,
+        "analysis_type": generated.analysis_type,
+        "plan_steps": generated.plan_steps,
+        "assumptions": generated.assumptions,
         "applied_filters": filters,
         "query": generated.query,
         "execution_time_ms": round(result.execution_time_ms, 3),
@@ -250,6 +255,21 @@ def computed_narrative(question: str, result: pd.DataFrame, *, hosted_plan: bool
                     f"{column} ranges from {_display_value(numeric[column].min(), column)} "
                     f"to {_display_value(numeric[column].max(), column)} across the results."
                 )
+        value_columns = [column for column in numeric.columns if column.casefold() not in {"sample_size", "row_count"}]
+        label_columns = [column for column in result.columns if column not in numeric.columns]
+        if len(result) > 1 and value_columns and label_columns:
+            value_column, label_column = value_columns[0], label_columns[0]
+            leader_value = numeric[value_column].iloc[0]
+            runner_up = numeric[value_column].iloc[1]
+            if pd.notna(leader_value) and pd.notna(runner_up):
+                gap = float(leader_value) - float(runner_up)
+                findings.append(
+                    f"The first result, {result[label_column].iloc[0]}, is {_display_value(abs(gap), value_column)} "
+                    f"away from the second result on {value_column}."
+                )
+        negative_cells = int((numeric < 0).sum().sum())
+        if negative_cells:
+            findings.append(f"The verified result contains {negative_cells:,} negative numeric value(s) that may require review.")
     return NarrativeResponse(
         direct_answer=lead,
         analysis=f"Based on the active data and filters, the {plan_description} answered “{question.strip()}” Review the chart and data tabs for the supporting values.",

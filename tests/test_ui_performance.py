@@ -31,8 +31,20 @@ def test_filters_use_one_result_copy_and_preserve_source(ecommerce_frame):
 def test_exploration_and_advanced_views_are_lazy_rendered():
     exploration = Path("src/ui/exploration.py").read_text(encoding="utf-8")
     advanced = Path("src/ui/advanced_analytics.py").read_text(encoding="utf-8")
+    assistant = Path("src/ui/ai_assistant.py").read_text(encoding="utf-8")
 
     assert "st.segmented_control" in exploration
     assert "st.tabs" not in exploration
     assert "st.segmented_control" in advanced
     assert "st.tabs" not in advanced
+    assert 'key="ai_result_view"' in assistant
+    assert "st.tabs" not in assistant
+
+
+def test_theme_avoids_scroll_jank_regressions():
+    theme = Path("src/ui/theme.py").read_text(encoding="utf-8")
+    compact = theme.replace(" ", "")
+
+    assert "background-attachment:fixed" not in compact
+    assert "scroll-behavior:smooth" not in compact
+    assert "backdrop-filter:none" in compact

@@ -90,6 +90,9 @@ class GeminiClient(LLMClient):
                 )
                 content = interaction.output_text or ""
                 if not content.strip():
+                    if attempt < self.settings.llm_max_retries:
+                        time.sleep(0.25 * (attempt + 1))
+                        continue
                     raise LLMResponseError("Gemini returned an empty structured response.")
                 parsed = response_model.model_validate_json(content)
                 elapsed = (time.perf_counter() - started) * 1000
@@ -133,8 +136,13 @@ class GeminiClient(LLMClient):
                 raise LLMResponseError("Gemini is unreachable. The local analytics fallback will be used.") from exc
             except LLMResponseError:
                 raise
-            except (ValidationError, json.JSONDecodeError, genai_errors.APIError) as exc:
+            except (ValidationError, json.JSONDecodeError) as exc:
+                if attempt < self.settings.llm_max_retries:
+                    time.sleep(0.25 * (attempt + 1))
+                    continue
                 raise LLMResponseError("Gemini returned an invalid structured response.") from exc
+            except genai_errors.APIError as exc:
+                raise LLMResponseError("Gemini could not complete the structured request.") from exc
         raise LLMResponseError("The Gemini request could not be completed.")
 
 

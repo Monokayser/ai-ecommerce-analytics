@@ -117,6 +117,20 @@ class GeneratedQuery(StrictModel):
     """Structured output required from the query-planning LLM."""
 
     interpreted_question: str
+    analysis_type: Literal[
+        "summary",
+        "ranking",
+        "trend",
+        "comparison",
+        "distribution",
+        "relationship",
+        "anomaly",
+        "data_quality",
+        "contribution",
+        "growth",
+        "detail",
+    ] = "summary"
+    plan_steps: list[str] = Field(default_factory=list, max_length=6)
     query_language: Literal["duckdb_sql", "pandas"] = "duckdb_sql"
     query: str
     columns_used: list[str]
@@ -124,6 +138,8 @@ class GeneratedQuery(StrictModel):
     aggregation: str | None = None
     recommended_chart: str = "table"
     reason: str = Field(max_length=300)
+    assumptions: list[str] = Field(default_factory=list, max_length=4)
+    suggested_followups: list[str] = Field(default_factory=list, max_length=4)
 
 
 class NarrativeResponse(StrictModel):

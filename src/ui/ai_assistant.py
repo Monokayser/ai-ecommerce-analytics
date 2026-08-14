@@ -50,6 +50,16 @@ CAPABILITIES = [
         "Investigate high-discount orders associated with losses.",
         "Find unusual orders with high discounts and negative profit.",
     ),
+    (
+        "📈 Growth & Momentum",
+        "Calculate reproducible month-over-month sales growth.",
+        "Calculate monthly sales growth and show the previous-period comparison.",
+    ),
+    (
+        "🧭 Data Quality Audit",
+        "Check missing values and duplicate records before making decisions.",
+        "Audit data quality, missing values, and exact duplicate records.",
+    ),
 ]
 
 FOLLOW_UPS = [
@@ -205,23 +215,37 @@ def _render_response_toolbar(bundle: DatasetBundle, last: dict[str, Any] | None)
         '<div class="response-heading"><div><div class="section-kicker">Evidence workspace</div><h3>🤖 Verified response</h3></div><span class="trust-pill safe">✓ Read-only</span></div>',
         unsafe_allow_html=True,
     )
-    save_column, word_column, pdf_column = st.columns(3)
+    save_column, report_column, status_column = st.columns([1, 1.35, 1])
     if not last:
         save_column.button("Save response", disabled=True, width="stretch", help="Save this response in the current session")
-        word_column.button("Download Word", disabled=True, width="stretch", help="Download a Word report")
-        pdf_column.button("Download PDF", disabled=True, width="stretch", help="Download a PDF report")
+        report_column.button("Prepare Word + PDF", disabled=True, width="stretch", help="Prepare verified reports")
+        status_column.button("Reports unavailable", disabled=True, width="stretch")
         return
     if save_column.button("Save response", width="stretch", key="save_ai_response", help="Save this response in the current session"):
         _save_last_response(last)
         st.toast("Verified response saved in this session", icon="✅")
-    try:
-        payload = _report_payload(bundle, last)
-        cache_key = _report_cache_key(payload)
-        cached = st.session_state.get("ai_report_files")
-        if not cached or cached.get("key") != cache_key:
-            word, pdf = _generate_report_files(payload)
-            cached = {"key": cache_key, "word": word, "pdf": pdf}
-            st.session_state["ai_report_files"] = cached
+    payload = _report_payload(bundle, last)
+    cache_key = _report_cache_key(payload)
+    cached = st.session_state.get("ai_report_files")
+    if cached and cached.get("key") != cache_key:
+        cached = None
+        st.session_state.pop("ai_report_files", None)
+    if report_column.button(
+        "Prepare Word + PDF",
+        width="stretch",
+        key="prepare_ai_reports",
+        help="Reports are generated only when requested so normal interactions stay fast.",
+    ):
+        try:
+            with st.spinner("Building the verified report package..."):
+                word, pdf = _generate_report_files(payload)
+                cached = {"key": cache_key, "word": word, "pdf": pdf}
+                st.session_state["ai_report_files"] = cached
+        except Exception as exc:
+            st.caption(f"Report downloads are temporarily unavailable. {type(exc).__name__}.")
+    if cached:
+        status_column.success("Reports ready")
+        word_column, pdf_column = st.columns(2)
         word, pdf = cached["word"], cached["pdf"]
         word_column.download_button(
             "Download Word",
@@ -239,10 +263,8 @@ def _render_response_toolbar(bundle: DatasetBundle, last: dict[str, Any] | None)
             width="stretch",
             help="Download a PDF report",
         )
-    except Exception as exc:
-        word_column.button("Download Word", disabled=True, width="stretch", help="Word export is temporarily unavailable")
-        pdf_column.button("Download PDF", disabled=True, width="stretch", help="PDF export is temporarily unavailable")
-        st.caption(f"Report downloads are temporarily unavailable. {type(exc).__name__}.")
+    else:
+        status_column.caption("Generated on demand")
 
 
 def _render_last_result(last: dict[str, Any], pipeline: NLQueryPipeline) -> None:
@@ -262,13 +284,27 @@ def _render_last_result(last: dict[str, Any], pipeline: NLQueryPipeline) -> None
         f'<article class="answer-card ai-chat-assistant" aria-label="Verified assistant answer"><div class="ai-chat-avatar" aria-hidden="true">✦</div><div class="ai-chat-assistant-content"><div class="answer-eyebrow">Verified assistant answer</div><h3>{escape(narrative.direct_answer)}</h3><p>{escape(narrative.analysis)}</p><div class="trust-row"><span class="trust-pill safe">✓ Query validated</span><span class="trust-pill">{escape(str(last.get("pipeline_metrics", {}).get("analysis_mode", "Balanced")))} mode</span><span class="trust-pill">Read-only dataset access</span><span class="trust-pill">Evidence grounded</span><span class="trust-pill">{len(result.data):,} result rows</span></div></div></article>',
         unsafe_allow_html=True,
     )
-    answer_tab, chart_tab, data_tab, evidence_tab = st.tabs(["✦ Answer", "⌁ Chart", "▦ Data", "✓ How it was verified"])
-    with answer_tab:
+    result_view = st.segmented_control(
+        "Result workspace",
+        ["Answer", "Chart", "Data", "Verification"],
+        default="Answer",
+        required=True,
+        key="ai_result_view",
+        width="stretch",
+        help="Only the selected workspace is rendered to keep the agent fast and responsive.",
+    )
+    if result_view == "Answer":
         st.subheader("Key findings")
         for finding in narrative.key_findings:
             st.markdown(f"- {finding}")
+        if generated.plan_steps:
+            with st.expander("Completed analysis plan", expanded=False):
+                for index, step in enumerate(generated.plan_steps, start=1):
+                    st.markdown(f"{index}. {step}")
+        if generated.assumptions:
+            st.warning("Assumptions · " + " · ".join(generated.assumptions))
         st.info("Limitation · " + narrative.limitations)
-    with chart_tab:
+    elif result_view == "Chart":
         if result.data.empty:
             render_empty("A chart needs at least one result row.")
         else:
@@ -281,7 +317,7 @@ def _render_last_result(last: dict[str, Any], pipeline: NLQueryPipeline) -> None
             if figure is None:
                 st.dataframe(result.data, width="stretch", hide_index=True)
             else:
-                st.plotly_chart(figure, width="stretch")
+                st.plotly_chart(figure, width="stretch", config={"displaylogo": False, "responsive": True, "scrollZoom": False})
                 st.caption(narrative.chart_caption)
                 if st.button("Prepare chart downloads", width="stretch", key="prepare_ai_chart_exports"):
                     try:
@@ -299,7 +335,7 @@ def _render_last_result(last: dict[str, Any], pipeline: NLQueryPipeline) -> None
                     first, second = st.columns(2)
                     first.download_button("Download PNG", png, "ai_query_chart.png", "image/png", width="stretch")
                     second.download_button("Download SVG", svg, "ai_query_chart.svg", "image/svg+xml", width="stretch")
-    with data_tab:
+    elif result_view == "Data":
         if result.data.empty:
             render_empty("The verified analysis returned no matching rows.")
         else:
@@ -311,7 +347,7 @@ def _render_last_result(last: dict[str, Any], pipeline: NLQueryPipeline) -> None
                 "text/csv",
                 width="stretch",
             )
-    with evidence_tab:
+    else:
         metrics = last.get("pipeline_metrics", pipeline.last_run_metrics)
         cards = st.columns(3)
         cards[0].metric("Answer detail", str(metrics.get("analysis_mode", "Balanced")))
@@ -332,10 +368,13 @@ def _render_last_result(last: dict[str, Any], pipeline: NLQueryPipeline) -> None
                 {
                     "analysis engine": metrics.get("mode", pipeline.mode_label),
                     "model": metrics.get("model", pipeline.model_label),
+                    "analysis type": generated.analysis_type,
+                    "plan steps": generated.plan_steps,
                     "columns used": generated.columns_used,
                     "filters used": generated.filters_used,
                     "operation": generated.aggregation,
                     "chart rationale": generated.reason,
+                    "assumptions": generated.assumptions,
                 }
             )
 
@@ -409,8 +448,15 @@ def _run_question(
 
 def _render_followups(last: dict[str, Any]) -> None:
     st.markdown("#### Continue the investigation")
-    columns = st.columns(4)
-    for column, (label, configured_question) in zip(columns, FOLLOW_UPS, strict=False):
+    generated_questions = list(getattr(last.get("generated"), "suggested_followups", []) or [])[:3]
+    actions = [("↻ Repeat", None)] + [
+        (question if len(question) <= 28 else question[:27].rstrip() + "…", question)
+        for question in generated_questions
+    ]
+    if len(actions) < 4:
+        actions.extend(FOLLOW_UPS[1 : 1 + (4 - len(actions))])
+    columns = st.columns(len(actions))
+    for column, (label, configured_question) in zip(columns, actions, strict=False):
         question = str(last.get("question", "")) if configured_question is None else configured_question
         if column.button(label, help=question, width="stretch", key=f"followup_{label}"):
             st.session_state["pending_ai_question"] = question

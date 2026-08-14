@@ -46,6 +46,43 @@ def test_offline_planner_builds_monthly_trend(ecommerce_frame):
     assert list(result.data.columns) == ["Period", "Total Sales", "Total Profit"]
 
 
+@pytest.mark.parametrize(
+    ("question", "analysis_type", "expected_columns"),
+    [
+        ("Calculate monthly sales growth.", "growth", {"Period", "Total Sales", "Previous Sales", "Sales Growth Percent"}),
+        ("Show the distribution and quartiles of sales.", "distribution", {"Sample_Size", "Median Sales", "Q1 Sales", "Q3 Sales"}),
+        ("Show each region's contribution to total sales.", "contribution", {"Region", "Total Sales", "Sales Share Percent"}),
+        ("Compare profit margin by region.", "comparison", {"Region", "Total Sales", "Total Profit", "Profit Margin Percent"}),
+        ("Audit data quality, missing values, and exact duplicate records.", "data_quality", {"Row_Count", "Exact_Duplicate_Count"}),
+    ],
+)
+def test_offline_agent_executes_advanced_analytics_intents(ecommerce_frame, question, analysis_type, expected_columns):
+    generated = OfflineQueryPlanner(ecommerce_frame).plan(question)
+    result = QueryEngine(ecommerce_frame).execute(generated.query)
+
+    assert generated.analysis_type == analysis_type
+    assert generated.plan_steps
+    assert expected_columns.issubset(result.data.columns)
+
+
+def test_offline_agent_supports_multi_dimension_multi_metric_tasks(ecommerce_frame):
+    generated = OfflineQueryPlanner(ecommerce_frame).plan("Compare sales and profit by region and product category.")
+    result = QueryEngine(ecommerce_frame).execute(generated.query)
+
+    assert generated.columns_used == ["Region", "Product Category", "Sales", "Profit"]
+    assert {"Region", "Product Category", "Total Sales", "Total Profit", "Sample_Size"}.issubset(result.data.columns)
+
+
+def test_offline_agent_resolves_short_follow_up_from_verified_history(ecommerce_frame):
+    generated = OfflineQueryPlanner(ecommerce_frame).plan(
+        "Now by product category",
+        history="Q: Show total sales by region.\nQuery: SELECT 1\nAnswer: West leads.",
+    )
+
+    assert generated.columns_used == ["Product Category", "Sales"]
+    assert generated.analysis_type == "comparison"
+
+
 def test_pipeline_without_key_returns_grounded_answer(ecommerce_frame):
     settings = Settings(openai_api_key="")
     pipeline = NLQueryPipeline(settings, None, PromptRepository(settings.prompts_path), {})

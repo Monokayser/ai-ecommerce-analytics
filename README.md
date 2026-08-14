@@ -7,12 +7,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-0F766E.svg)](LICENSE)
 [![GitHub repository](https://img.shields.io/badge/GitHub-Public-22C55E?logo=github)](https://github.com/Monokayser/ai-ecommerce-analytics)
 [![Production CI](https://github.com/Monokayser/ai-ecommerce-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/Monokayser/ai-ecommerce-analytics/actions/workflows/ci.yml)
-[![Build v1.12.4](https://img.shields.io/badge/build-v1.12.4-39E6BD)](https://beah4wbufhqjqgzanubteb.streamlit.app/)
+[![Build v1.13.0](https://img.shields.io/badge/build-v1.13.0-39E6BD)](https://beah4wbufhqjqgzanubteb.streamlit.app/)
 [![Live application](https://img.shields.io/badge/Live%20App-Open-39E6BD?logo=streamlit&logoColor=white)](https://beah4wbufhqjqgzanubteb.streamlit.app/)
 
 A production-style Streamlit capstone that turns e-commerce files into secure, filter-aware dashboards, natural-language analytics, advanced analysis, and downloadable reports. It works immediately without an API key and upgrades to real-time Gemini planning when a free Gemini API key is configured.
 
-Current verification: 104 Python tests passing, 87.88% measured coverage, dependency audits clear, local Chromium E2E passing, and CI enforcing the complete browser/container/production matrix.
+Current verification: 119 Python tests passing with 87.21% measured coverage, dependency audits clear, 11/11 local Chromium E2E checks passing, and CI enforcing the complete browser/container/production matrix.
 
 ![AI-Powered E-Commerce Analytics dashboard using the responsive aurora-terrain executive theme](docs/assets/dashboard-overview-aurora.png)
 
@@ -23,18 +23,19 @@ Current verification: 104 Python tests passing, 87.88% measured coverage, depend
 ## What it does
 
 - Loads validated CSV, JSON, and Parquet uploads up to a configurable 200 MB limit.
-- Uses a responsive aurora-terrain interface with a large, equally spaced six-feature workspace grid, click-to-Home product mark, fully theme-matched emerald filters, dimensional glass surfaces, data-driven animated telemetry rails, and purposeful hover motion—with accessible reduced-motion behavior.
+- Uses a responsive aurora-terrain interface with a large, equally spaced six-feature workspace grid, click-to-Home product mark, fully theme-matched emerald filters, dimensional surfaces, lightweight hover motion, and a repaint-safe scrolling path with accessible reduced-motion behavior.
 - Preserves raw data, cleans a working copy, resolves aliases, profiles every column, and records each cleaning action.
 - Queries data through DuckDB with parameterized filters, row limits, timing, and a 10-second interrupt guard.
 - Provides a persistent lower-right chat launcher on every page. A user can delegate an analytical outcome in natural language; the autonomous agent plans, validates, executes, selects a visualization, explains the evidence, and prepares result/report downloads in one workflow.
-- Supports capability presets, live pipeline-stage feedback, Fast/Balanced/Deep response modes, saved responses, verified follow-ups, visible safety evidence, and a deterministic private fallback.
+- Supports summaries, rankings, two-dimensional and multi-metric comparisons, trends, growth, contribution, profit-margin, distribution, relationship, anomaly, and data-quality tasks; contextual follow-ups; capability presets; live pipeline-stage feedback; Fast/Balanced/Deep modes; and a deterministic private fallback.
+- Lazily renders the selected assistant result workspace and generates charts and reports only when requested, keeping normal navigation and mouse-wheel scrolling responsive.
 - Parses generated SQL with sqlglot and accepts only one read-only `SELECT`/`WITH` query on the registered `dataset` table.
 - Includes six application sections and nine Plotly visualization workspaces with time-range controls, hierarchy drill-down, grouped/stacked switching, selectable relationship measures, configurable WebGL axes, a verified 3D profit terrain, fixed-range animation, anomaly detection, subset comparison, and Word/PDF/PNG/SVG export.
 - Displays pipeline stages, the validated query, timing, retry/fallback status, and verified evidence—never hidden reasoning.
 
 ## Why Gemini 3.6 Flash
 
-Gemini 3.6 Flash is the default hosted planner because it is a stable, low-latency model with native JSON Schema structured output and an API free tier suitable for development and small projects. Fast mode uses one low-effort hosted planning pass plus a local computed summary; Balanced uses medium planning and a concise AI narrative; Deep raises model effort and narrative detail for harder investigations. See [docs/model_selection.md](docs/model_selection.md) for the decision matrix and privacy notes.
+Gemini 3.6 Flash is the default hosted planner because it is a stable, low-latency model designed for agentic work and supports structured outputs, function calling, thinking levels, and a large context window. Fast mode uses one low-effort hosted planning pass plus a local computed summary; Balanced uses medium planning and a concise AI narrative; Deep raises model effort and narrative detail for harder investigations. See [docs/model_selection.md](docs/model_selection.md) for the decision matrix, task pipeline, and privacy notes.
 
 No key is required to use the platform. If Gemini is not configured, rate-limited, or unavailable, the same validated query pipeline automatically uses the deterministic local planner and tells the user that fallback occurred.
 
@@ -150,7 +151,7 @@ Because the repository is public, Streamlit Community Cloud makes the deployed a
 
 Cross-browser behavior, responsive breakpoints, accessibility controls, performance budgets, container hardening, and scaling guidance are documented in [docs/production_hardening.md](docs/production_hardening.md).
 
-Production uses build `v1.12.4`. The footer exposes a machine-verifiable `data-app-version` marker used by the six-hour scheduled smoke check. See [production readiness](docs/production_readiness.md), [deployment and rollback](docs/deployment.md), and the [v1.12.4 notes](docs/release-v1.12.4.md).
+Production uses build `v1.13.0`. The footer exposes a machine-verifiable `data-app-version` marker used by the six-hour scheduled smoke check. See [production readiness](docs/production_readiness.md), [deployment and rollback](docs/deployment.md), and the [v1.13.0 notes](docs/release-v1.13.0.md).
 
 ```powershell
 docker build -t ai-ecommerce-analytics .
