@@ -209,7 +209,7 @@ test.describe("local production interface", () => {
     await expect(app.getByText(/What should the agent accomplish/i)).toBeVisible();
   });
 
-  test("keeps wheel scrolling on a repaint-safe path", async ({ page }) => {
+  test("keeps wheel scrolling on a repaint-safe path", async ({ page }, testInfo) => {
     const app = await openApplication(page);
     const main = app.locator('[data-testid="stMain"]');
     const presentation = await app.evaluate(() => {
@@ -223,6 +223,11 @@ test.describe("local production interface", () => {
       };
     });
     expect(presentation).toEqual({ scrollBehavior: "auto", backgroundScrolls: true, headerBackdrop: "none" });
+
+    // Mobile WebKit exposes touch scrolling and intentionally has no desktop
+    // mouse-wheel API. Its CSS path is still verified above; pointer projects
+    // additionally exercise a real wheel gesture below.
+    if (testInfo.project.name === "mobile-safari") return;
 
     await main.hover();
     await page.mouse.wheel(0, 480);
